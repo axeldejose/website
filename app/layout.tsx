@@ -25,10 +25,12 @@ export const metadata: Metadata = {
     template: "%s — Axel De José",
   },
   description:
-    "Balayage, babylight, tinte y tratamientos de reparación. Precios claros según el largo de tu cabello. Agenda por WhatsApp.",
+    "Balayage, babylight, tinte y tratamientos de reparación en la Condesa, CDMX. Escríbeme por WhatsApp y lo vemos juntos.",
   openGraph: {
     locale: "es_MX",
     type: "website",
+    description:
+      "Balayage, babylight, tinte y tratamientos de reparación en la Condesa, CDMX. Escríbeme por WhatsApp y lo vemos juntos.",
   },
   robots: {
     index: true,

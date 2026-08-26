@@ -32,7 +32,7 @@ export const CATEGORIES: Category[] = [
   {
     slug: "color",
     name: "Color",
-    intro: "El precio depende del largo de tu cabello. Dime el tuyo y te muestro cuánto sería.",
+    intro: "El precio va por rango porque cada melena es distinta. Abajo te explico de qué depende.",
     services: [
       {
         slug: "balayage",

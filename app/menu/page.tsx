@@ -29,15 +29,13 @@ export default function ServiciosPage() {
           Aquí está todo lo que puedo hacer por tu melena. Cuéntame qué
           buscas y lo vemos juntos.
         </p>
-
-        <div className="mt-6">
-          <GuiaLargos />
-        </div>
       </aside>
 
       <div className="pb-28 lg:pb-0">
         <div className="mt-10 flex flex-col gap-14 lg:mt-0 lg:gap-16">
           <CategoriaCarta category={color} />
+
+          <GuiaLargos />
 
           <Link
             href="/menu/tratamientos"
@@ -50,9 +48,9 @@ export default function ServiciosPage() {
           </Link>
 
           <p className="border-t border-clay pt-6 text-sm text-casa">
-            Precios en pesos mexicanos. En color son estimados: el precio
-            final lo confirmamos juntos, según cómo esté tu cabello.
-            Sujetos a cambio sin previo aviso.
+            Precios en pesos mexicanos. El precio final de un servicio de
+            color lo confirmamos juntos antes de empezar. Sujetos a cambio
+            sin previo aviso.
           </p>
         </div>
       </div>
