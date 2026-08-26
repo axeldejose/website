@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { site, waLink } from "@/lib/site";
 import { IconoSocial } from "@/components/IconoSocial";
+import { Logo } from "@/components/Logo";
 
 export default function Home() {
   return (
@@ -10,13 +11,11 @@ export default function Home() {
           Hair artist · {site.location}
         </p>
 
-        <h1 className="mt-4 font-display text-5xl text-tierra sm:text-6xl">
-          Axel
-          <br />
-          <span className="italic text-dune-deep">De José</span>
+        <h1 className="mt-6">
+          <Logo title="Axel De José" className="h-auto w-[70%] text-tierra lg:max-w-[380px]" />
         </h1>
 
-        <p className="mt-6 max-w-xs text-casa">
+        <p className="mt-8 max-w-xs text-casa">
           Mi trabajo es que te veas y te sientas increíble. Encontremos
           juntos el color y el corte que van contigo.
         </p>
