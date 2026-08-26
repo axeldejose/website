@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { site, waLink } from "@/lib/site";
+import { IconoSocial } from "@/components/IconoSocial";
 
 export default function Home() {
   return (
@@ -34,6 +35,18 @@ export default function Home() {
           </li>
 
           <li>
+            <Link
+              href="/menu/tratamientos"
+              className="flex min-h-11 items-center justify-between rounded-lg border border-clay bg-shell-lift/40 px-5 py-3 text-sm uppercase tracking-widest text-tierra transition-colors duration-150 hover:border-dune"
+            >
+              Tratamientos
+              <span aria-hidden="true" className="text-dune">
+                →
+              </span>
+            </Link>
+          </li>
+
+          <li>
             <a
               href={waLink("Hola Axel, me gustaría agendar una cita.")}
               target="_blank"
@@ -46,18 +59,20 @@ export default function Home() {
               </span>
             </a>
           </li>
+        </ul>
+      </nav>
 
+      <nav aria-label="Redes sociales" className="mt-4 lg:mt-6">
+        <ul className="flex items-center gap-3">
           <li>
             <a
               href={site.social.tiktok}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex min-h-11 items-center justify-between rounded-lg border border-clay bg-shell-lift/40 px-5 py-3 text-sm uppercase tracking-widest text-tierra transition-colors duration-150 hover:border-dune"
+              aria-label="Axel De José en TikTok"
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-casa transition-colors duration-150 hover:text-dune-deep focus-visible:text-dune-deep"
             >
-              TikTok
-              <span aria-hidden="true" className="text-dune">
-                ↗
-              </span>
+              <IconoSocial red="tiktok" className="h-5 w-5" />
             </a>
           </li>
 
@@ -66,12 +81,10 @@ export default function Home() {
               href={site.social.instagram}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex min-h-11 items-center justify-between rounded-lg border border-clay bg-shell-lift/40 px-5 py-3 text-sm uppercase tracking-widest text-tierra transition-colors duration-150 hover:border-dune"
+              aria-label="Axel De José en Instagram"
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-casa transition-colors duration-150 hover:text-dune-deep focus-visible:text-dune-deep"
             >
-              Instagram
-              <span aria-hidden="true" className="text-dune">
-                ↗
-              </span>
+              <IconoSocial red="instagram" className="h-5 w-5" />
             </a>
           </li>
         </ul>
