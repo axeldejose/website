@@ -16,21 +16,33 @@ export function ServiceRow({ service }: ServiceRowProps) {
         aria-label={`Escríbele a Axel por WhatsApp sobre ${service.name}`}
         className="group block px-1 py-4 transition-colors duration-150 hover:bg-shell-lift"
       >
-        <div className="flex items-baseline justify-between gap-4">
-          <span className="font-display text-base text-tierra">{service.name}</span>
+        {/*
+          Grid en vez de flex: el precio debe quedar fijo junto al nombre
+          (fila 1, columna 2) sin robarle ancho a nota/copy, que ocupan las
+          dos columnas en las filas siguientes. El auto-placement de grid
+          coloca nota/copy en la fila que corresponda aunque no haya nota.
+        */}
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-4 lg:max-w-[640px]">
+          <span className="col-start-1 row-start-1 font-display text-base text-tierra">
+            {service.name}
+          </span>
 
-          <span className="text-dune-deep">
+          <span className="col-start-2 row-start-1 w-36 shrink-0 whitespace-nowrap text-right text-dune-deep">
             {service.min === service.max
               ? mxn(service.min)
               : `${mxn(service.min)} – ${mxn(service.max)}`}
           </span>
+
+          {service.note && (
+            <p className="col-span-2 mt-1 text-xs uppercase text-casa lg:col-span-1">
+              {service.note}
+            </p>
+          )}
+
+          <p className="col-span-2 mt-2 text-sm text-casa lg:col-span-1">
+            {service.copy}
+          </p>
         </div>
-
-        {service.note && (
-          <p className="mt-1 text-xs uppercase text-casa">{service.note}</p>
-        )}
-
-        <p className="mt-2 max-w-prose text-sm text-casa">{service.copy}</p>
 
         <span
           aria-hidden="true"

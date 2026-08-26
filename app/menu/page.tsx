@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CATEGORIES } from "@/data/services";
 import { CategoriaCarta } from "@/components/CategoriaCarta";
+import { ContactoAside } from "@/components/ContactoAside";
 import { GuiaLargos } from "@/components/GuiaLargos";
 
 export const metadata: Metadata = {
@@ -29,6 +30,8 @@ export default function ServiciosPage() {
           Aquí está todo lo que puedo hacer por tu melena. Cuéntame qué
           buscas y lo vemos juntos.
         </p>
+
+        <ContactoAside />
       </aside>
 
       <div className="pb-28 lg:pb-0">

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CATEGORIES } from "@/data/services";
 import { CategoriaCarta } from "@/components/CategoriaCarta";
+import { ContactoAside } from "@/components/ContactoAside";
 
 export const metadata: Metadata = {
   title: "Tratamientos",
@@ -28,6 +29,8 @@ export default function TratamientosPage() {
           Cuando tu melena necesita recuperarse, estos son los tratamientos
           con los que trabajo.
         </p>
+
+        <ContactoAside />
       </aside>
 
       <div className="pb-28 lg:pb-0">
