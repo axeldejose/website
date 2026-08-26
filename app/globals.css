@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+/* Paleta oficial de marca. Tema claro. */
+@theme {
+  --color-tierra: #2a1d14; /* texto principal y rellenos oscuros */
+  --color-shell: #e9dfc6; /* fondo del sitio */
+  --color-shell-lift: #f2eada; /* superficies elevadas y estados hover. Derivado aclarado de shell, no es color oficial de marca */
+  --color-dune: #a05035; /* acento de marca. Solo texto grande o decoración. NUNCA texto pequeño sobre shell, no pasa contraste */
+  --color-dune-deep: #8a4229; /* variante oscurecida de dune, para rellenos con texto claro encima. Derivado, no es color oficial */
+  --color-verde: #737b4c; /* acento secundario. Solo texto grande o decoración */
+  --color-clay: #b88d6a; /* bordes, líneas y divisores. PROHIBIDO como color de texto, no pasa contraste */
+  --color-casa: #7c563d; /* texto secundario y de apoyo */
+
+  --font-display: var(--font-display-google), serif;
+  --font-body: var(--font-body-google), sans-serif;
+}
+
+body {
+  background: var(--color-shell);
+  color: var(--color-tierra);
+  font-family: var(--font-body);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-dune-deep);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
