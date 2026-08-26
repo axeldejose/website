@@ -2,7 +2,7 @@
 
 Sitio de un hair artist en CDMX. Reemplaza por completo un WordPress (Elementor + JupiterX) que solo funcionaba en móvil.
 
-**Objetivo único de la página:** que alguien llegue desde TikTok o Instagram, entienda cuánto le va a costar su servicio, y abra WhatsApp para agendar. Todo lo que no sirva a eso, no va.
+**Objetivo único de la página:** que alguien que llega desde TikTok o Instagram sepa qué servicios ofrece Axel, en qué rango de precio se mueven, y le escriba por WhatsApp para definir el suyo. La conversión es la conversación, no el número en pantalla. Todo lo que no sirva a eso, no va.
 
 ## Stack
 
@@ -15,56 +15,53 @@ Sitio de un hair artist en CDMX. Reemplaza por completo un WordPress (Elementor 
 
 ## Rutas
 
-- `/` — Landing. Reemplaza a la vieja `/m/`. Nombre, tagline y 4 accesos: carta, WhatsApp, TikTok, Instagram.
-- `/menu` — La carta completa. Color y tratamientos como dos secciones de la MISMA página.
+- `/` — Landing. Reemplaza a la vieja `/m/`. Nombre, tagline, tres enlaces (Mis servicios, Tratamientos, Hablemos por WhatsApp) y un nav aparte de redes con TikTok e Instagram como iconos.
+- `/menu` — La carta de color.
+- `/menu/tratamientos` — Tratamientos. Ruta propia, no una sección de `/menu`.
 
 ### Redirects (obligatorios, en next.config.ts)
 
 - `/m` → `/` — 301 permanente
-- `/menu/tratamientos` → `/menu` — 301 permanente
 
-Axel repartió el link de `/m/` en su bio de TikTok. Si se rompe, se rompe su único canal de captación. Estos redirects no son opcionales.
+Axel repartió el link de `/m/` en su bio de TikTok. Si se rompe, se rompe su único canal de captación. Este redirect no es opcional.
 
 ## Datos
 
-`data/services.ts` es la única fuente de verdad de precios. Está tipado y exporta las categorías, el helper de precio por largo y el formateador de MXN.
+`data/services.ts` es la única fuente de verdad de precios. Está tipado y exporta los tipos, `LENGTHS`, `CATEGORIES` y el formateador `mxn`.
 
 **Ningún precio se escribe en un componente.** Si un número aparece hardcodeado en JSX, es un bug.
 
 Actualizar precios = editar ese archivo y hacer push. No hay panel de admin y no se va a construir uno.
 
-## El elemento firma: selector de largo
+## Precios de color: siempre en rango
 
-Los servicios de color tienen rango de precio porque dependen del largo del cabello. En el sitio viejo eso vivía en un popup que casi nadie abría, y la clienta se quedaba viendo "$3,100 – $5,900" sin saber cuál le tocaba.
+Los servicios de color tienen rango de precio porque dependen del largo del cabello, del tipo de cabello y del estado en que llegue la clienta. En el sitio viejo eso vivía en un popup que casi nadie abría, y la clienta se quedaba viendo "$3,100 – $5,900" sin saber qué esperar.
 
-Aquí el selector sube al inicio de `/menu` y **toda la carta se recalcula** al elegir. Cuatro tramos: corto, medio, largo, extra largo.
+**El sitio no calcula precios.** No hay ni va a haber un cálculo que le diga a la clienta "tu precio es X" — depende de demasiadas variables que solo se evalúan en persona. Los servicios de rango siempre muestran el rango completo (mínimo – máximo). Los de precio fijo (Retoque, Corte, todos los tratamientos) muestran un solo número. El precio final se define en consulta con Axel, nunca en el navegador.
 
-Reglas:
-
-- Sin largo elegido, los servicios de rango muestran el rango completo, no un precio inventado.
-- Los servicios de precio fijo (Retoque, Corte, todos los tratamientos) nunca cambian, sin importar el largo.
-- El precio calculado se etiqueta como estimado. Nunca se presenta como cerrado — el precio real se confirma en consulta.
-- El estado vive en la página con useState. No hay persistencia ni URL param a menos que se pida explícitamente.
+`GuiaLargos` (en `/menu`) es puramente informativo: explica los cuatro tramos (corto, mediano, largo, extra largo) con su referencia anatómica, para que la clienta entienda de qué depende el rango. No es un control — es un Server Component sin estado ni interactividad, no recalcula nada.
 
 ## Diseño
 
 Móvil primero, pero **escritorio no es la versión móvil estirada** — ese fue exactamente el error del sitio anterior.
 
-- Móvil: una columna. Selector arriba, carta debajo, barra fija de WhatsApp al pie.
-- Escritorio (breakpoint lg): dos columnas. Panel izquierdo sticky con nombre, contexto y selector de largo. Columna derecha con la carta corriendo. Sin barra fija — ahí el selector siempre está visible.
+- Móvil: una columna. Carta, `GuiaLargos` después de la lista de color, barra fija de WhatsApp al pie.
+- Escritorio (breakpoint lg): dos columnas. Panel izquierdo sticky con back-link, título, bajada y `ContactoAside`. Columna derecha con la carta y `GuiaLargos`. Sin barra fija — el panel izquierdo ya tiene el mismo CTA de WhatsApp vía `ContactoAside`.
 
 ### Tokens
 
 Viven en `app/globals.css` dentro de @theme. Todo color y tipografía sale de ahí. **Ningún hex suelto en un componente.**
 
-PENDIENTE: los valores actuales son provisionales. Faltan los códigos oficiales de marca y la definición de tipografías. No pulir el diseño visual hasta que el PM los entregue.
+La paleta de color es definitiva: tierra, shell, dune, dune-deep, verde, clay, casa. `shell-lift` y `dune-deep` son derivados de trabajo (superficies elevadas/hover y rellenos con texto claro encima, respectivamente) — no son colores oficiales de la paleta de marca.
+
+PENDIENTE: las tipografías (Bodoni Moda / Jost, vía next/font/google) siguen siendo provisionales hasta que el PM entregue las definitivas.
 
 ### Piso de calidad (no negociable)
 
 - Responsive real de 360px en adelante
 - Foco de teclado visible en todo lo interactivo
 - prefers-reduced-motion respetado
-- Contraste AA mínimo sobre el fondo oscuro
+- Contraste AA mínimo sobre el fondo claro
 - lang="es-MX" en el html (el sitio viejo declaraba en-US)
 
 ## WhatsApp
@@ -72,10 +69,8 @@ PENDIENTE: los valores actuales son provisionales. Faltan los códigos oficiales
 Único canal de conversión. No hay formularios, no hay calendario, no hay email.
 
 - Formato wa.me con mensaje prellenado, no wa.link acortado
-- Cada servicio de la carta enlaza con su propio mensaje: "Hola Axel, quiero agendar {servicio}."
+- Cada servicio de la carta enlaza con su propio mensaje: "Hola Axel, me interesa {servicio}."
 - El número y los mensajes viven en `lib/site.ts`
-
-PENDIENTE: número real de WhatsApp. El placeholder en lib/site.ts no sirve — verificarlo antes de cualquier deploy a producción.
 
 ## Copy
 
@@ -100,4 +95,4 @@ Cualquier decisión sobre precios, servicios, copy de marca, paleta o tipografí
 
 ## Fuera de alcance
 
-Blog, e-commerce, reservas con calendario, login de clientas, multi-idioma, modo claro. Si se piden, se cotizan aparte.
+Blog, e-commerce, reservas con calendario, login de clientas, multi-idioma, modo oscuro. Si se piden, se cotizan aparte.
