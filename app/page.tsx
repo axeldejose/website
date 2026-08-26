@@ -5,7 +5,7 @@ import { Logo } from "@/components/Logo";
 
 export default function Home() {
   return (
-    <div className="mx-auto flex min-h-dvh max-w-6xl flex-col justify-center px-4 py-16 sm:px-6 lg:grid lg:grid-cols-2 lg:items-center lg:gap-16 lg:px-8 lg:py-0">
+    <div className="mx-auto flex min-h-dvh max-w-6xl flex-col justify-center px-6 py-16 lg:grid lg:grid-cols-2 lg:items-center lg:gap-16 lg:px-8 lg:py-0">
       <div>
         <p className="text-xs uppercase tracking-widest text-dune-deep">
           Hair artist · {site.location}

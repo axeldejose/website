@@ -16,7 +16,7 @@ export default function TratamientosPage() {
       <aside className="lg:sticky lg:top-8 lg:self-start">
         <Link
           href="/menu"
-          className="inline-block text-xs uppercase tracking-widest text-casa transition-colors duration-150 hover:text-dune-deep"
+          className="inline-flex min-h-11 items-center rounded-lg border border-clay px-4 text-xs uppercase tracking-widest text-tierra transition-colors duration-150 hover:border-dune-deep"
         >
           ← Mis servicios
         </Link>
