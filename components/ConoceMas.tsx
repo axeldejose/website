@@ -6,7 +6,7 @@ import { useRef } from "react";
 // Usa el <dialog> nativo: showModal() da foco atrapado, cierre con Escape y
 // devolución de foco al botón al cerrar de forma automática. El clic en el
 // backdrop se cierra comparando el target con el propio <dialog>.
-export function ConoceMas() {
+export function ConoceMas({ className = "" }: { className?: string }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   const open = () => dialogRef.current?.showModal();
@@ -21,7 +21,7 @@ export function ConoceMas() {
       <button
         type="button"
         onClick={open}
-        className="text-xs uppercase tracking-widest text-white transition-opacity duration-150 hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dune-deep"
+        className={`flex min-h-[40px] items-center justify-center rounded-full border border-white/50 bg-white/10 px-3 text-xs text-shell-lift transition-colors duration-150 hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dune-deep ${className}`}
       >
         Conóceme más <span aria-hidden="true">→</span>
       </button>

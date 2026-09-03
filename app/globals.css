@@ -36,3 +36,19 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* Reflejo de vidrio de las tarjetas: la banda entra desde fuera, cruza en
+   diagonal y descansa fuera de la tarjeta el resto del ciclo. Sus fotogramas
+   0% y 100% quedan off-screen, así con prefers-reduced-motion (que fija la
+   animación a un frame) la banda no se ve estática. */
+@keyframes card-shine {
+  0% {
+    transform: translateX(-120%);
+  }
+  55% {
+    transform: translateX(120%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
