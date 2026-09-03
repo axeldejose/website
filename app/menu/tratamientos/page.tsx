@@ -16,9 +16,10 @@ export default function TratamientosPage() {
       <aside className="lg:sticky lg:top-8 lg:self-start">
         <Link
           href="/menu"
-          className="inline-flex min-h-11 items-center rounded-lg border border-clay px-4 text-xs uppercase tracking-widest text-tierra transition-colors duration-150 hover:border-dune-deep"
+          className="inline-flex min-h-11 items-center rounded-lg border border-clay bg-shell-lift px-4 text-xs uppercase tracking-widest text-tierra transition-colors duration-150 hover:border-dune-deep"
         >
-          ← Mis servicios
+          <span aria-hidden="true" className="mr-2">←</span>
+          Atrás
         </Link>
 
         <h1 className="mt-4 font-display text-4xl text-tierra sm:text-5xl">
