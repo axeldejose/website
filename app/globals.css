@@ -52,3 +52,63 @@ body {
     transform: translateX(120%);
   }
 }
+
+/* Muestrario de tinte (solo categoría Color): franja que recorre los siete
+   tokens de marca de oscuro a claro, tierra -> shell. Usa las variables del
+   tema, sin hexes sueltos. El degradado ocupa el doble del ancho (200%) y su
+   posición se desplaza lento y continuo, así los tonos parecen recorrer la
+   franja. La regla global de prefers-reduced-motion neutraliza la animación
+   (duración 0.01ms), dejando la franja estática. */
+.hair-swatch {
+  background-image: linear-gradient(
+    to right,
+    var(--color-tierra),
+    var(--color-dune-deep),
+    var(--color-dune),
+    var(--color-casa),
+    var(--color-clay),
+    var(--color-shell-lift),
+    var(--color-shell)
+  );
+  background-size: 200% 100%;
+  background-position: 0% 50%;
+  animation: hair-swatch-drift 11s ease-in-out infinite;
+}
+
+@keyframes hair-swatch-drift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Empujón sutil y continuo de la flecha del botón "Atrás": se desplaza un poco
+   a la izquierda y regresa, para sugerir "volver" sin texto. La regla global de
+   prefers-reduced-motion la neutraliza (duración 0.01ms). */
+@keyframes back-nudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(-3px);
+  }
+}
+
+/* Entrada suave del contenido del acordeón al expandir. Su duración la
+   neutraliza la regla de prefers-reduced-motion de arriba (0.01ms). */
+@keyframes accordion-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
