@@ -89,6 +89,10 @@ Sin emojis en el sitio.
 - Commits en español, imperativo: "agrega selector de largo"
 - Vercel genera preview por PR — revisar ahí en móvil real antes de mergear
 
+### Control de versiones
+
+Control de versiones: nunca ejecutes git add, git commit, git push, git checkout, git branch, git merge, git reset, git revert ni ninguna operación que altere el historial o el estado del repositorio. Alejandro maneja todo el control de versiones manualmente en terminal. Tu trabajo termina cuando los archivos quedan modificados en el working tree. Si crees que un cambio amerita un commit, dilo en tu reporte y detente ahí — no lo ejecutes. Sí puedes usar comandos de solo lectura como git status, git diff o git log cuando necesites entender el estado del repositorio.
+
 ## Decisiones de negocio y marca
 
 Cualquier decisión sobre precios, servicios, copy de marca, paleta o tipografía se detiene y se pregunta al PM. No se elige por cuenta propia.
