@@ -73,6 +73,7 @@ export function CategoriaCarta({
             key={service.slug}
             service={service}
             index={index}
+            beige={isColor}
             isOpen={openSlug === service.slug}
             onToggle={() =>
               setOpenSlug((current) =>

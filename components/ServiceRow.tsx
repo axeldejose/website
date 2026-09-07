@@ -9,13 +9,25 @@ type ServiceRowProps = {
   index: number;
   isOpen: boolean;
   onToggle: () => void;
+  // Tinte beige (clay) en vez del dune oscuro. Solo /menu (color).
+  beige?: boolean;
 };
 
-// Tonos alternos, variaciones sutiles del mismo tinte cálido (dune) para que
-// las cajas vecinas no se vean idénticas. Todas conservan el efecto de cristal.
-const BACKGROUNDS = ["bg-dune/8", "bg-dune/12", "bg-dune/16"];
+// Tonos alternos, variaciones sutiles del mismo tinte cálido para que las cajas
+// vecinas no se vean idénticas. Todas conservan el efecto de cristal.
+// Beige (clay): opacidades altas pero por debajo del techo donde el texto crema
+// dejaría de pasar contraste sobre el fondo oscuro (clay/40 medido: desc 4.77).
+const BACKGROUNDS_BEIGE = ["bg-clay/30", "bg-clay/35", "bg-clay/40"];
+const BACKGROUNDS_DUNE = ["bg-dune/8", "bg-dune/12", "bg-dune/16"];
 
-export function ServiceRow({ service, index, isOpen, onToggle }: ServiceRowProps) {
+export function ServiceRow({
+  service,
+  index,
+  isOpen,
+  onToggle,
+  beige = false,
+}: ServiceRowProps) {
+  const backgrounds = beige ? BACKGROUNDS_BEIGE : BACKGROUNDS_DUNE;
   const panelId = `servicio-${service.slug}`;
   const price =
     service.min === service.max
@@ -27,7 +39,7 @@ export function ServiceRow({ service, index, isOpen, onToggle }: ServiceRowProps
     // borde claro), separadas por el gap del <ul>. Al expandirse, una guía
     // vertical de acento (crema) en el borde izquierdo marca la fila activa.
     <li
-      className={`relative overflow-hidden rounded-2xl border border-white/20 ${BACKGROUNDS[index % BACKGROUNDS.length]} backdrop-blur-md ${
+      className={`relative overflow-hidden rounded-2xl border border-white/20 ${backgrounds[index % backgrounds.length]} backdrop-blur-md ${
         isOpen ? "border-l-2 border-l-shell-lift" : ""
       }`}
     >

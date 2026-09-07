@@ -112,3 +112,108 @@ body {
     transform: translateY(0);
   }
 }
+
+/* ── Capa decorativa de /menu: la palabra "color" de fondo ──────────────────
+   Es textura, no texto. La usa solo app/menu/page.tsx.
+
+   RECORRIDO. Cruza el ANCHO COMPLETO del panel: entra recortada por el borde
+   derecho, atraviesa de lado a lado y sale recortada por el izquierdo. Con
+   translateX, que se compone en GPU y no recalcula layout.
+
+   La palabra arranca con `left: 100%`, o sea con su borde izquierdo pegado al
+   borde derecho del panel: en translateX(0) está entera fuera por la derecha.
+   El recorrido es (ancho del panel + 21.7rem de palabra: 345px con el
+   tracking de -0.05em), y el ancho del
+   panel entra por la variable --panel que fija app/menu/page.tsx: en móvil
+   calc(100vw - 3rem) -- el px-6 del contenedor a cada lado -- y en lg los
+   19rem de la columna. Así el recorrido se adapta al breakpoint y la palabra
+   sale por completo de los dos lados sin quedarse tiempo extra fuera de cuadro.
+   Al terminar, su borde derecho ya pasó el borde izquierdo del panel.
+
+   Duración 45s. El recorrido ahora depende del ancho del panel: 697px a 360px
+   de viewport (15.5 px/s) y 689px en lg (15.3 px/s), cerca de los 13.2 px/s
+   que tenía con la ventana angosta. La
+   pasada completa entra en el tiempo que alguien pasa de verdad en la página.
+   Historial, para no volver a repetirlo: 900s (0.82 px/s) era invisible, y
+   180s (3.3 px/s) se percibía pero la pasada tardaba 3 minutos y casi nadie
+   llegaba a verla. El movimiento sigue siendo `linear`, de ritmo constante.
+
+   El bucle no salta: en los dos extremos la palabra queda por completo fuera
+   de la ventana, así que el reinicio ocurre sin nada en pantalla.
+
+   ESCALA. 10rem (160px), avance de "color" 385px. La ventana es el ancho
+   completo del panel, así que a media pasada la palabra cabe entera y se lee
+   "color". Fue una decisión explícita: es decorativa, tono sobre tono y en
+   movimiento, así que no compite con el encabezado COLOR de la sección.
+   Rondas anteriores la mantuvieron ilegible acotando la ventana a 208px; si
+   alguna vez hay que volver a eso, los umbrales medidos del archivo de la
+   fuente son estos. Rangos de tinta por letra, en em desde el origen:
+
+     c 0.052-0.460   o 0.561-1.019   l 1.107-1.367   o 1.455-1.913   r 2.001-2.380
+
+   Para que k letras coincidan hace falta una ventana mayor que la distancia
+   del fin de tinta de la primera al inicio de la k-ésima: 3 letras > 0.436 em,
+   4 letras > 0.982 em, 5 letras > 1.5415 em (246.6px a 160px de cuerpo).
+
+   prefers-reduced-motion: la regla global de arriba fija duración 0.01ms y una
+   iteración. Sin animation-fill-mode el elemento vuelve a su base, transform
+   none, o sea translateX(0): estática y recortada por el borde derecho. */
+@keyframes color-traverse {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-1 * (var(--panel) + 21.7rem)));
+  }
+}
+
+.color-deriva {
+  animation: color-traverse 45s linear infinite;
+}
+
+/* GRANO Y PRESENCIA. La máscara va en el contenedor, que está QUIETO, y la
+   palabra se desplaza por debajo: el grano se rasteriza una sola vez y el
+   efecto de composición/descomposición sale del movimiento que ya existe.
+   Ninguna propiedad de la máscara se anima, así que cuesta cero por fotograma.
+
+   mix-blend-mode: multiply es lo que le da presencia. El color por sí solo ya
+   estaba a opacidad plena y no daba más: `tierra` (42,29,20) es el token más
+   oscuro de la paleta y el fondo de esta franja mide (82,48,22), así que
+   compuesto por alfa el desplazamiento de píxel topaba en 22/255. Multiplicando
+   en vez de componiendo, el resultado es fondo x tierra y el mismo tono rinde
+   mucho más oscuro. Va en el contenedor y no en la palabra: la máscara ya crea
+   un stacking context aquí, y desde dentro la palabra quedaría aislada del
+   fondo de la página y el multiply no tendría con qué mezclarse.
+   Oscurecer el fondo solo sube el contraste del texto claro que va encima.
+
+   Dos capas de máscara compuestas con intersect:
+   1. Ruido (feTurbulence type='turbulence') en mosaico de 180px, con
+      stitchTiles para que no marque costuras. turbulence y no fractalNoise:
+      medí la luminancia de las dos y fractalNoise sale con distribución muy
+      estrecha y sesgada a claro (p10 0.67, p50 0.81, sin ceros), así que
+      amplificarla solo satura el blanco. turbulence con dos octavas da p10
+      0.50, p50 0.69, p90 0.87 y ceros reales: eso es lo que se percibe como
+      grano. baseFrequency 0.13 -> motas de unos 8px.
+   2. Un degradado horizontal que se desvanece en los dos bordes de la ventana.
+      Al multiplicarse por el ruido, la entrada y la salida ocurren grano por
+      grano: las motas tenues caen bajo el umbral de percepción antes que las
+      densas, y la palabra se compone y descompone en partículas en vez de
+      fundirse en bloque. */
+.color-grano {
+  --grano: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.13' numOctaves='2' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='1.8' intercept='0'/%3E%3CfeFuncG type='linear' slope='1.8' intercept='0'/%3E%3CfeFuncB type='linear' slope='1.8' intercept='0'/%3E%3CfeFuncA type='discrete' tableValues='1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)'/%3E%3C/svg%3E");
+  mix-blend-mode: multiply;
+  mask-image: var(--grano),
+    linear-gradient(
+      to right,
+      transparent 0%,
+      #000 12%,
+      #000 88%,
+      transparent 100%
+    );
+  mask-mode: luminance, alpha;
+  mask-size:
+    180px 180px,
+    100% 100%;
+  mask-repeat: repeat, no-repeat;
+  mask-composite: intersect;
+}
