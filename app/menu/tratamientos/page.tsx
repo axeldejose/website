@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CATEGORIES } from "@/data/services";
 import { CategoriaCarta } from "@/components/CategoriaCarta";
+import { waLink } from "@/lib/site";
 import { ContactoAside } from "@/components/ContactoAside";
 
 export const metadata: Metadata = {
@@ -77,6 +78,25 @@ export default function TratamientosPage() {
             <p>Precios en pesos mexicanos.</p>
             <p>Sujetos a cambios sin previo aviso.</p>
           </div>
+        </div>
+      </div>
+      {/* Barra fija de WhatsApp (móvil). Estaba en app/menu/layout.tsx, que
+          esta ruta comparte con /menu; se movió aquí SIN CAMBIARLA cuando /menu
+          pasó a llevar su botón en flujo, dentro de la pieza del cierre. Para
+          esta pantalla nada cambia: mismo marcado, mismas clases, misma
+          posición. */}
+      <div className="fixed inset-x-0 bottom-0 z-10 border-t border-white/20 bg-black/40 backdrop-blur-lg lg:hidden">
+        <div className="mx-auto max-w-6xl px-6 py-3">
+          <a
+            href={waLink(
+              "Hola Axel, vi tus servicios y quiero agendar una cita.",
+            )}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block rounded-lg bg-dune-deep px-4 py-3 text-center text-sm uppercase tracking-widest text-shell-lift transition-colors duration-150 hover:bg-dune"
+          >
+            Escríbeme por WhatsApp
+          </a>
         </div>
       </div>
     </>

@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
-import { CATEGORIES } from "@/data/services";
+import { CATEGORIES, CORTE_Y_ESTILO } from "@/data/services";
 import { CategoriaCarta } from "@/components/CategoriaCarta";
+import { ConoceMas } from "@/components/ConoceMas";
 import { ContactoAside } from "@/components/ContactoAside";
-import { GuiaLargos } from "@/components/GuiaLargos";
+import { MechonEntrada } from "@/components/MechonEntrada";
+import { site, waLink } from "@/lib/site";
+import { GaleriaCliente } from "@/components/GaleriaCliente";
 
 export const metadata: Metadata = {
   title: "Mis servicios",
@@ -124,20 +126,13 @@ export default function ServiciosPage() {
             que no hereda su mix-blend-mode: multiply. Verificado en pantalla que
             toda su cadena de ancestros mide mix-blend-mode: normal y opacity 1.
 
-            Decorativo: aria-hidden aquí y alt vacío en la imagen. */}
-        <span
-          aria-hidden="true"
-          className="mechon-ventana pointer-events-none absolute overflow-hidden"
-        >
-          <Image
-            src="/mechon.webp"
-            alt=""
-            width={600}
-            height={829}
-            sizes="(min-width: 1024px) 15rem, 12rem"
-            className="absolute left-0 top-0 h-auto w-48 max-w-none lg:w-60"
-          />
-        </span>
+            LA ENTRADA AL CARGAR vive en components/MechonEntrada.tsx, que es
+            un componente de cliente por una razón medida: la animación tiene que
+            empezar cuando el bitmap está listo, no cuando carga el documento.
+            Ahí está el detalle.
+
+            Decorativo: aria-hidden en la ventana y alt vacío en la imagen. */}
+        <MechonEntrada />
 
         <div className="relative">
           {/* Resplandor suave detrás del título: blob difuminado, cálido
@@ -252,7 +247,6 @@ export default function ServiciosPage() {
               </span>
             </span>
           </h1>
-
         </div>
 
         {/* Columna de texto angosta, a 31ch = 260px. Ensanchada desde 26ch
@@ -323,18 +317,29 @@ export default function ServiciosPage() {
               Cuéntame qué buscas y lo resolvemos juntos.
             </span>
           </p>
-
         </div>
 
-        {/* FILA DE LA REGLA Y EL REGRESO.
+        {/* FILA DEL MUESTRARIO Y EL REGRESO.
 
-            La regla es marca de sección, no divisor: 4rem = 64px (un 25% de los
-            260px de la columna de texto), con cuerpo -- 3px contra el 1px de
-            antes -- y en `dune`, el acento cálido de la paleta. El ml-[5px] y el
-            mt-5 son los que tenía cuando vivía dentro de la columna de texto,
-            así que arranca en el mismo eje óptico del titular y de la bajada y
-            conserva sus 20px de aire por arriba. Salió de esa columna solo para
-            poder compartir fila con el botón; nada más cambió de sitio.
+            La regla sólida de 3px en `dune` que vivía aquí se fue, y en su lugar
+            entró el MUESTRARIO DE TINTE que estaba bajo el encabezado del
+            disclaimer de rango: la misma clase .hair-swatch, el mismo alto (h-2)
+            y el mismo rounded-full, así que conserva su degradado de los siete
+            tokens y su deriva lenta. El efecto no depende del ancho: la
+            animación desplaza `background-position` sobre un degradado al 200%,
+            así que funciona igual en 242 que en 720px.
+
+            EL BOTÓN ABRE LA FILA, alineado con el eje izquierdo del contenido
+            -- el mismo ml-[5px] que comparten el titular, la bajada y esta fila
+            --, y el muestrario ocupa con flex-1 todo lo que queda a su derecha,
+            hasta el canto del panel. Es el orden invertido de lo que había: la
+            barra no quedó descolocada, cambió de lado y conserva su ancho,
+            porque en los dos casos mide el ancho de la fila menos el botón y el
+            hueco. Medido: 280px a 390 y 242 en lg, igual que antes.
+
+            El ml-[5px] y el mt-5 son los que tenía la regla cuando vivía dentro
+            de la columna de texto, así que la fila arranca en el mismo eje
+            óptico del titular y de la bajada y conserva sus 20px de aire.
 
             EL BOTÓN VA AQUÍ, junto a la regla y a su misma altura (items-center
             los centra sobre el mismo eje). No al canto derecho del panel: ahí
@@ -357,7 +362,6 @@ export default function ServiciosPage() {
             necesario porque esa regla no está en una capa y le gana a las
             utilidades de Tailwind. */}
         <div className="ml-[5px] mt-5 flex items-center gap-4">
-          <div aria-hidden="true" className="h-[3px] w-16 shrink-0 bg-dune" />
           <Link
             href="/"
             aria-label="Atrás"
@@ -370,6 +374,11 @@ export default function ServiciosPage() {
               ←
             </span>
           </Link>
+
+          <div
+            aria-hidden="true"
+            className="hair-swatch h-2 flex-1 rounded-full"
+          />
         </div>
 
         <ContactoAside />
@@ -377,8 +386,24 @@ export default function ServiciosPage() {
 
       {/* `relative` porque la capa decorativa ahora abarca el viewport y le
           pasa por encima en el eje y=0..112: al ser un elemento posicionado y
-          posterior en el DOM, esta columna vuelve a pintar por delante. */}
-      <div className="relative pb-28 lg:pb-0">
+          posterior en el DOM, esta columna vuelve a pintar por delante.
+
+          pb-8 y no pb-28: los 112px de antes reservaban el alto de la barra
+          fija de WhatsApp, que ya no existe en esta ruta porque su botón vive
+          dentro de la pieza del cierre. Quedan 32px de aire al final, más el
+          pb-4 del contenedor del layout.
+
+          min-w-0 es lo que impide que el carrusel infle la retícula. En lg esta
+          columna es el ítem de la pista `1fr`, y el tamaño mínimo automático de
+          un ítem de grid se calcula contra su contenido: el riel del carrusel
+          mide 12 176px y ese número subía por la cadena hasta aquí. Medido sin
+          él a 1280px, esta columna medía 12 080px -- diez veces el contenedor --
+          y la página ganaba 11 360px de desplazamiento horizontal. Con el
+          mínimo en cero la columna vuelve a medir lo que le da la retícula y es
+          la pista del carrusel la que recorta su contenido, que es su trabajo.
+          El mismo mínimo va en el envoltorio del carrusel, por la misma razón
+          una capa más abajo: los ítems flex también traen min-width auto. */}
+      <div className="relative min-w-0 pb-8 lg:pb-0">
         {/* mt-4: en móvil es el hueco entre la regla del panel y lo primero
             de esta columna, que ya no es el encabezado de sección sino el
             kicker. Junto con el mt-4 del propio kicker suma los 32px que lo
@@ -390,20 +415,312 @@ export default function ServiciosPage() {
               accesible vía aria-label, así que sigue anunciándose igual. */}
           <CategoriaCarta category={color} ocultarTitulo editorial />
 
-          <GuiaLargos />
+          {/* EL CARRUSEL DE TRABAJOS, Y ES LO QUE SEPARA LAS DOS CARTAS.
 
-          <Link
-            href="/menu/tratamientos"
-            className="flex min-h-11 items-center justify-between rounded-lg border border-white/30 bg-white/10 px-5 py-3 text-sm uppercase tracking-widest text-shell-lift backdrop-blur-sm transition-colors duration-150 hover:bg-white/20"
-          >
-            Ver tratamientos
-            <span aria-hidden="true">→</span>
-          </Link>
+              Aquí abajo se retiró el tratamiento de fondo que tenía la segunda
+              sección -- el velo de tierra con sus degradados --: la frontera la
+              marca ahora esta tira de fotografías, y marcarla dos veces era
+              redundante. La sección vuelve al fondo normal de la página, sin
+              capa propia, sin sangrado y sin relleno vertical extra: lo único
+              que la separa por arriba y por abajo son los 56px del gap de esta
+              columna (64 en lg), los mismos que hay entre cualquier par de
+              bloques.
 
-          <div className="border-t border-white/20 pt-6 text-sm text-shell-lift/90">
-            <p>Precios en pesos mexicanos.</p>
-            <p>Sujetos a cambios sin previo aviso.</p>
+              CÓMO SANGRA. En móvil sale a los dos cantos de la pantalla con
+              -ml-6/-mr-6, que es exactamente el px-6 del contenedor del layout.
+              En lg NO sale por la izquierda (lg:ml-0): ahí la retícula es de dos
+              columnas con el panel del encabezado sticky, y una tira a todo lo
+              ancho le pasaría por detrás. Por la derecha sí llega al canto con
+              max(2rem, 50vw - 34rem), que es el px-8 del contenedor más la
+              mitad de lo que sobra cuando el viewport pasa de 72rem. Así la
+              tira se lee como algo que continúa fuera de pantalla sin invadir
+              nada.
+
+              El relleno del riel es el complemento: px-6 en móvil y 0 por la
+              izquierda en lg, para que la primera tarjeta caiga en el mismo eje
+              que los nombres de las dos cartas.
+
+              min-w-0 NO ES DECORATIVO. En lg esta columna es un ítem de la
+              retícula, y el tamaño mínimo automático de un ítem se calcula
+              contra el contenido: la pista del carrusel mide 12 176px de riel,
+              y ese número subía por la cadena hasta la pista de 1fr. Medido sin
+              min-w-0 a 1280px: el contenedor con scroll acababa en x=12 640 y la
+              página ganaba 11 360px de desplazamiento horizontal. Con el mínimo
+              en cero, el ítem vuelve a medir lo que le da la retícula y la
+              pista recorta su contenido, que es su trabajo.
+
+              TARJETAS PEQUEÑAS, porque esto es una TIRA y no una galería. En
+              /galeria la tarjeta mide 62vw con tope de 17rem -- 242px en un
+              teléfono de 390 -- y ahí manda, porque el carrusel es el contenido
+              de la página. Aquí es un separador entre dos cartas, así que baja
+              a 30vw con tope de 9rem: 117px a 390 y 108 a 360, menos de la
+              mitad. Con eso entran tres fotografías completas más el canto de
+              la cuarta en la pantalla más estrecha del piso de calidad, y el
+              conjunto se lee como una secuencia de trabajos en vez de como
+              imágenes sueltas.
+
+              El `sizes` viaja con el ancho en la misma prop y no por separado:
+              si se cambia uno sin el otro, next/image sigue pidiendo el archivo
+              del tamaño anterior y el ahorro de red se pierde.
+
+              El componente es el mismo de /galeria, con su visor. Solo las
+              miniaturas cargan con la página; las completas se piden al abrir
+              una foto, y solo la activa con sus dos vecinas. */}
+          <div className="-ml-6 -mr-6 min-w-0 lg:ml-0 lg:-mr-[max(2rem,calc(50vw-34rem))]">
+            <GaleriaCliente
+              rellenoRiel="px-6 lg:pl-0 lg:pr-[max(2rem,calc(50vw-34rem))]"
+              tarjeta={{
+                clase: "w-[min(30vw,9rem)]",
+                sizes: "(min-width: 640px) 9rem, 30vw",
+              }}
+            />
           </div>
+
+          {/* SEGUNDA CARTA, SIN ENCABEZADO: las ondas, el corte y la salida a
+              tratamientos. Sobre el fondo normal de la página, como la lista de
+              color: lo que la distingue es la voz de sus nombres -- Jost a 36px
+              contra el Bodoni de 24 de arriba -- y el carrusel que la precede.
+
+              El kicker no se repite (sinKicker) y ninguna fila arranca abierta
+              (abrirPrimero={false}): el acordeón es exclusivo por categoría, así
+              que con las dos abriendo su primer servicio la página cargaba con
+              dos paneles desplegados.
+
+              -mt-6 IGUALA EL AIRE A LOS DOS LADOS DEL CARRUSEL. El gap de la
+              columna es el mismo por arriba y por abajo, pero entre las
+              tarjetas y esta carta se cuelan 24px que no son del gap: 8 del
+              pb-2 de la pista del carrusel y 16 del mt-4 que la lista trae de
+              fábrica sobre su primer renglón. Medido, quedaban 56px sobre las
+              tarjetas contra 80 debajo (64 contra 88 en lg). Con -mt-6 los dos
+              lados miden lo mismo. Va aquí y no quitando el pb-2, porque ese
+              vive en el componente del carrusel, que comparte con /galeria. */}
+          {/* LA ZONA DE LA SECCIÓN. El envoltorio sangra a los cantos y
+              devuelve el contenido a su eje con el relleno del mismo tamaño,
+              así que el texto no se mueve; en lg solo sangra 4rem por la
+              izquierda -- el gap entre columnas, donde muere la máscara -- y
+              hasta el canto de la pantalla por la derecha.
+
+              La capa del degradado va aparte y en -z-10: este contenedor es
+              `relative` con z-index auto, así que no crea contexto de
+              apilamiento y la capa negativa sube al contexto raíz, por encima
+              del fondo fijo del layout y por debajo de todo el contenido. La
+              receta y el perfil del degradado están en .zona-seccion. */}
+          <div className="relative -mt-6 -mx-6 px-6 pb-4 lg:-ml-16 lg:-mr-[max(2rem,calc(50vw-34rem))] lg:pl-16 lg:pr-[max(2rem,calc(50vw-34rem))]">
+            <div
+              aria-hidden="true"
+              className="zona-seccion pointer-events-none absolute inset-0 -z-10"
+            />
+            <CategoriaCarta
+              category={CORTE_Y_ESTILO}
+              ocultarTitulo
+              editorial
+              sinKicker
+              nombreEnCuerpo
+              abrirPrimero={false}
+            />
+
+            {/* LA SALIDA A TRATAMIENTOS, AL MISMO NIVEL QUE LOS SERVICIOS.
+
+                El texto toma el mismo tratamiento exacto que Wavys y Corte
+                dama: Jost, mismo cuerpo (24px), mismo peso (400), mismo
+                interletrado (-0.02em) y crema al 100%. Y el mismo relleno
+                vertical de sus renglones, py-4, para que la tarjeta quede
+                compacta. La caja alta se fue al crecer: a 30px con
+                interletrado de 0.25em, "TRATAMIENTOS" mediría unos 410px de
+                tinta y no cabría ni a 320 ni a 360px de pantalla.
+
+                LA FLECHA. Es el único acceso a esa página desde aquí, así que
+                deja de ser el glifo de 16px y pasa a ser un objeto dibujado de
+                64px de ancho: cuatro veces más. Tres decisiones:
+
+                  - HAIRLINE, NO ICONO. Trazo de 1.25px con remates redondos,
+                    el mismo grosor de la cruz del cierre del visor y el mismo
+                    lenguaje de dibujo que los cheurones de la carta. A 64px de
+                    largo, un trazo de 1px se rompería visualmente y uno de 2
+                    sería un icono de interfaz; 1.25 mantiene el peso óptico de
+                    la casa.
+                  - LA COLA SE DISUELVE. El asta lleva un degradado de opacidad
+                    en el propio trazo: arranca en 0 y llega a 1 en el 45% del
+                    recorrido. Eso es lo que la convierte en un objeto en
+                    movimiento -- una estela -- en vez de una raya con punta, y
+                    es lo que le da dirección aunque esté quieta.
+                  - LA PUNTA ES UNA V ABIERTA, el mismo cheurón que usa el
+                    acordeón, girado. No es un triángulo relleno: rellenarlo
+                    rompería el contraste de trazo que sostiene todo el resto de
+                    los signos de la página.
+
+                LA VIDA. Dos capas que se componen, y por eso van anidadas:
+
+                  1. DERIVA CONTINUA en el envoltorio (.flecha-avance, en
+                     globals.css): 6px de ida y vuelta en 2.6s con frenado
+                     largo. Sugiere avance sin llamar la atención, y con
+                     prefers-reduced-motion queda quieta en su sitio.
+                  2. RESPUESTA PROPIA en el SVG: 8px más adelante al pasar el
+                     cursor o al recibir foco de teclado, 14px al mantener
+                     pulsado, con transición de 200ms. Al vivir en otra capa se
+                     suma a la deriva en vez de pelearse con ella: dos transform
+                     en el mismo elemento se pisan y la animación gana siempre.
+
+                El realce de opacidad que tenía el renglón completo se retiró:
+                la respuesta ahora es de la flecha, y dos realces a la vez
+                competían.
+
+                Lo que la distingue de un servicio no es la tipografía sino la
+                estructura: donde los otros dos llevan precio y cheurón, este
+                lleva la flecha. Conserva su línea de un pelo, su py-6 -- 48px
+                de alto de toque en toda la fila, que es el enlace completo -- y
+                el ancho de la lista. */}
+            <Link
+              href="/menu/tratamientos"
+              className="group flex items-baseline justify-between gap-4 border-t border-shell-lift/15 py-4 font-body text-2xl font-normal tracking-[-0.02em] text-shell-lift focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-shell-lift! lg:max-w-[32rem]"
+            >
+              Tratamientos
+              <span
+                aria-hidden="true"
+                className="flecha-avance inline-block shrink-0 self-center"
+              >
+                <svg
+                  viewBox="0 0 64 14"
+                  fill="none"
+                  className="block h-3.5 w-16 transition-transform duration-200 ease-out group-hover:translate-x-2 group-focus-visible:translate-x-2 group-active:translate-x-3.5"
+                >
+                  <defs>
+                    {/* gradientUnits en coordenadas de usuario, no en la
+                        caja del objeto. Con el valor por omisión
+                        (objectBoundingBox) los topes se resuelven contra la
+                        caja delimitadora del trazo, y la de una línea
+                        horizontal tiene ALTURA CERO: por especificación, un
+                        degradado sobre una caja degenerada no se pinta, así que
+                        el asta desaparecía y solo quedaba la punta. Medido en
+                        pantalla antes de corregirlo. */}
+                    <linearGradient
+                      id="estela-tratamientos"
+                      gradientUnits="userSpaceOnUse"
+                      x1="0.75"
+                      y1="7"
+                      x2="57"
+                      y2="7"
+                    >
+                      <stop
+                        offset="0"
+                        stopColor="currentColor"
+                        stopOpacity="0"
+                      />
+                      <stop
+                        offset="0.45"
+                        stopColor="currentColor"
+                        stopOpacity="1"
+                      />
+                    </linearGradient>
+                  </defs>
+                  <path
+                    d="M0.75 7H57"
+                    stroke="url(#estela-tratamientos)"
+                    strokeWidth="1.25"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M51.5 1.75L57.25 7L51.5 12.25"
+                    stroke="currentColor"
+                    strokeWidth="1.25"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+            </Link>
+          </div>
+
+          {/* ─────────────────────────────────────────────────────────────
+              CIERRE: EL RECUADRO Y EL BOTÓN DE WhatsApp, UNA SOLA PIEZA.
+
+              Cuatro elementos y ninguno más: la ubicación, la nota de precios,
+              el botón que abre la biografía y el botón de WhatsApp.
+
+              EL BOTÓN DE WhatsApp ES EL QUE YA EXISTÍA. Vivía como barra fija
+              al pie en app/menu/layout.tsx: mismo enlace, mismo mensaje
+              prellenado, mismo relleno de `dune-deep`, mismo cuerpo en versalita
+              espaciada y mismo texto. Lo único que se le quitó es lo que
+              impedía la unión: su radio propio -- ahora lo recorta el del
+              contenedor -- y la barra que lo envolvía, con sus 12px de relleno
+              y su borde superior blanco, que era literalmente una costura.
+
+              Y tuvo que salir del layout, porque ese layout lo comparte
+              /menu/tratamientos: una barra fija al viewport no se puede unir a
+              un recuadro que se desplaza con la página. El marcado se movió sin
+              cambiarlo a cada pantalla -- aquí en flujo, allá como barra fija --
+              así que /menu/tratamientos no cambia en nada.
+
+              CÓMO SE UNEN: son dos zonas del MISMO contenedor. El
+              overflow-hidden hace que su radio recorte los cantos del botón, y
+              entre las dos no hay nada: ni borde, ni divisor, ni hueco. El
+              contorno de 1px es el de la pieza completa, no una línea entre
+              partes.
+
+              EL VIDRIO ES NEUTRO: no lleva relleno de color. Lo que lo hace
+              vidrio es el desenfoque de fondo -- que alisa el grano y el
+              viñeteo de la fotografía y ya se lee como un panel -- más el
+              contorno cálido de clay al 20%, apenas perceptible. Sin blanco
+              puro en ninguna capa y sin realce en los cantos: ni sombra
+              interior, ni degradado de brillo.
+
+              El anillo de foco del botón de WhatsApp va por dentro
+              (-outline-offset con marca de importancia): el overflow-hidden
+              recorta lo que se pinte fuera de la caja, y además la regla global
+              de :focus-visible fija el offset en 2px sin estar en una capa. De
+              paso el anillo pasa a crema: en su versión de barra heredaba el
+              dune-deep de la regla global, que sobre un relleno dune-deep es
+              invisible.
+              ───────────────────────────────────────────────────────────── */}
+          <footer className="-mt-8 overflow-hidden rounded-2xl border border-clay/20 backdrop-blur-xl lg:max-w-[32rem]">
+            <div className="px-4 py-4 lg:px-6 lg:py-5">
+              {/* EL BOTÓN DE LA BIOGRAFÍA, CON FORMA PROPIA, Y LA UBICACIÓN.
+
+                  El componente es el de la landing, sin tocarlo, y aquí SE
+                  CONSERVA SU CÁPSULA: es lo que lo hace botón y no un enlace de
+                  texto. Lo que se reviste por la prop `className` -- que el
+                  componente ya expone -- son solo los tokens que no encajan en
+                  este recuadro:
+
+                    - el borde blanco al 50% y el relleno blanco al 10% pasan a
+                      contorno de clay al 30% sin relleno, porque aquí no va
+                      blanco puro y el vidrio es neutro;
+                    - el alto mínimo sube de 40 a 44px de acierto de toque;
+                    - el anillo de foco pasa de dune-deep a crema (el dune mide
+                      1.65:1 sobre este fondo, por debajo del mínimo de 3:1);
+                    - gap-1.5 repone el espacio entre el texto y su flecha, que
+                      en un contenedor flex se descarta por ser un nodo de solo
+                      espacio.
+
+                  Las marcas de importancia son obligatorias: en Tailwind, entre
+                  dos utilidades de la misma propiedad gana el orden de la hoja,
+                  no el del atributo. */}
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-3">
+                <ConoceMas className="gap-1.5! rounded-full! border-clay/30! bg-transparent! px-4! min-h-11! transition-colors! hover:bg-shell-lift/10! focus-visible:outline-shell-lift!" />
+
+                <p className="shrink-0 text-[11px] uppercase tracking-[0.25em] text-shell-lift/70">
+                  {site.location}
+                </p>
+              </div>
+
+              <p className="mt-4 text-[0.8125rem] leading-[1.3] text-shell-lift/85">
+                Precios en pesos mexicanos.
+                <br />
+                Sujetos a cambios sin previo aviso.
+              </p>
+            </div>
+
+            <a
+              href={waLink(
+                "Hola Axel, vi tus servicios y quiero agendar una cita.",
+              )}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block bg-dune-deep px-4 py-3 text-center text-sm uppercase tracking-widest text-shell-lift transition-colors duration-150 hover:bg-dune focus-visible:outline-2 focus-visible:-outline-offset-2! focus-visible:outline-shell-lift!"
+            >
+              Escríbeme por WhatsApp
+            </a>
+          </footer>
         </div>
       </div>
     </>

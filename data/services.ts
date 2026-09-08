@@ -58,26 +58,12 @@ export const CATEGORIES: Category[] = [
         copy: "Llegó el momento del color vibrante y duradero. Encontremos el tono perfecto para ti.",
       },
       {
-        slug: "wavys",
-        name: "Wavys",
-        min: 1100,
-        max: 2400,
-        copy: "Consigue las ondas perfectas. Démosle volumen y movimiento a tu cabello sin dañarlo.",
-      },
-      {
         slug: "retoque",
         name: "Retoque",
         min: 2400,
         max: 2400,
         note: "Únicamente raíces de 1 a 4 cm",
         copy: "Mantén tu color parejo entre visitas, sin tocar el resto del largo.",
-      },
-      {
-        slug: "corte-dama",
-        name: "Corte dama",
-        min: 890,
-        max: 890,
-        copy: "Renueva tu estilo a tu medida. Puedo diseñarlo adaptado a tu rostro o guiarme con tus preferencias.",
       },
     ],
   },
@@ -125,13 +111,60 @@ export const CATEGORIES: Category[] = [
   },
 ];
 
+// Los dos servicios de la carta de /menu que no son diseño de color: unas ondas
+// y un corte. Salieron de la categoría `color` porque ahí decían algo falso --
+// ninguno de los dos es un diseño de color -- y en la página se muestran en un
+// bloque aparte, sin encabezado, separado por aire y una regla.
+//
+// POR QUÉ NO ESTÁ EN CATEGORIES. /menu/tratamientos arma su contenido por
+// exclusión: toma de CATEGORIES todo lo que no sea "color", y oculta el título
+// de la categoría cuando queda una sola. Meter este grupo ahí le habría
+// aparecido en esa página como una segunda categoría, con encabezados incluidos.
+// Se exporta suelto para que /menu lo consuma sin tocar la otra ruta.
+//
+// El `name` no se pinta en ninguna parte: la sección va sin encabezado, y ese
+// texto solo existe como nombre accesible de la región (aria-label).
+export const CORTE_Y_ESTILO: Category = {
+  slug: "corte-y-estilo",
+  name: "Corte y estilo",
+  services: [
+    {
+      slug: "wavys",
+      name: "Wavys",
+      min: 1100,
+      max: 2400,
+      copy: "Consigue las ondas perfectas. Démosle volumen y movimiento a tu cabello sin dañarlo.",
+    },
+    {
+      slug: "corte-dama",
+      name: "Corte dama",
+      min: 890,
+      max: 890,
+      copy: "Renueva tu estilo a tu medida. Puedo diseñarlo adaptado a tu rostro o guiarme con tus preferencias.",
+    },
+  ],
+};
+
 // Nota al pie de las tarjetas cuyo precio es un rango. Es la misma para las
 // cuatro, así que vive aquí una sola vez en vez de repetirse servicio por
 // servicio. Adaptada de la intro de la categoría Color ("El precio va por rango
 // porque cada melena es distinta") para hablar de un servicio concreto y no del
 // conjunto. Las tarjetas de precio fijo no la muestran: ahí sería falsa.
-export const RANGE_NOTE =
-  "Este precio va por rango porque cada melena es distinta: depende de tu largo, tu tipo de cabello y cómo llegue. El exacto lo definimos juntos.";
+//
+// TRES IDEAS, TRES RENGLONES FIJOS. El corte entre ellas no depende del ancho
+// disponible: son tres cadenas y la fila las pinta en tres bloques separados.
+// Dentro de cada idea el texto sí envuelve si no cabe, que es lo que pasa en
+// pantallas angostas; lo que no cambia nunca es dónde empieza cada una.
+export const RANGE_NOTE_LINEAS = [
+  "Este precio va por rango porque cada melena es distinta:",
+  "Depende de tu largo, tu tipo de cabello y cómo llegue.",
+  "El exacto lo definimos juntos.",
+];
+
+// El párrafo corrido sale de las mismas tres cadenas para que no haya dos
+// copias del texto que se puedan desincronizar. Lo sigue consumiendo
+// ServiceRow, la fila de cristal de /menu/tratamientos.
+export const RANGE_NOTE = RANGE_NOTE_LINEAS.join(" ");
 
 export function mxn(n: number): string {
   return n.toLocaleString("es-MX", {

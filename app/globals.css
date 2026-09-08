@@ -53,13 +53,81 @@ body {
   }
 }
 
-/* Muestrario de tinte (hoy en GuiaLargos, bajo "¿Por qué el precio es un
-   rango?"): franja que recorre los siete
+/* Muestrario de tinte (en la fila del botón de regreso de /menu, ocupando el
+   hueco a su izquierda): franja que recorre los siete
    tokens de marca de oscuro a claro, tierra -> shell. Usa las variables del
    tema, sin hexes sueltos. El degradado ocupa el doble del ancho (200%) y su
    posición se desplaza lento y continuo, así los tonos parecen recorrer la
    franja. La regla global de prefers-reduced-motion neutraliza la animación
    (duración 0.01ms), dejando la franja estática. */
+/* LA ZONA DE LA SEGUNDA SECCIÓN DE /menu (Wavys, Corte dama, Tratamientos).
+   No es una tarjeta con canto: es un degradado que emerge del fondo y se funde
+   en él, sin borde, sin radio y sin ninguna línea que la recorte.
+
+   EL TONO es `clay` (#b88d6a), el beige de la paleta, el mismo del recuadro del
+   cierre que va justo debajo. Se eligió claro y no oscuro por dos razones: la
+   versión oscura ya se probó y se leía como un bloque pegado, y sobre un fondo
+   oscuro un velo claro se distingue más con menos material -- el escalón se
+   consigue con 14% de tinte en vez de 88%.
+
+   EL PERFIL VERTICAL tiene tres topes y ninguno es un canto:
+
+     0            clay al 0%   -> arranca invisible; no hay línea superior
+     2.5rem       clay al 14%  -> el punto más presente de la zona
+     100%         clay al 0%   -> se disuelve por completo antes del cierre
+
+   Es decir: aparece justo debajo del carrusel, se afirma en 40px y baja hasta
+   desaparecer. Los topes se mezclan con color-mix en oklab y no con la palabra
+   `transparent` suelta, que en sRGB interpola hacia negro transparente y mete
+   un escalón grisáceo en medio del desvanecido.
+
+   EN lg NO CRUZA LA PÁGINA. El layout es de dos columnas con el panel del
+   encabezado sticky; una zona a todo lo ancho le pasaría por detrás. La capa
+   arranca 64px a la izquierda del eje de la lista -- el ancho del gap entre
+   columnas -- y la máscara la lleva de 0 a opaca en esos mismos 64px, así que
+   vale 0 exactamente donde acaba el panel y está completa donde empieza la
+   primera letra. La máscara va en la capa y no en el contenedor: mask-image
+   afecta también a los descendientes y habría desvanecido el texto. */
+.zona-seccion {
+  background-image: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--color-clay) 0%, transparent) 0,
+    color-mix(in oklab, var(--color-clay) 14%, transparent) 2.5rem,
+    color-mix(in oklab, var(--color-clay) 0%, transparent) 100%
+  );
+}
+
+@media (width >= 64rem) {
+  .zona-seccion {
+    mask-image: linear-gradient(to right, transparent 0, black 4rem);
+  }
+}
+
+/* CARRUSEL DE LA GALERÍA: la pista de desplazamiento.
+   El giro automático se escribe en scrollLeft desde JS (CarruselGaleria), así
+   que esto solo se ocupa de tres cosas que no se pueden resolver con
+   utilidades de Tailwind:
+
+   - LA BARRA DE DESPLAZAMIENTO NO SE VE. Es una tira decorativa que se mueve
+     sola; una barra debajo la delataría como un contenedor con scroll y en
+     escritorio robaría alto a las tarjetas. El recorrido sigue siendo real y
+     operable con el dedo, la rueda y el tabulador.
+   - overscroll-behavior-x: contain. Sin esto, al llegar al canto el gesto
+     horizontal se propaga al navegador y en varios lo interpreta como "volver
+     atrás": el usuario se sale de la galería por arrastrar una foto.
+   - scroll-behavior: auto explícito. La costura del bucle salta una copia
+     entera escribiendo scrollLeft; con desplazamiento suave heredado, ese
+     salto se animaría y se vería. */
+.carrusel-pista {
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  scroll-behavior: auto;
+}
+
+.carrusel-pista::-webkit-scrollbar {
+  display: none;
+}
+
 .hair-swatch {
   background-image: linear-gradient(
     to right,
@@ -103,6 +171,36 @@ body {
 
 /* Entrada suave del contenido del acordeón al expandir. Su duración la
    neutraliza la regla de prefers-reduced-motion de arriba (0.01ms). */
+/* LA FLECHA DEL ACCESO A TRATAMIENTOS, en /menu.
+   Deriva continua hacia adelante: 6px de ida y vuelta en 2.6 segundos con una
+   curva de aceleración y frenado largos, así que no hay ningún instante en que
+   el ojo la vea "arrancar". Es la misma idea que back-nudge -- la flecha del
+   botón de regreso, que empuja 3px hacia la izquierda -- pero con el doble de
+   recorrido y un ciclo más lento, porque aquí la flecha mide 64px y no 16.
+
+   0% y 100% en cero, y eso es deliberado: la regla global de
+   prefers-reduced-motion fija animation-duration en 0.01ms con una sola
+   iteración, así que la animación salta a su fotograma final. Teniéndolo en
+   translateX(0), con movimiento reducido la flecha queda quieta en su sitio en
+   vez de congelada a medio camino. Es el mismo truco que usa card-shine.
+
+   La animación va en un envoltorio y no en el SVG: el realce de hover mueve el
+   SVG con una transición, y dos transform sobre el mismo elemento se pisan --
+   la animación gana siempre. En capas separadas se componen. */
+@keyframes flecha-avance {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(6px);
+  }
+}
+
+.flecha-avance {
+  animation: flecha-avance 2.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
 @keyframes accordion-in {
   from {
     opacity: 0;
@@ -264,6 +362,58 @@ body {
   }
 }
 
+/* ENTRADA DEL MECHÓN. Cae desde arriba mientras aparece, una sola vez.
+
+   No va ligada a la carga del documento sino al evento load de la imagen (ver
+   components/MechonEntrada.tsx): medido con la red estrangulada, el archivo
+   llega entre 0.8 y 17.5 segundos después del primer pintado según la conexión,
+   así que una animación que empezara a contar con el documento habría acabado
+   antes de que hubiera algo que animar.
+
+   SOLO transform y opacity, las dos propiedades que el compositor puede animar
+   sin volver a maquetar ni repintar. Ni alto, ni margen, ni posición: la
+   ventana es absoluta y de medidas fijas en CSS, y la imagen declara width y
+   height, así que el hueco está reservado desde el HTML del servidor y nada del
+   encabezado se mueve durante la entrada (medido: mismas coordenadas de la
+   tinta del titular y de la bajada antes, durante y después, y CLS 0).
+
+   RECORRIDO Y CURVA. 3rem (48px) de caída, un 18% del alto de la imagen: se
+   lee como que el pelo cae y no como que salta de sitio. La curva arranca
+   suave, acelera y frena largo -- cubic-bezier(0.22, 0.03, 0.2, 1) --, que es
+   lo que pide un remate sin detenerse en seco. Muestreado fotograma a fotograma
+   en el navegador: a la décima parte del tiempo ha recorrido un 8% del camino, a
+   la cuarta parte un 42%, a la mitad un 80%, y al 75% del tiempo ya solo le
+   queda un 4% por asentar. La opacidad termina antes que el movimiento (a los 55%), para
+   que el último tramo sea únicamente el asentamiento.
+
+   900ms es el total. No retrasa nada: la imagen es decorativa, absoluta y
+   aria-hidden, así que ni el texto ni la carta esperan por ella.
+
+   prefers-reduced-motion: la regla global de arriba deja la animación en
+   0.01ms y una iteración, y como el 100% de los keyframes es el estado final
+   -- opacidad 1 y sin desplazamiento --, el mechón aparece directamente en su
+   sitio. El estado base de la imagen también es el final, así que sin
+   JavaScript pasa lo mismo. */
+@keyframes mechon-caida {
+  from {
+    opacity: 0;
+    transform: translateY(-3rem);
+  }
+
+  55% {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mechon-entra {
+  animation: mechon-caida 900ms cubic-bezier(0.22, 0.03, 0.2, 1) both;
+}
+
 /* Ventana del mechón.
 
    Hace dos cosas y nada más: define la FRANJA LATERAL (su ancho es el ancho
@@ -365,11 +515,93 @@ body {
   }
 }
 
-/* Fondo del modal de largos. Tierra translúcido, no negro: el negro puro no
-   está en la paleta y sobre la foto cálida se vería como un agujero. */
+/* VENTANA DE LA GUÍA DE LARGOS: entrada y salida.
+
+   El <dialog> es un elemento que aparece y desaparece de golpe -- pasa de
+   display:none al top layer --, así que para animarlo hacen falta tres piezas:
+   el estado inicial con @starting-style, la transición de opacity, y `display`
+   y `overlay` con allow-discrete, que es lo que mantiene la ventana en el top
+   layer mientras corre la salida en vez de borrarla en el primer fotograma.
+
+   SOLO OPACIDAD, EN SU SITIO. Antes entraba y salía con
+   `translateY(10px) scale(0.98)`, y la escala era el problema: al cerrarse, la
+   ventana recorría 352x736 -> 345.8x723.1 px (medido fotograma a fotograma) y
+   la foto con ella, 307.9x547 -> 302.5x537.4. La proporción no cambiaba -- 0.5628
+   en todo el recorrido -- pero el ojo lee ese encogimiento del 2% como que la
+   ventana se contrae hacia el centro y como que la imagen se comprime, porque la
+   foto se está remuestreando mientras se desvanece. Sin transform, la caja mide
+   exactamente lo mismo en el primer y en el último fotograma de la animación, en
+   las dos direcciones.
+
+   GEOMETRÍA INDEPENDIENTE DE :modal. La hoja del navegador da al <dialog>
+   `position: absolute` y solo a `dialog:modal` le pone `position: fixed` con
+   max-width y max-height de calc(100% - 38px). Al quitarse el atributo open esa
+   regla deja de aplicar y el elemento vuelve a absolute con el porcentaje
+   resuelto contra su contenedor -- el panel del servicio, de 342px en móvil --
+   en vez del viewport: medido, `position` y `max-width` cambian en el mismo
+   fotograma en que entra display:none, así que hoy no se ve, pero es un cambio
+   de tamaño latente a un fotograma de distancia de ser visible. Fijar aquí
+   position, inset y los dos max-* deja la caja idéntica abierta y cerrada, y el
+   centrado lo sigue haciendo el m-auto de la utilidad.
+
+   La entrada va en 220ms y la salida en 180, más corta, porque esperar a que
+   algo se vaya se siente lento.
+
+   El fondo atenuado entra y sale con ella: tierra al 72% con blur de 8px --
+   translúcido, no negro, que no está en la paleta -- así que la página se sigue
+   viendo detrás.
+
+   prefers-reduced-motion: la regla global deja las transiciones en 0.01ms, así
+   que la ventana aparece y desaparece sin fundido. */
+.modal-largos {
+  position: fixed;
+  inset: 0;
+  max-width: none;
+  max-height: none;
+  opacity: 0;
+  transition:
+    opacity 180ms ease-in,
+    display 180ms allow-discrete,
+    overlay 180ms allow-discrete;
+}
+
+.modal-largos[open] {
+  opacity: 1;
+  transition:
+    opacity 220ms ease-out,
+    display 220ms allow-discrete,
+    overlay 220ms allow-discrete;
+}
+
+@starting-style {
+  .modal-largos[open] {
+    opacity: 0;
+  }
+}
+
 .modal-largos::backdrop {
   background: rgba(42, 29, 20, 0.72);
   backdrop-filter: blur(8px);
+  transition:
+    background-color 180ms ease-in,
+    backdrop-filter 180ms ease-in,
+    display 180ms allow-discrete,
+    overlay 180ms allow-discrete;
+}
+
+.modal-largos[open]::backdrop {
+  transition:
+    background-color 220ms ease-out,
+    backdrop-filter 220ms ease-out,
+    display 220ms allow-discrete,
+    overlay 220ms allow-discrete;
+}
+
+@starting-style {
+  .modal-largos[open]::backdrop {
+    background: rgba(42, 29, 20, 0);
+    backdrop-filter: blur(0);
+  }
 }
 
 .color-grano {

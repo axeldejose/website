@@ -15,17 +15,31 @@ type CategoriaCartaProps = {
   // con regla vertical (FilaEditorial). Solo /menu la pide; /menu/tratamientos
   // sigue con ServiceRow.
   editorial?: boolean;
+  // Oculta el kicker "Toca para descubrir cada servicio". Es una indicación de
+  // uso de la página, no de la categoría: con dos cartas en la misma página se
+  // repetía dos veces a media pantalla de distancia.
+  sinKicker?: boolean;
+  // Pasa los nombres de la lista a la tipografía de cuerpo y a 36px. Ver
+  // FilaEditorial.
+  nombreEnCuerpo?: boolean;
+  // Con false ninguna fila arranca abierta. El acordeón es exclusivo DENTRO de
+  // cada categoría, así que con dos en la misma página y las dos abriendo su
+  // primer servicio, /menu cargaba con dos paneles desplegados.
+  abrirPrimero?: boolean;
 };
 
 export function CategoriaCarta({
   category,
   ocultarTitulo = false,
   editorial = false,
+  sinKicker = false,
+  nombreEnCuerpo = false,
+  abrirPrimero = true,
 }: CategoriaCartaProps) {
   // Acordeón exclusivo: un solo servicio abierto a la vez dentro de la
-  // categoría. Arranca con el primero abierto.
+  // categoría. Arranca con el primero abierto, salvo que se pida lo contrario.
   const [openSlug, setOpenSlug] = useState<string | null>(
-    category.services[0]?.slug ?? null,
+    abrirPrimero ? (category.services[0]?.slug ?? null) : null,
   );
 
   const isColor = category.slug === "color";
@@ -34,19 +48,20 @@ export function CategoriaCarta({
   // Kicker editorial (nota discreta). En las categorías con intro va bajo ella,
   // a mt-4.
   //
-  // En Color no hay intro, ni barra de degradado (se movió a GuiaLargos), ni
-  // encabezado de sección (se quitó por repetir lo que dice la bajada): el
-  // kicker es lo único que hace de puente entre el bloque de encabezado y la
-  // carta, así que su espaciado es asimétrico a propósito. En móvil lleva
-  // mt-4, que sumado al mt-4 del contenedor de la columna da 32px por arriba
-  // contra 16px por abajo: al estar el doble de lejos del encabezado que de la
-  // lista, se lee como rótulo de la carta y no como una línea suelta entre dos
-  // bloques. En lg no hace falta (lg:mt-0) porque ahí esta columna es
-  // independiente y el kicker abre en su borde superior, a la altura del
-  // titular del panel.
+  // En Color no hay intro ni encabezado de sección (se quitó por repetir lo que
+  // dice la bajada): el kicker es lo único que hace de puente entre el bloque de
+  // encabezado y la carta.
+  //
+  // En móvil ya no lleva margen propio: el hueco es solo el mt-4 del contenedor
+  // de la columna, o sea 16px, contra los 32 que había cuando además llevaba su
+  // mt-4. Se pidió acercarlo al encabezado, y ahora está a la misma distancia
+  // del bloque de arriba (16px) que de la lista de abajo (el mt-4 del <ul>), así
+  // que pertenece a los dos por igual en vez de flotar más cerca de la carta.
+  // En lg no aplica (lg:mt-0) porque ahí esta columna es independiente y el
+  // kicker abre en su borde superior, a la altura del titular del panel.
   const kicker = (
     <p
-      className={`${isColor ? "mt-4 lg:mt-0" : "mt-4"} text-[11px] uppercase tracking-[0.25em] text-shell-lift/70`}
+      className={`${isColor ? "lg:mt-0" : "mt-4"} text-[11px] uppercase tracking-[0.25em] text-shell-lift/70`}
     >
       Toca para descubrir cada servicio
     </p>
@@ -66,7 +81,7 @@ export function CategoriaCarta({
         </h2>
       )}
 
-      {isColor && kicker}
+      {isColor && !sinKicker && kicker}
 
       {/* La intro es opcional: Color no la lleva. Con el título oculto el
           subtítulo ocupa el lugar del encabezado, sin margen superior, para
@@ -79,7 +94,7 @@ export function CategoriaCarta({
         </p>
       )}
 
-      {!isColor && kicker}
+      {!isColor && !sinKicker && kicker}
 
       {/* En editorial las filas van contiguas y divide-y pone la regla
           horizontal SOLO entre servicios (no arriba de la primera ni bajo la
@@ -111,6 +126,7 @@ export function CategoriaCarta({
               service={service}
               isOpen={openSlug === service.slug}
               onToggle={alternar}
+              nombreEnCuerpo={nombreEnCuerpo}
             />
           ) : (
             <ServiceRow
