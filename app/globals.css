@@ -53,7 +53,8 @@ body {
   }
 }
 
-/* Muestrario de tinte (solo categoría Color): franja que recorre los siete
+/* Muestrario de tinte (hoy en GuiaLargos, bajo "¿Por qué el precio es un
+   rango?"): franja que recorre los siete
    tokens de marca de oscuro a claro, tierra -> shell. Usa las variables del
    tema, sin hexes sueltos. El degradado ocupa el doble del ancho (200%) y su
    posición se desplaza lento y continuo, así los tonos parecen recorrer la
@@ -155,9 +156,7 @@ body {
    del fin de tinta de la primera al inicio de la k-ésima: 3 letras > 0.436 em,
    4 letras > 0.982 em, 5 letras > 1.5415 em (246.6px a 160px de cuerpo).
 
-   prefers-reduced-motion: la regla global de arriba fija duración 0.01ms y una
-   iteración. Sin animation-fill-mode el elemento vuelve a su base, transform
-   none, o sea translateX(0): estática y recortada por el borde derecho. */
+   prefers-reduced-motion: ver la regla dedicada más abajo. */
 @keyframes color-traverse {
   from {
     transform: translateX(0);
@@ -171,20 +170,43 @@ body {
   animation: color-traverse 45s linear infinite;
 }
 
+/* Con movimiento reducido la regla global de arriba deja la animación en
+   0.01ms y una iteración, así que el elemento vuelve a su estilo base. Ese base
+   es translateX(0), que con `left: 100%` deja la palabra entera FUERA de la
+   pantalla por la derecha: invisible. Este transform la fija en una posición
+   estática y recortada por el borde derecho, que es el comportamiento que se
+   pidió para movimiento reducido. Muestra unos 240px de los 345 del avance. */
+@media (prefers-reduced-motion: reduce) {
+  .color-deriva {
+    transform: translateX(-15rem);
+  }
+}
+
 /* GRANO Y PRESENCIA. La máscara va en el contenedor, que está QUIETO, y la
    palabra se desplaza por debajo: el grano se rasteriza una sola vez y el
    efecto de composición/descomposición sale del movimiento que ya existe.
    Ninguna propiedad de la máscara se anima, así que cuesta cero por fotograma.
 
-   mix-blend-mode: multiply es lo que le da presencia. El color por sí solo ya
-   estaba a opacidad plena y no daba más: `tierra` (42,29,20) es el token más
-   oscuro de la paleta y el fondo de esta franja mide (82,48,22), así que
-   compuesto por alfa el desplazamiento de píxel topaba en 22/255. Multiplicando
-   en vez de componiendo, el resultado es fondo x tierra y el mismo tono rinde
-   mucho más oscuro. Va en el contenedor y no en la palabra: la máscara ya crea
-   un stacking context aquí, y desde dentro la palabra quedaría aislada del
-   fondo de la página y el multiply no tendría con qué mezclarse.
-   Oscurecer el fondo solo sube el contraste del texto claro que va encima.
+   mix-blend-mode: screen, y el cambio de multiply a screen NO es opcional: es
+   lo que hace visible el tono claro. Multiply solo puede oscurecer -- el
+   resultado es fondo x color -- así que con `shell` (233,223,198) el factor es
+   0.91/0.87/0.78 y al 15% de alfa el desplazamiento de píxel medido es de 3/255,
+   con el máximo en 5: la palabra desaparece y encima seguiría oscureciendo.
+   Screen es su contrario exacto (1-(1-fondo)(1-color)), así que el claro
+   aclara. Sobre este fondo café los números de screen y de una composición
+   normal son casi iguales -- medido, p50 de +45 contra +43 -- y se eligió screen
+   por lo mismo que antes se eligió multiply: la palabra se mezcla con lo que hay
+   detrás en vez de quedar como un velo plano encima, así que la textura de la
+   foto y el degradado vertical siguen leyéndose a través de ella, y por
+   construcción no puede ensuciar el fondo, solo levantarlo.
+
+   Va en el contenedor y no en la palabra: la máscara ya crea un stacking context
+   aquí, y desde dentro la palabra quedaría aislada del fondo de la página y la
+   mezcla no tendría con qué operar.
+
+   OJO CON EL CONTRASTE, que con el tono oscuro no era un tema: aclarar el fondo
+   detrás del texto crema le BAJA el contraste, al revés de lo que hacía
+   multiply. Los números por fase del recorrido están en el reporte.
 
    Dos capas de máscara compuestas con intersect:
    1. Ruido (feTurbulence type='turbulence') en mosaico de 180px, con
@@ -198,16 +220,168 @@ body {
       Al multiplicarse por el ruido, la entrada y la salida ocurren grano por
       grano: las motas tenues caen bajo el umbral de percepción antes que las
       densas, y la palabra se compone y descompone en partículas en vez de
-      fundirse en bloque. */
+      fundirse en bloque.
+
+      Los topes van en longitud ABSOLUTA (0.75rem) y no en porcentaje. Cuando
+      eran 12%/88% el desvanecido escalaba con la ventana: 43px a 360px de
+      viewport, pero 154px a 1280px. En los extremos del recorrido eso dejaba
+      la palabra por debajo del umbral de percepción mucho antes del borde de
+      la pantalla -- medido, un hueco visible de 28 a 54px en escritorio -- y
+      se leía como que el recorrido se detenía a media franja de fondo. Con
+      12px fijos el desvanecido es igual en todos los breakpoints y la palabra
+      alcanza el borde. */
+/* La ventana del recorrido abarca el ancho del VIEWPORT, no el del panel, para
+   que en los extremos la palabra quede sobre el fondo que rodea al panel.
+
+   Móvil: el <aside> arranca a 1.5rem del borde (el px-6 del contenedor), así
+   que -1.5rem a cada lado llega justo a los bordes de la pantalla. Sin vw a
+   propósito: los offsets se resuelven contra la caja del <aside>, de modo que
+   el ancho resultante es el visible y no aparece scroll horizontal por el
+   ancho de la barra de desplazamiento.
+
+   lg: el <aside> es la primera columna de un grid centrado (max-w-6xl = 72rem)
+   con lg:px-8, así que su borde izquierdo queda a (100vw - min(100vw,72rem))/2
+   + 2rem del borde de la pantalla, y su borde derecho a 21rem de ese punto
+   (2rem de padding + 19rem de columna). De ahí los dos calc, que NO son
+   simétricos.
+
+   Ojo si el <aside> pasa a ocupar el ancho completo: entonces sí es simétrico y
+   ambos offsets valen lo mismo. Tener este calc desactualizado metía 784px de
+   scroll horizontal en escritorio.
+
+   --panel es el ancho de la ventana, que es lo que suma el recorrido junto con
+   el ancho de la palabra: pasa de ser el panel a ser el viewport. */
+.color-ventana {
+  --panel: 100vw;
+  left: -1.5rem;
+  right: -1.5rem;
+}
+
+@media (width >= 64rem) {
+  .color-ventana {
+    left: calc(-1 * ((100vw - min(100vw, 72rem)) / 2 + 2rem));
+    right: calc(-1 * (100vw - (100vw - min(100vw, 72rem)) / 2 - 21rem));
+  }
+}
+
+/* Ventana del mechón.
+
+   Hace dos cosas y nada más: define la FRANJA LATERAL (su ancho es el ancho
+   visible del mechón, su canto derecho es el borde de la pantalla) y recorta ahí
+   lo que sobra. La imagen va dentro anclada al canto izquierdo y es más ancha
+   que la ventana, así que el corte cae exactamente en el borde del viewport y no
+   hay barra horizontal. No lleva máscara ni degradado: el canto izquierdo y el
+   inferior de lo que se ve son la silueta del propio pelo, no un recorte.
+
+   ALCANCE HASTA EL CANTO. Móvil: el contenedor es `max-w-6xl px-6` y por debajo
+   de 1200px nunca toca su ancho máximo, así que el panel termina a exactamente
+   1.5rem del canto. Escritorio (lg): el contenedor centra 72rem con px-8 y el
+   panel es la primera columna del grid, de 19rem; lo que falta hasta el canto es
+   100vw menos (margen + 2rem + 19rem), con margen = (100vw - min(100vw,72rem))/2.
+   Es la misma aritmética que .color-ventana.
+
+   EL ANCHO DE LA FRANJA lo fija el texto, no el gusto, y crece hasta donde el
+   corredor libre lo permite. La cuenta, fila por fila:
+
+     ancho de ventana <= canto de la pantalla + s(y) - t(y) - 10px
+
+   donde t(y) es el canto derecho de la tinta del texto en esa fila y s(y) es a
+   cuántos px del borde izquierdo de la IMAGEN empieza la tinta del pelo en esa
+   misma fila (el mechón tiene su propia silueta: no llena su caja). Los 10px son
+   el aire que se le deja al texto. La ventana se ancla al canto derecho, así que
+   ensancharla mueve su borde izquierdo hacia dentro de la pantalla y con él la
+   imagen, que va pegada a ese borde: se ve más pelo y más adentro, y lo que
+   sobra sigue saliendo por el canto.
+
+   El punto de pellizco es siempre el mismo: la fila y=159, donde termina la
+   tinta de "de color" (la segunda línea del lockup, que vuela por la derecha) y
+   donde el pelo arranca a 40.3px del borde de su imagen. Máximos medidos con esa
+   fórmula: 106.6px a 320, 114.4 a 360, 120.1 a 390, 132.3 a 414 y 198.3 a 480.
+   En lg el que pellizca ya no es el encabezado sino la columna de tarjetas
+   (topada en 32rem): 189.2px a 1024, y de ahí en adelante sobra sitio.
+
+   De esos máximos salen los cinco tramos de abajo, cada uno por debajo de su
+   límite: 6.5rem a 320-359 (12.6px de aire), 7rem a 360-413 (12.4 a 360 y 18.1
+   a 390), 8.25rem a 414-479 (10.3px), 10rem a 480-1023 y 11rem en lg (23px de
+   aire contra el precio de la primera tarjeta). Los cortes de 360 y 414 son los
+   que ya usa la página para la columna de cifras y para la bajada.
+
+   OJO: el techo real es el ancho de la imagen (192px en móvil, 240 en lg). Si la
+   ventana lo alcanza, el mechón deja de estar cortado por el borde de la
+   pantalla, que es parte de lo que se pidió. El 10rem de 480 deja 32px fuera y
+   el 11rem de lg, 64px.
+
+   EL ANCHO DE LA IMAGEN (w-48 = 192px en móvil, w-60 = 240 en lg, en el JSX) no
+   es el de la franja: es lo que hace falta para que el mechón se vea a una
+   escala creíble y caiga hasta abajo del encabezado. Con 192px de ancho la
+   imagen mide 265 de alto, y de ella se ve la franja de la izquierda -- entre
+   104 y 160px de los 192 según el ancho -- mientras el resto sale por el canto.
+   Probadas cuatro escalas a 390px (160, 192, 224 y 260): por debajo de 192 el
+   mechón queda corto y no alcanza a recorrer el encabezado; por encima, lo que
+   entra en la franja es solo su flanco delgado y se lee como una hebra suelta.
+
+   La altura de la ventana solo tiene que ser mayor que la de la imagen (265 y
+   331px), para que el remate de abajo sean las puntas del pelo.
+
+   AL RAS DEL BORDE SUPERIOR, y no del panel. La imagen arranca con tinta en su
+   primera fila (está recortada a su bbox de alfa), así que si la ventana empieza
+   en el borde del <aside> el pelo abre con un canto recto en el aire y se lee
+   como el borde de una foto. Con el top negativo ese canto se va al borde
+   superior de la página y el mechón entra desde fuera de la pantalla. Los
+   valores son el padding del contenedor del layout, que es la banda vacía que
+   queda encima del <aside>: 32px en móvil (pt-8) y 64px en lg (lg:pt-16). Misma
+   compensación que hace .color-ventana con su -top-8 / lg:-top-16. */
+.mechon-ventana {
+  top: -2rem;
+  right: -1.5rem;
+  width: 6.5rem;
+  height: 20rem;
+}
+
+@media (width >= 360px) {
+  .mechon-ventana {
+    width: 7rem;
+  }
+}
+
+@media (width >= 414px) {
+  .mechon-ventana {
+    width: 8.25rem;
+  }
+}
+
+@media (width >= 480px) {
+  .mechon-ventana {
+    width: 10rem;
+  }
+}
+
+@media (width >= 64rem) {
+  .mechon-ventana {
+    top: -4rem;
+    right: calc(-1 * (100vw - (100vw - min(100vw, 72rem)) / 2 - 21rem));
+    width: 11rem;
+    height: 24rem;
+  }
+}
+
+/* Fondo del modal de largos. Tierra translúcido, no negro: el negro puro no
+   está en la paleta y sobre la foto cálida se vería como un agujero. */
+.modal-largos::backdrop {
+  background: rgba(42, 29, 20, 0.72);
+  backdrop-filter: blur(8px);
+}
+
 .color-grano {
   --grano: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.13' numOctaves='2' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='1.8' intercept='0'/%3E%3CfeFuncG type='linear' slope='1.8' intercept='0'/%3E%3CfeFuncB type='linear' slope='1.8' intercept='0'/%3E%3CfeFuncA type='discrete' tableValues='1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)'/%3E%3C/svg%3E");
-  mix-blend-mode: multiply;
-  mask-image: var(--grano),
+  mix-blend-mode: screen;
+  mask-image:
+    var(--grano),
     linear-gradient(
       to right,
-      transparent 0%,
-      #000 12%,
-      #000 88%,
+      transparent 0,
+      #000 0.75rem,
+      #000 calc(100% - 0.75rem),
       transparent 100%
     );
   mask-mode: luminance, alpha;

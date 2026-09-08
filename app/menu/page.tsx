@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { CATEGORIES } from "@/data/services";
 import { CategoriaCarta } from "@/components/CategoriaCarta";
@@ -42,10 +43,11 @@ export default function ServiciosPage() {
             del recorrido que verifiqué). El asta de la "l" la rebasa y la
             corta el borde superior.
 
-            ANCHO COMPLETO. La ventana es inset-x-0: igual al panel en todos
-            los breakpoints, sin recorte intermedio. El recorrido es (ancho del
-            panel + ancho de la palabra) y sale de la variable --panel de aquí
-            abajo. A media pasada la palabra cabe entera y se lee "color":
+            ANCHO DEL VIEWPORT. La ventana (.color-ventana, en globals.css)
+            se extiende más allá del panel hasta los bordes de la pantalla, así
+            que en los extremos del recorrido la palabra queda sobre el fondo
+            que rodea al panel. El recorrido es (ancho del viewport + ancho de
+            la palabra). A media pasada la palabra cabe entera y se lee "color":
             decisión explícita, por ser decorativa, tono sobre tono y en
             movimiento. Los umbrales de legibilidad, por si hay que revertirlo,
             están en globals.css.
@@ -65,22 +67,24 @@ export default function ServiciosPage() {
             está en -0.088em. Cerrar el tracking encoge el avance de 385px a
             345px, y de ahí sale el 21.7rem del recorrido en globals.css.
 
-            PRESENCIA: TRES CAPAS APILADAS. No es un descuido, es la única
-            forma de oscurecer más sin salirse de la paleta. El color ya estaba
-            a opacidad plena y `tierra` es el token más oscuro que hay, así que
-            con un solo multiply el resultado topaba en fondo x tierra: medido,
-            p90 de 13/255 en escritorio, que es el "velo apenas insinuado".
-            Tres capas idénticas multiplicando dan fondo x tierra^3, que llevó
-            el p90 a 38/255 y el máximo a 62/255, conservando el tono. La
-            alternativa era pintar un color casi negro (tierra al cubo es
-            rgb(7,3,2)), que no es de la paleta.
+            TONO CLARO: `shell`, el claro oficial de la paleta (shell-lift es
+            derivado, no de marca, y además es el crema del texto -- dejarlos
+            iguales le quitaría al titular su único borde contra la palabra).
+            OPACIDAD /3 por capa, valor pedido (venía de /15). Con las tres
+            capas apiladas eso compone 1-(0.97)^3 = 8.7% de cobertura efectiva,
+            contra el 38.6% que daba /15.
 
-            Sobre eso, el color va a /70. Ojo con la intuición: con tres capas
-            multiplicando, el 70% NO deja la palabra al 70% de lo que estaba.
-            Cada capa aporta un factor (1 - a + a*t) sobre el fondo, así que a
-            alfa 1 el canal rojo cae al 0.45% del fondo y a alfa 0.7 al 7.2%.
-            Sigue siendo muy oscuro en el grano denso; lo que se aclara de
-            verdad es el grano medio. Los valores medidos están en el reporte.
+            PRESENCIA: TRES CAPAS APILADAS. Venía de la época del tono oscuro,
+            donde era la única forma de oscurecer más sin salirse de la paleta:
+            `tierra` es el token más oscuro que hay y con un solo multiply el
+            resultado topaba en fondo x tierra (p90 de 13/255), así que tres
+            capas idénticas daban fondo x tierra^3 y llevaban el p90 a 38/255
+            sin cambiar el tono. Con el claro el apilado ya no hace falta para
+            eso, pero se queda: quitar capas cambiaría la opacidad percibida, y
+            la opacidad se fija por capa desde aquí.
+
+            Ojo con la intuición: /3 por capa NO equivale a un 3% de opacidad
+            total. Los valores medidos en pantalla están en el reporte.
 
             Las tres son pixel-idénticas: misma máscara estática, misma semilla,
             misma animación arrancada al mismo tiempo, así que el grano coincide
@@ -93,13 +97,47 @@ export default function ServiciosPage() {
           <span
             key={capa}
             aria-hidden="true"
-            className="color-grano pointer-events-none absolute inset-x-0 -top-8 h-28 overflow-hidden [--panel:calc(100vw-3rem)] lg:-top-16 lg:[--panel:19rem]"
+            className="color-grano color-ventana pointer-events-none absolute -top-8 h-28 overflow-hidden lg:-top-16"
           >
-            <span className="color-deriva absolute -top-[63px] left-full font-display text-[10rem] italic leading-none tracking-[-0.05em] text-tierra/70">
+            <span className="color-deriva absolute -top-[63px] left-full font-display text-[10rem] italic leading-none tracking-[-0.05em] text-shell/3">
               color
             </span>
           </span>
         ))}
+
+        {/* MECHÓN. Elemento gráfico, no un bloque: va en posición absoluta, así
+            que no ocupa espacio ni desplaza nada. El titular y la bajada no se
+            tocan ni se reajustan; el mechón se acomoda al corredor libre que
+            queda a su derecha, y todo su encaje sale de .mechon-ventana
+            (globals.css), donde está la aritmética y la razón de cada número.
+
+            LA VENTANA ES LA FRANJA VISIBLE. Su canto derecho es el borde de la
+            pantalla y su ancho es el de la franja lateral, así que la imagen
+            -- más ancha que la ventana y anclada a su canto izquierdo -- se
+            corta exactamente ahí. Lo que se ve es el flanco izquierdo del
+            mechón, con su propia silueta; el resto cae fuera del viewport. Sin
+            recorte por abajo: la ventana es más alta que la imagen, así que el
+            final son las puntas del pelo y no una línea recta.
+
+            COLORES PROPIOS. Sin opacidad, sin velo y sin modo de fusión: es
+            hermana de las tres capas de la palabra "color", no descendiente, así
+            que no hereda su mix-blend-mode: multiply. Verificado en pantalla que
+            toda su cadena de ancestros mide mix-blend-mode: normal y opacity 1.
+
+            Decorativo: aria-hidden aquí y alt vacío en la imagen. */}
+        <span
+          aria-hidden="true"
+          className="mechon-ventana pointer-events-none absolute overflow-hidden"
+        >
+          <Image
+            src="/mechon.webp"
+            alt=""
+            width={600}
+            height={829}
+            sizes="(min-width: 1024px) 15rem, 12rem"
+            className="absolute left-0 top-0 h-auto w-48 max-w-none lg:w-60"
+          />
+        </span>
 
         <div className="relative">
           {/* Resplandor suave detrás del título: blob difuminado, cálido
@@ -108,64 +146,113 @@ export default function ServiciosPage() {
             aria-hidden="true"
             className="pointer-events-none absolute -left-4 -top-4 h-32 w-52 rounded-[50%] bg-shell-lift/20 blur-3xl"
           />
-          {/* Composición editorial: etiqueta en caja alta (familia body)
-              encajada dentro de un titular en cursiva de gran escala (familia
-              display).
+          {/* LOCKUP DEL TITULAR. Tres piezas que se leen como un objeto: la S
+              capital que estructura el bloque, MIS encajado en el hueco de su
+              curva, y el resto de la palabra.
 
-              "servicios" a 68px en lg y clamp en móvil (69.8px a 360, 76.5px a
-              390, techo de 80px). Ocupa el 84% del ancho del panel: es el
-              elemento dominante, pero más compacto que antes (era 72px y 90%).
+              Todas las medidas van en `em` contra el cuerpo del lockup, así que
+              basta un clamp para que la proporción sea idéntica en cualquier
+              ancho: en pantallas chicas se reduce, no se desarma.
 
-              Tracking -0.034em, cerrado desde -0.030em. Es el límite real de
-              esta tipografía, no una preferencia: en "servicios" el par más
-              apretado es "rv", con solo 0.0430em de hueco entre tintas
-              (RSB de la r 0.0265 + LSB de la v 0.0165). Medido sobre el render,
-              a -0.038em y más cerrado la r y la v se fusionan; a -0.034em
-              todavía se separan. Ahí respiran apenas.
+              El texto accesible va en un span sr-only y la composición entera
+              lleva aria-hidden. Si no, el orden del DOM (S, MIS, ervicios)
+              haría que el nombre del h1 se leyera partido.
 
-              MIS a 14px, subida desde 11px: gana presencia y sigue siendo el
-              elemento menor del bloque de título. Va en posición absoluta (no
-              con line-height) para encajarla sin que arrastre el flujo:
+              La fila es inline-flex con items-baseline: la S y "ervicios"
+              comparten línea base sin que yo la calcule. MIS va absoluto
+              dentro de un envoltorio a 1em, para que sus offsets estén en la
+              misma unidad que el resto y no en la suya propia. */}
+          {/* Titular. Lockup de dos piezas: "Diseños" en redonda arriba y
+              "de color" en cursiva abajo, mayor que antes y volada por la
+              derecha. Las dos en Bodoni Moda con font-medium (wght 500).
 
-              - top-[6px] deja su línea base dentro de la banda de las astas
-                ascendentes de "servicios" (del punto de las íes, a 0.7575em
-                sobre la base, a la altura de x, a 0.4695em) con 9.1-13.4px de
-                aire hasta la altura de x, que es la separación que ya tenía
-                antes de agrandarla. El punto de la í queda ahora al ras de la
-                cima de MIS (entre +0.7px y -0.2px según el cuerpo): al crecer
-                la etiqueta, ese remate del entrelazado se pierde casi todo. Es
-                el precio de los 14px, no un descuido.
-              - left-[9%] la desplaza ~28px hacia adentro, para que su borde
-                izquierdo no comparta eje con la "s" inicial. Cae sobre la zona
-                de "se", donde "servicios" solo tiene altura de x.
+              PESO Y VARIANTE ÓPTICA, verificado inspeccionando con fontTools el
+              woff2 que sirve el proyecto:
 
-              Va primero en el DOM para que el nombre accesible del h1 siga
-              siendo "Mis servicios". */}
-          <h1 className="relative text-shell-lift">
-            <span className="absolute left-[9%] -top-[3px] font-body text-[22px] font-semibold uppercase leading-none tracking-[0.3em]">
-              Mis
-            </span>
-            <span className="block font-display text-[clamp(3.4rem,20.4vw-0.61rem,4.55rem)] italic leading-none tracking-[-0.036em] lg:text-[3.875rem]">
-              servicios
+              - Medium SÍ existe: el archivo es variable con eje wght 400..900 e
+                instancia con nombre "Medium" en 500. font-medium da peso
+                dibujado, no negrita sintética.
+              - 18pt NO está disponible, y esto está verificado por dos vías.
+                El name table del woff2 dice "Bodoni Moda 11pt" y su fvar trae un
+                solo eje, wght: Google Fonts sirve la familia con el eje opsz
+                aplanado en 11pt. Y preguntándole al motor qué fuente usa de
+                verdad al pintar (CSS.getPlatformFontsForNode del protocolo de
+                DevTools), las tres piezas del lockup reportan familia
+                "Bodoni Moda 11pt". font-optical-sizing computa `auto`, pero no
+                tiene efecto porque no hay eje opsz que ajustar. Se obtendría
+                añadiendo `axes: ["opsz"]` a la llamada de Bodoni_Moda en
+                app/layout.tsx y luego font-variation-settings: "opsz" 18 aquí,
+                pero eso cambia la carga de fuentes de TODO el sitio. Sin
+                autorización, queda a 11pt.
+              - Las cursivas son OBLICUA SINTÉTICA: el proyecto carga solo
+                font-style normal. La itálica real de Bodoni existe en Google
+                Fonts (italicAngle -13, con instancia Medium Italic).
+
+              LA SEGUNDA LÍNEA VUELA POR LA DERECHA. text-[0.85em] (antes 0.5em)
+              y -mr-[0.85em]. El margen negativo es imprescindible y no un
+              adorno: con text-right, agrandar la línea NO la hace sobresalir --
+              el borde derecho queda clavado en el borde derecho del contenedor y
+              el texto crece hacia la IZQUIERDA. El margen negativo corre la caja
+              hacia fuera del envoltorio, y como el envoltorio es inline-block su
+              ancho lo sigue fijando "Diseños".
+
+              DE DÓNDE SALE EL 0.85em, que antes era 0.20. La referencia es que
+              la "l" de "color" caiga bajo la "s" final de "Diseños". Medido el
+              centroide de tinta de las dos letras (a dsf=4, recortando la caja
+              de avance de cada glifo para no arrastrar la tinta de sus vecinas),
+              a -0.20em faltaban 0.642em del cuerpo de esta línea; 0.20 + 0.642
+              redondeado a la centésima da 0.85, y con ese valor la desalineación
+              que queda es de -0.00 a +0.09px en los siete anchos medidos. Va en
+              em del propio span, así que la alineación se sostiene sola en todo
+              el clamp: el desfase medido era idéntico (0.6228-0.6231em) en 320,
+              360, 390, 414, 480, 768, 1024 y 1280.
+
+              El volado sobre el borde derecho de "Diseños" pasa de +15/+20px a
+              +45/+50, y la tinta de "de color" termina a 52.8px del canto del
+              panel a 320px -- el ancho más justo -- sin desbordarlo ni generar
+              scroll horizontal.
+
+              Por lo mismo desapareció el pr-[0.095em] que había antes: existía
+              para que los bordes de tinta COINCIDIERAN, y ahora deben separarse.
+
+              -mt-[0.22em] es el interlineado. El em de un margen se resuelve
+              contra el font-size del propio elemento, y este span está a 0.85em,
+              así que al crecer la línea el mismo número tira más: el -0.30em que
+              servía a 0.5em pasó a colisionar. Holgura medida entre la tinta
+              baja de "Diseños" y las ascendentes de "de color": 1.75px a 320,
+              1.50 a 360, 2.50 a 390, 414 y 768, y 1.50 en lg. El tope es
+              -0.24em (0.5-1.5px) y a -0.26em ya colisiona; este valor deja un
+              paso de margen para el rasterizado.
+
+              tracking-[-0.056em] en las dos líneas, valor pedido. Queda por
+              debajo del tope medido de la primera línea (-0.07em era el máximo;
+              a -0.08em se fusionan formas), así que hay holgura de sobra: el
+              conteo de componentes conexos sigue dando 9 en "Diseños" y 7 en
+              "de color" en los seis anchos medidos.
+
+              Efecto lateral de aflojarlo: "Diseños" se ensancha unos 6px y su
+              borde derecho se corre. Con el -mr atado a la "s" eso ya no cambia
+              la disposición: si se toca el interletrado de la primera línea hay
+              que volver a medir el centroide de la "s" y rehacer el 0.85em.
+
+              `relative` se queda: hace que el titular pinte por delante de las
+              capas decorativas de la palabra "color", que van antes en el DOM. */}
+          <h1 className="relative font-display text-[clamp(3.4rem,20.4vw-0.61rem,4.55rem)] text-shell-lift lg:text-[3.875rem]">
+            {/* Lockup de dos piezas. El envoltorio es inline-block, así que su
+                ancho es el de la línea más ancha -- "Diseños" -- y eso es lo
+                que le da a "de color" un borde derecho contra el que alinearse
+                con text-right. Sin el inline-block el envoltorio mediría el
+                ancho del panel y la cursiva se iría al canto de la columna. */}
+            <span className="inline-block">
+              <span className="block font-medium leading-none tracking-[-0.056em]">
+                Diseños
+              </span>{" "}
+              <span className="-mt-[0.22em] -mr-[0.85em] block text-right font-medium text-[0.85em] italic leading-none tracking-[-0.056em]">
+                de color
+              </span>
             </span>
           </h1>
 
-          {/* Misma posición horizontal (right-0). -top-5 la deja con el borde
-              inferior a la altura de la línea base de MIS. La "s" final de
-              "servicios" pasa por su columna y quedan 4-11px de holgura sobre
-              esa letra. */}
-          <Link
-            href="/"
-            aria-label="Atrás"
-            className="absolute -top-7 right-0 inline-flex h-11 w-14 items-center justify-center rounded-full border border-white/20 bg-dune/10 text-shell-lift backdrop-blur-md transition-colors duration-150 hover:bg-dune/20"
-          >
-            <span
-              aria-hidden="true"
-              className="inline-block text-lg leading-none animate-[back-nudge_1.8s_ease-in-out_infinite]"
-            >
-              ←
-            </span>
-          </Link>
         </div>
 
         {/* Columna de texto angosta, a 31ch = 260px. Ensanchada desde 26ch
@@ -175,35 +262,133 @@ export default function ServiciosPage() {
             así que la medida vive una sola vez y el separador es w-full de esta
             misma columna.
 
-            mt-5 (antes mt-8) acerca el bloque al titular.
+            mt-1 (antes mt-5, y mt-8 antes de eso): el párrafo sube para
+            leerse como parte del mismo bloque de encabezado y no como un texto
+            suelto debajo del titular.
 
-            ml-[3px] alinea la columna con el eje óptico del titular, no con su
-            caja: la cursiva de "servicios" mete la tinta 0.044em a la derecha
-            del origen (3.0px a 68px de cuerpo, 3.5px a 80px), mientras que las
-            mayúsculas de Jost casi no tienen lateral (0.07px en la "A" de la
-            primera línea). Un solo valor de 3px deja el desfase real entre
-            0.00 y 0.45px en todos los breakpoints.
+            ml-[5px] alinea la columna con el eje óptico del titular, no con su
+            caja. Antes eran 2.8px, el lateral de la "s" minúscula del titular
+            viejo; ahora la inicial es una S capital a 1.4em, cuyo lateral
+            izquierdo mide 0.0565em de su propio cuerpo, o sea unos 5px. Las
+            mayúsculas de Jost casi no tienen lateral (0.07px en la "A"), así
+            que el valor va casi entero al indent.
 
             `relative` deja el bloque por encima de la capa decorativa. */}
-        <div className="relative ml-[2.8px] mt-5 max-w-[31ch] text-sm">
+        <div className="relative ml-[5px] mt-1 max-w-[31ch] text-sm min-[414px]:max-w-none">
+          {/* Bajada: una oración por renglón, cada una en su propio bloque
+              dentro del mismo <p>. La unidad semántica no cambia; lo que cambia
+              es dónde empieza cada oración.
+
+              UN RENGLÓN COMPLETO POR ORACIÓN, desde 414px. A 14px de Jost la
+              primera oración mide 284px y la segunda 280px (a peso 500). La
+              columna base es max-w-[31ch] = 260px, así que no caben; de 414px en
+              adelante se libera con max-w-none y cada bloque entra en un
+              renglón. En lg la columna mide 299px -- el panel de 19rem menos el
+              indent de 5px -- y los 284px entran con 15px de sobra.
+
+              El umbral es 414px y no un valor redondo porque lo fija la RUEDA, no
+              la columna. Su borde es una circunferencia, así que el hueco libre
+              depende de la altura de cada renglón: medido contra la curva, el
+              primer renglón dispone de 187px a 320, 229px a 360, 263px a 390 y
+              288px a 414 -- ahí es donde por fin superan los 284px que necesita.
+              A 408px el renglón lo roza por 1.9px; a 414 lo libra entero.
+
+              Por debajo de 414px no caben con ninguna de las dos palancas, y no
+              se forzó: ver el reporte. Ahí las dos oraciones siguen partiéndose
+              en dos renglones equilibrados cada una.
+
+              Nada de whitespace-nowrap: no hace falta, porque cada oración es un
+              bloque y con la columna ancha cae sola en un renglón. Y sería un
+              riesgo -- con la webfont aún sin cargar entra la de reserva, y si no
+              pudiera envolver desbordaría el panel. Comprobado bloqueando el
+              woff2: la reserva da 282 y 275px, un renglón cada una y dentro del
+              panel.
+
+              text-balance sigue en los dos bloques: no hace nada cuando la
+              oración cabe en un renglón, y por debajo de 480px es lo que evita
+              que quede una palabra huérfana al final. Va por bloque separado y
+              no con un <br />, porque con <br /> Chrome equilibra solo el
+              segmento anterior al salto: medido, la segunda oración quedaba en
+              226/39px con "juntos." solo en el último renglón.
+
+              El peso: la segunda oración va en font-medium (500) y la primera se
+              queda en 400. Jost está cargada como variable con eje wght 100..900,
+              así que el 500 es peso real, no sintético -- se nota en el avance:
+              la misma oración mide 269px a 400 y 280px a 500. */}
           <p className="text-shell-lift/90">
-            Aquí encontrarás cada servicio en el que trabajo, explicado con
-            calma. Cuéntame qué buscas y lo resolvemos juntos.
+            <span className="block text-balance">
+              Conoce cada diseño de color en el que trabajo.
+            </span>{" "}
+            <span className="block font-medium text-balance">
+              Cuéntame qué buscas y lo resolvemos juntos.
+            </span>
           </p>
 
-          {/* Separador a la medida de la columna, no del panel. */}
-          <div
-            aria-hidden="true"
-            className="mt-8 h-px w-full bg-shell-lift/30"
-          />
+        </div>
+
+        {/* FILA DE LA REGLA Y EL REGRESO.
+
+            La regla es marca de sección, no divisor: 4rem = 64px (un 25% de los
+            260px de la columna de texto), con cuerpo -- 3px contra el 1px de
+            antes -- y en `dune`, el acento cálido de la paleta. El ml-[5px] y el
+            mt-5 son los que tenía cuando vivía dentro de la columna de texto,
+            así que arranca en el mismo eje óptico del titular y de la bajada y
+            conserva sus 20px de aire por arriba. Salió de esa columna solo para
+            poder compartir fila con el botón; nada más cambió de sitio.
+
+            EL BOTÓN VA AQUÍ, junto a la regla y a su misma altura (items-center
+            los centra sobre el mismo eje). No al canto derecho del panel: ahí
+            caería dentro de la franja del mechón -- a 320px la franja arranca en
+            x=232 y el botón terminaba en 296 -- y un cristal con blur encima del
+            pelo ensucia las dos cosas. Al lado de la regla queda a 100px o más
+            de esa franja en todos los anchos.
+
+            FORMA MÁS DELGADA: 26px de alto contra los 44px de antes -- y por
+            debajo de los 30px de los botones de la carta, que es lo que lo deja
+            como el control más discreto de la página --, con el mismo vidrio
+            secundario de esos botones (clay al 10% con borde a /20 y blur) en
+            vez del dune con borde blanco que tenía. El área de toque se queda en
+            46px por ::after con inset vertical negativo, así que no engorda la
+            fila ni corre la regla.
+
+            El foco de teclado va forzado a crema: la regla global de
+            :focus-visible en globals.css pinta el anillo en dune-deep, que sobre
+            este fondo mide 1.65:1 -- por debajo del mínimo de 3:1. El `!` es
+            necesario porque esa regla no está en una capa y le gana a las
+            utilidades de Tailwind. */}
+        <div className="ml-[5px] mt-5 flex items-center gap-4">
+          <div aria-hidden="true" className="h-[3px] w-16 shrink-0 bg-dune" />
+          <Link
+            href="/"
+            aria-label="Atrás"
+            className="relative inline-flex items-center rounded-full border border-clay/20 bg-clay/10 px-3 py-1 text-shell-lift backdrop-blur-xl transition-colors duration-150 after:absolute after:inset-x-0 after:-inset-y-2.5 after:content-[''] hover:bg-clay/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-shell-lift!"
+          >
+            <span
+              aria-hidden="true"
+              className="inline-block text-base leading-none animate-[back-nudge_1.8s_ease-in-out_infinite]"
+            >
+              ←
+            </span>
+          </Link>
         </div>
 
         <ContactoAside />
       </aside>
 
-      <div className="pb-28 lg:pb-0">
-        <div className="mt-10 flex flex-col gap-14 lg:mt-0 lg:gap-16">
-          <CategoriaCarta category={color} />
+      {/* `relative` porque la capa decorativa ahora abarca el viewport y le
+          pasa por encima en el eje y=0..112: al ser un elemento posicionado y
+          posterior en el DOM, esta columna vuelve a pintar por delante. */}
+      <div className="relative pb-28 lg:pb-0">
+        {/* mt-4: en móvil es el hueco entre la regla del panel y lo primero
+            de esta columna, que ya no es el encabezado de sección sino el
+            kicker. Junto con el mt-4 del propio kicker suma los 32px que lo
+            separan del bloque de encabezado. En lg no aplica (lg:mt-0): ahí
+            esta columna arranca a la altura del titular, en paralelo. */}
+        <div className="mt-4 flex flex-col gap-14 lg:mt-0 lg:gap-16">
+          {/* ocultarTitulo: el h2 "Diseño de color" repetía lo que ya dice la
+              bajada del panel a pocos centímetros. La sección conserva nombre
+              accesible vía aria-label, así que sigue anunciándose igual. */}
+          <CategoriaCarta category={color} ocultarTitulo editorial />
 
           <GuiaLargos />
 

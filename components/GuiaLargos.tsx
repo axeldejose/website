@@ -7,6 +7,16 @@ export function GuiaLargos() {
         ¿Por qué el precio es un rango?
       </h2>
 
+      {/* Muestrario de tinte. Mismo tratamiento, ancho y proporción que tenía
+          bajo "Diseño de color": clase .hair-swatch, mt-3, h-2, w-full,
+          rounded-full. El contenedor de esta sección mide lo mismo que el de la
+          categoría (342px en móvil, 720px en escritorio), así que la franja no
+          cambia de tamaño al mudarse. */}
+      <div
+        aria-hidden="true"
+        className="hair-swatch mt-3 h-2 w-full rounded-full"
+      />
+
       <p className="mt-3 text-sm text-shell-lift/90">
         El costo de un servicio de color depende de tu largo, de tu tipo de
         cabello y de cómo llegue. Estos son los cuatro largos con los que

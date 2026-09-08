@@ -24,15 +24,17 @@ export type Service = {
 export type Category = {
   slug: string;
   name: string;
-  intro: string;
+  // Opcional: Color no lleva intro. Su aclaración de por qué el precio es un
+  // rango vive dentro de cada tarjeta de rango (RANGE_NOTE), en contexto, y
+  // repetirla aquí le restaba fuerza.
+  intro?: string;
   services: Service[];
 };
 
 export const CATEGORIES: Category[] = [
   {
     slug: "color",
-    name: "Color",
-    intro: "El precio va por rango porque cada melena es distinta. Abajo te explico de qué depende.",
+    name: "Diseño de color",
     services: [
       {
         slug: "balayage",
@@ -122,6 +124,14 @@ export const CATEGORIES: Category[] = [
     ],
   },
 ];
+
+// Nota al pie de las tarjetas cuyo precio es un rango. Es la misma para las
+// cuatro, así que vive aquí una sola vez en vez de repetirse servicio por
+// servicio. Adaptada de la intro de la categoría Color ("El precio va por rango
+// porque cada melena es distinta") para hablar de un servicio concreto y no del
+// conjunto. Las tarjetas de precio fijo no la muestran: ahí sería falsa.
+export const RANGE_NOTE =
+  "Este precio va por rango porque cada melena es distinta: depende de tu largo, tu tipo de cabello y cómo llegue. El exacto lo definimos juntos.";
 
 export function mxn(n: number): string {
   return n.toLocaleString("es-MX", {
