@@ -60,49 +60,6 @@ body {
    posición se desplaza lento y continuo, así los tonos parecen recorrer la
    franja. La regla global de prefers-reduced-motion neutraliza la animación
    (duración 0.01ms), dejando la franja estática. */
-/* LA ZONA DE LA SEGUNDA SECCIÓN DE /menu (Wavys, Corte dama, Tratamientos).
-   No es una tarjeta con canto: es un degradado que emerge del fondo y se funde
-   en él, sin borde, sin radio y sin ninguna línea que la recorte.
-
-   EL TONO es `clay` (#b88d6a), el beige de la paleta, el mismo del recuadro del
-   cierre que va justo debajo. Se eligió claro y no oscuro por dos razones: la
-   versión oscura ya se probó y se leía como un bloque pegado, y sobre un fondo
-   oscuro un velo claro se distingue más con menos material -- el escalón se
-   consigue con 14% de tinte en vez de 88%.
-
-   EL PERFIL VERTICAL tiene tres topes y ninguno es un canto:
-
-     0            clay al 0%   -> arranca invisible; no hay línea superior
-     2.5rem       clay al 14%  -> el punto más presente de la zona
-     100%         clay al 0%   -> se disuelve por completo antes del cierre
-
-   Es decir: aparece justo debajo del carrusel, se afirma en 40px y baja hasta
-   desaparecer. Los topes se mezclan con color-mix en oklab y no con la palabra
-   `transparent` suelta, que en sRGB interpola hacia negro transparente y mete
-   un escalón grisáceo en medio del desvanecido.
-
-   EN lg NO CRUZA LA PÁGINA. El layout es de dos columnas con el panel del
-   encabezado sticky; una zona a todo lo ancho le pasaría por detrás. La capa
-   arranca 64px a la izquierda del eje de la lista -- el ancho del gap entre
-   columnas -- y la máscara la lleva de 0 a opaca en esos mismos 64px, así que
-   vale 0 exactamente donde acaba el panel y está completa donde empieza la
-   primera letra. La máscara va en la capa y no en el contenedor: mask-image
-   afecta también a los descendientes y habría desvanecido el texto. */
-.zona-seccion {
-  background-image: linear-gradient(
-    to bottom,
-    color-mix(in oklab, var(--color-clay) 0%, transparent) 0,
-    color-mix(in oklab, var(--color-clay) 14%, transparent) 2.5rem,
-    color-mix(in oklab, var(--color-clay) 0%, transparent) 100%
-  );
-}
-
-@media (width >= 64rem) {
-  .zona-seccion {
-    mask-image: linear-gradient(to right, transparent 0, black 4rem);
-  }
-}
-
 /* CARRUSEL DE LA GALERÍA: la pista de desplazamiento.
    El giro automático se escribe en scrollLeft desde JS (CarruselGaleria), así
    que esto solo se ocupa de tres cosas que no se pueden resolver con
@@ -171,34 +128,256 @@ body {
 
 /* Entrada suave del contenido del acordeón al expandir. Su duración la
    neutraliza la regla de prefers-reduced-motion de arriba (0.01ms). */
-/* LA FLECHA DEL ACCESO A TRATAMIENTOS, en /menu.
-   Deriva continua hacia adelante: 6px de ida y vuelta en 2.6 segundos con una
-   curva de aceleración y frenado largos, así que no hay ningún instante en que
-   el ojo la vea "arrancar". Es la misma idea que back-nudge -- la flecha del
-   botón de regreso, que empuja 3px hacia la izquierda -- pero con el doble de
-   recorrido y un ciclo más lento, porque aquí la flecha mide 64px y no 16.
+/* EL INDICADOR DE LARGO DE LA GUÍA, en /menu.
+   Entra con la misma curva y la misma duración que la carta nueva del visor --
+   de 0.35 a 1 de opacidad --, así que el nombre del largo y su referencia
+   corporal llegan cuando llega la imagen, y no antes.
 
-   0% y 100% en cero, y eso es deliberado: la regla global de
-   prefers-reduced-motion fija animation-duration en 0.01ms con una sola
-   iteración, así que la animación salta a su fotograma final. Teniéndolo en
-   translateX(0), con movimiento reducido la flecha queda quieta en su sitio en
-   vez de congelada a medio camino. Es el mismo truco que usa card-shine.
+   El 0.35 no es un número suelto: es la opacidad en la que arranca la carta
+   entrante, que es donde la dejó la de atrás durante el arrastre.
 
-   La animación va en un envoltorio y no en el SVG: el realce de hover mueve el
-   SVG con una transición, y dos transform sobre el mismo elemento se pisan --
-   la animación gana siempre. En capas separadas se componen. */
-@keyframes flecha-avance {
-  0%,
-  100% {
-    transform: translateX(0);
+   La duración NO se declara aquí. La pone el estilo en línea desde el mismo
+   objeto que afina el gesto (FISICA_GUIA, en ModalLargos), para que no puedan
+   desincronizarse.
+
+   PREFERS-REDUCED-MOTION: la regla global fija la duración en 0.01ms y el texto
+   aparece de una, igual que la imagen. Su estado de reposo es opacidad 1, que
+   es el estado final. */
+@keyframes guia-indicador {
+  from {
+    opacity: 0.35;
   }
-  50% {
-    transform: translateX(6px);
+  to {
+    opacity: 1;
   }
 }
 
-.flecha-avance {
-  animation: flecha-avance 2.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+.guia-indicador {
+  animation-name: guia-indicador;
+  animation-timing-function: ease-out;
+  animation-fill-mode: both;
+}
+
+/* EL ASENTAMIENTO ELÁSTICO DE LA CARTA, en el visor de la galería de /menu.
+   Cuando el arrastre no llega al umbral, la carta no vuelve: se asienta.
+
+   POR QUÉ ANIMACIÓN Y NO TRANSICIÓN. Una curva de sobreimpulso solo puede
+   pasarse del destino UNA vez. Un resorte amortiguado se pasa, vuelve, se pasa
+   menos y para -- y eso son cuatro fotogramas clave. El 55% cruza al otro lado
+   un 10% del recorrido, el 78% vuelve un 3.5%, y el 100% queda en cero.
+
+   EL ORIGEN ES VARIABLE. Cada gesto suelta en un punto distinto, así que el
+   fotograma 0% no puede ser un número: entra por --d0 y --g0, que el manejador
+   escribe al soltar, y los fotogramas intermedios los escalan con calc().
+
+   VA EN `translate` Y `rotate`, las propiedades independientes, no en
+   transform. Es lo que permite escribirlo sin tocar el transform que el
+   arrastre venía usando... y por eso mismo el manejador tiene que LIMPIARLO
+   antes: las tres se componen en cascada, así que un transform sobrante sumaría
+   el desplazamiento dos veces.
+
+   El 380 no es redondo por gusto: por debajo de 320ms el rebote se lee como un
+   tirón y por encima de 450 la carta parece flotar de vuelta.
+
+   PREFERS-REDUCED-MOTION: la regla global fija la duración en 0.01ms, así que
+   la carta salta a su sitio. Además el manejador ni llega aquí -- con la
+   preferencia puesta sale antes. */
+@keyframes carta-asienta {
+  0% {
+    translate: var(--d0) 0;
+    rotate: var(--g0);
+  }
+  55% {
+    translate: calc(var(--d0) * -0.1) 0;
+    rotate: calc(var(--g0) * -0.1);
+  }
+  78% {
+    translate: calc(var(--d0) * 0.035) 0;
+    rotate: calc(var(--g0) * 0.035);
+  }
+  100% {
+    translate: 0 0;
+    rotate: 0deg;
+  }
+}
+
+.carta-asienta {
+  animation: carta-asienta 380ms cubic-bezier(0.33, 0, 0.2, 1);
+}
+
+/* EL CORAZÓN DEL VISOR DE LA GALERÍA, en /menu.
+   Dos cosas al marcar y ninguna al desmarcar: quitar el me gusta es una
+   corrección, no un logro, y celebrarla se siente falso.
+
+   EL LATIDO tiene sobreimpulso y rebote corto: 1 -> 1.32 -> 0.94 -> 1 en 420ms
+   con una curva que se pasa del destino (0.34, 1.4, 0.64, 1). Es lo que separa
+   un gesto satisfactorio de un cambio de estado: el ojo lee una masa que
+   responde con inercia, no un icono que se sustituye.
+
+   EL BROTE son seis corazones pequeños que salen disparados hacia arriba. Su
+   receta está más abajo, en .corazon-brote.
+
+   PREFERS-REDUCED-MOTION. El latido lo neutraliza la regla global (duración
+   0.01ms) y queda el corazón lleno sin animar, porque su estado de reposo ES el
+   estado final: no declara `scale`, así que vale 1. El brote se corta antes, en
+   el manejador del clic: con la preferencia puesta las partículas ni se crean.
+
+   El latido no se declara en el corazón vacío, así que aparecer al abrir el
+   visor no lo dispara: la animación entra con la clase y la clase entra con el
+   estado marcado. Y el remontaje por `key` es lo que la repite en la segunda
+   foto que se marca. */
+@keyframes corazon-late {
+  0% {
+    scale: 1;
+  }
+  30% {
+    scale: 1.32;
+  }
+  55% {
+    scale: 0.94;
+  }
+  100% {
+    scale: 1;
+  }
+}
+
+.corazon-late {
+  animation: corazon-late 420ms cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+/* LAS PARTÍCULAS DEL BROTE. Un solo keyframes para las seis: lo que cambia por
+   partícula son las cuatro propiedades personalizadas que lee como destino
+   (--dx, --dy, --rot) más su retraso, servidas desde el estilo en línea.
+
+   EL PERFIL: entra desde 0.4 de escala y opacidad 0, alcanza su tamaño y su
+   opacidad plena en el primer 22% del recorrido, y el 78% restante lo dedica a
+   subir, girar, encoger a 0.35 y desvanecerse. Así el ojo las ve BROTAR -- hay
+   un instante en que crecen -- en vez de aparecer ya lanzadas.
+
+   640ms, y con el retraso escalonado la última termina a los 730. Por debajo de
+   500 el gesto se lee como un parpadeo; por encima de 800 se vuelve un adorno
+   que hay que esperar.
+
+   Las cuatro propiedades que animan -- opacity, translate, scale y rotate -- las
+   resuelve el compositor. No hay recálculo de diseño ni de pintado, que es lo
+   que mantiene intacto el deslizamiento de la baraja mientras el brote corre.
+
+   PREFERS-REDUCED-MOTION no se resuelve aquí: las partículas ni se crean, se
+   corta antes, en el manejador del clic (ver VisorBaraja). Es mejor que
+   neutralizar la duración, porque así tampoco hay nodos que montar. */
+@keyframes corazon-brote {
+  0% {
+    opacity: 0;
+    translate: 0 0;
+    scale: 0.4;
+  }
+  22% {
+    opacity: 1;
+    scale: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: var(--dx) var(--dy);
+    scale: 0.35;
+    rotate: var(--rot);
+  }
+}
+
+.corazon-brote {
+  animation: corazon-brote 640ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+/* LA PILA DE TRATAMIENTOS, en /menu.
+   El acceso a esa página dejó de ser un renglón de texto con flecha y es una
+   pila de tres cartas: dos hojas de atrás que asoman por el canto superior y la
+   carta de adelante, que es la que lleva el nombre.
+
+   LO QUE ANIMA Y LO QUE NO. La carta de adelante NO respira: ahí vive el texto,
+   y un texto que sube y baja dos píxeles en bucle es exactamente lo que no se
+   puede leer con comodidad. Las que respiran son las dos hojas de atrás, que no
+   llevan contenido. El efecto es el mismo -- la pila se percibe viva -- sin
+   mover una sola letra.
+
+   DOS CICLOS DESFASADOS. Mismo periodo (4.6s) y un retardo de 0.6s en la hoja
+   del fondo, así que las dos no llegan nunca juntas al tope: la separación
+   entre ellas se abre y se cierra sola, que es el gesto de un mazo de cartas
+   asentándose. El recorrido es de 2px y 3.5px; por debajo de eso no se percibe
+   y por encima empieza a leerse como un rebote.
+
+   POR QUÉ `translate` Y NO `transform`. La respuesta al cursor y al foco mueve
+   estas mismas hojas con una transición, y dos `transform` sobre el mismo
+   elemento se pisan -- la animación gana siempre, el mismo problema que tenía
+   la flecha. Aquí no hacen falta capas anidadas: la deriva continua usa la
+   propiedad independiente `translate` y la respuesta usa `transform`, que son
+   propiedades distintas y se componen en cascada (primero translate, después
+   transform).
+
+   PREFERS-REDUCED-MOTION. Los fotogramas 0% y 100% están en reposo y la regla
+   global fija la duración en 0.01ms con una sola iteración, así que la pila
+   queda estática y armada, no a medio recorrido.
+
+   LA RESPUESTA FÍSICA se reparte en tres cuerpos: al pasar el cursor o recibir
+   foco las hojas se separan (4 y 8px) y la de adelante se adelanta 1px; al
+   mantener pulsado la pila se cierra (1 y 2px) y la de adelante se hunde 1px.
+   Sale y entra con una curva de frenado (0.22, 0.61, 0.36, 1), sin rebote. */
+@keyframes pila-hoja-media {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -2px;
+  }
+}
+
+@keyframes pila-hoja-fondo {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -3.5px;
+  }
+}
+
+.pila-hoja-media {
+  animation: pila-hoja-media 4.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.pila-hoja-fondo {
+  animation: pila-hoja-fondo 4.6s cubic-bezier(0.45, 0, 0.55, 1) 0.6s infinite;
+}
+
+.pila-tratamientos .pila-hoja,
+.pila-tratamientos .pila-frente {
+  transition: transform 240ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.pila-tratamientos:hover .pila-hoja-media,
+.pila-tratamientos:focus-visible .pila-hoja-media {
+  transform: translateY(-4px);
+}
+
+.pila-tratamientos:hover .pila-hoja-fondo,
+.pila-tratamientos:focus-visible .pila-hoja-fondo {
+  transform: translateY(-8px);
+}
+
+.pila-tratamientos:hover .pila-frente,
+.pila-tratamientos:focus-visible .pila-frente {
+  transform: translateY(-1px);
+}
+
+.pila-tratamientos:active .pila-hoja-media {
+  transform: translateY(-1px);
+}
+
+.pila-tratamientos:active .pila-hoja-fondo {
+  transform: translateY(-2px);
+}
+
+.pila-tratamientos:active .pila-frente {
+  transform: translateY(1px);
 }
 
 @keyframes accordion-in {
@@ -554,6 +733,24 @@ body {
    prefers-reduced-motion: la regla global deja las transiciones en 0.01ms, así
    que la ventana aparece y desaparece sin fundido. */
 .modal-largos {
+  /* EL ANCHO DE LA VENTANA, EN UNA PROPIEDAD, Y NO ES ORNAMENTO: ES UN RODEO A
+     UN FALLO DE lightningcss, el analizador nativo de CSS que usa Tailwind v4
+     para minificar.
+
+     Con `clamp()` y `min()` dentro del MISMO `calc()`, lightningcss entra en
+     recursión infinita y el proceso muere con SIGSEGV al desbordar la pila. El
+     informe de macOS lo dice sin ambigüedad: EXC_BAD_ACCESS en la región de
+     guarda de la pila, con tres marcos repitiéndose en lightningcss.
+
+     Lo aislé caso por caso: `calc(clamp() + min())` cae con y sin `min()`
+     envolviendo; `calc(min())` sin clamp no cae; `calc(clamp())` sin min no cae;
+     y `calc(clamp() + var())` no cae. De ahí esta variable: la cuenta del alto
+     de la ventana del visor necesita las dos funciones, y con el ancho detrás de
+     un `var()` el minificador ya no intenta plegarlo.
+
+     Es también la única definición del ancho: la usan el `width` de la ventana y
+     el término del alto que deduce la altura de la foto, y así no se separan. */
+  --visor-ancho: min(92vw, 22rem);
   position: fixed;
   inset: 0;
   max-width: none;

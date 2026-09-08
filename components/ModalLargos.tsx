@@ -2,7 +2,48 @@
 
 import { useState } from "react";
 
-import { VisorBaraja, type Lamina } from "@/components/VisorBaraja";
+import {
+  VisorBaraja,
+  type AjustesFisica,
+  type Lamina,
+} from "@/components/VisorBaraja";
+
+// LA MISMA MECÁNICA DE LA GALERÍA, CON OTRO TEMPO. El código del gesto es uno
+// solo y vive en VisorBaraja: la carta sale del marco, la velocidad la pone el
+// lanzamiento, el giro pivota bajo la carta, la de atrás avanza sincronizada con
+// el dedo y por debajo del umbral vuelve con asentamiento elástico. Lo que
+// cambia aquí son los números, porque las dos pantallas no hacen lo mismo: en la
+// galería se DESCARTA una foto y aquí se COMPARAN cuatro largos entre sí.
+//
+// MÁS PAUSADO. La salida va de 320 a 720ms contra los 120-560 de la galería, y
+// el factor de impulso baja de 1.3 a 0.55: al soltar, la carta sale con la mitad
+// del impulso que traía el dedo en vez de con un 30% más. Con eso el
+// lanzamiento más brusco tarda 320ms y el arrastre normal ronda los 700, que es
+// el tiempo que hace falta para registrar que se dejó atrás un largo y llegó
+// otro. Por debajo de 300ms el cambio no se alcanza a percibir -- es lo que
+// pasaba -- y por encima de 750 se siente que hay que esperar.
+//
+// RECORRIDO MÁS CORTO, hasta donde se puede. `recorrido: 0.6` pide un 40% menos
+// de vuelo, pero el piso del componente -- un ancho de carta más 24px, que es lo
+// que hace falta para que el canto de atrás cruce el borde del marco -- es lo
+// que acaba mandando. La carta sale del marco y no sigue hasta salir de la
+// pantalla como en la galería: en un teléfono de 390 son 336px de vuelo contra
+// 371, y sobre todo llega ahí en el doble de tiempo.
+//
+// GIRO MÁS CONTENIDO: 7 grados de recorrido durante el arrastre contra 10, y de
+// 7 a 12 en la salida contra 12 a 22. Comparar pide una carta que se retira, no
+// una que se lanza.
+//
+// ENTRADA MÁS LENTA: 380ms contra 220. Es el número que el indicador de largo
+// tiene que igualar, y por eso se lee de aquí y no se repite escrito.
+const FISICA_GUIA: Partial<AjustesFisica> = {
+  recorrido: 0.6,
+  salidaMs: [320, 720],
+  impulso: 0.55,
+  topeGrados: 7,
+  giroSalida: [7, 12],
+  entradaMs: 380,
+};
 
 // Orden fijo, de menor a mayor largo. El alt describe el largo porque la
 // etiqueta va impresa DENTRO de la imagen y no existe como texto en el DOM.
@@ -120,13 +161,33 @@ export function ModalLargos() {
         // tiene que igualarlo para que la foto quede centrada en la ventana.
         // Medido: 94.5px de aire arriba y abajo.
         altoPie="min-h-[50.5px]"
+        fisica={FISICA_GUIA}
+        // EL INDICADOR ACOMPAÑA A LA IMAGEN, no cambia de golpe. El nombre y la
+        // referencia corporal se remontan con `key={i}` y entran con la MISMA
+        // curva y la MISMA duración que la carta nueva -- de 0.35 a 1 de
+        // opacidad en entradaMs --, así que las dos piezas llegan juntas.
+        //
+        // Antes el texto se sustituía en el fotograma en que se suelta, mientras
+        // la imagen tardaba en llegar: se leía el largo nuevo antes de verlo.
+        //
+        // La duración se lee de FISICA_GUIA y no se escribe aquí otra vez: si
+        // cambia el tempo del gesto, el indicador lo sigue solo.
+        //
+        // Con prefers-reduced-motion la regla global fija la duración en 0.01ms
+        // y el texto aparece de una, igual que la imagen.
         encabezado={(i) => (
           <p className="min-w-0">
-            <span className="block font-display text-3xl font-bold leading-none tracking-[-0.056em] text-shell-lift">
-              {LARGOS[i].nombre}
-            </span>
-            <span className="mt-1 block text-[11px] font-medium uppercase tracking-[0.25em] text-shell-lift/75">
-              {LARGOS[i].referencia}
+            <span
+              key={i}
+              className="guia-indicador block"
+              style={{ animationDuration: `${FISICA_GUIA.entradaMs}ms` }}
+            >
+              <span className="block font-display text-3xl font-bold leading-none tracking-[-0.056em] text-shell-lift">
+                {LARGOS[i].nombre}
+              </span>
+              <span className="mt-1 block text-[11px] font-medium uppercase tracking-[0.25em] text-shell-lift/75">
+                {LARGOS[i].referencia}
+              </span>
             </span>
           </p>
         )}

@@ -56,16 +56,52 @@ const SELECCION = SELECCION_CARRUSEL.map((id) => {
 //
 //   92vh  y  46rem  son los mismos topes de la guía de largos: margen visible
 //                   alrededor y un techo para que en escritorio no se estire.
-//   calc(...)       es el alto que la ventana PIDE con fotos 4:5. 176px son las
-//                   piezas fijas de la composición interior (20+20 de relleno,
-//                   44 de cabecera, 44 de pie y los dos huecos de 24), y el
-//                   resto es la altura de la foto: su ancho -- el de la ventana
-//                   menos el relleno -- multiplicado por 1.25, que es 5/4.
+//   calc(...)       es el alto que la ventana PIDE con fotos 4:5, y tiene tres
+//                   términos. 112px son las piezas fijas (20+20 de relleno, 44
+//                   de pie y los dos huecos de 14). El segundo es la CABECERA,
+//                   que no es fija: depende del cuerpo del titular, que a su vez
+//                   es un clamp sobre vw. Y el tercero es la altura de la foto:
+//                   su ancho -- el de la ventana menos el relleno --
+//                   multiplicado por 1.25, que es 5/4.
+//
+// LA CABECERA MIDE 1.9375 VECES EL CUERPO DEL TITULAR. Medido en las tres
+// paradas del clamp: 48px -> 93.0, 52.72 -> 102.0, 56 -> 108.5. Los tres
+// cocientes dan 1.9375, 1.9347 y 1.9375, así que el factor es constante -- es
+// el lockup (1 + 0.85 - 0.22 del montaje) más la caja de línea del nodo de
+// espacio que separa las dos piezas, ese {" "} que mantiene el nombre accesible
+// en "Galería de color" y no en "Galeríade color".
+//
+// POR QUÉ NO SIRVE UNA CONSTANTE, y me costó un intento: puse 221px, el valor
+// del caso más alto, pensando que en pantallas estrechas el sobrante se lo
+// llevaría el hueco de la imagen. No: el marco es `h-full`, así que se come TODA
+// la altura disponible y deduce su ancho de ella; cuando ese ancho pasa del
+// disponible, el `max-w-full` lo recorta y la PROPORCIÓN SE ROMPE. Medido con
+// la constante: a 320px el marco quedaba en 0.7617 en vez de 0.8 y object-cover
+// recortaba un 4.8% del ancho de la foto. Con el término variable la cuenta es
+// exacta en cada ancho y la proporción vuelve a 0.8.
+//
+// Al revés no hay problema: en una pantalla baja manda el 92vh, la altura
+// disponible es MENOR que la que pide el ancho, y entonces el ancho deducido
+// cabe de sobra y no se recorta nada.
+//
+// Los dos huecos verticales bajaron de 24 a 14px, que es el ajuste de los
+// márgenes del marco. Los laterales no se tocan: siguen siendo el relleno de
+// 20px de la ventana.
 //
 // Si cambia el relleno de la ventana, el alto de la cabecera o del pie, o la
 // proporción de las fotos, hay que rehacer esta cuenta.
-const ALTO_VENTANA =
-  "h-[min(92vh,46rem,calc(176px_+_1.25_*_(min(92vw,22rem)_-_2.5rem)))]";
+// EL DE /menu, con titular y con 14px de aire vertical.
+const ALTO_VENTANA_TITULADO =
+  "h-[min(92vh,46rem,calc(112px_+_clamp(5.8125rem,29.0625vw,6.78125rem)_+_1.25_*_(var(--visor-ancho)_-_2.5rem)))]";
+
+// EL DE /galeria, que no lleva titular ni cambió su aire: cabecera de 44px (el
+// min-h-11 del cierre solo) y huecos de 24, o sea 40+44+44+48 = 176px de piezas
+// fijas. Es el valor que tenía antes de que /menu ganara su titular, y vuelve
+// aquí porque la constante era una sola para las dos rutas: con la fórmula
+// titulada, la ventana de /galeria quedaba 108px más alta de lo que pide y el
+// max-w-full del marco recortaba la proporción. Regresión mía, corregida.
+const ALTO_VENTANA_SIMPLE =
+  "h-[min(92vh,46rem,calc(176px_+_1.25_*_(var(--visor-ancho)_-_2.5rem)))]";
 
 type GaleriaClienteProps = {
   // Relleno lateral del riel del carrusel. Se reenvía tal cual a
@@ -75,9 +111,34 @@ type GaleriaClienteProps = {
   // Tamaño de la tarjeta del carrusel. Se reenvía tal cual; sin valor queda el
   // de /galeria.
   tarjeta?: { clase: string; sizes: string };
+  // Foco móvil del carrusel. Se reenvía tal cual; sin valor no hay realce en el
+  // centro, que es lo que quiere /galeria: ahí el carrusel es el contenido de la
+  // página y sus tarjetas ya son grandes.
+  foco?: boolean;
+  // VISOR SOBRE SUPERFICIE CLARA, con su titular. Enciende las tres cosas que
+  // van juntas y que no tendrían sentido por separado: el fondo blanco de la
+  // ventana, el titular "Galería de color" y la tinta oscura del contador.
+  //
+  // Sin este valor la ventana es la de siempre. Es lo que deja a /galeria
+  // intacta: la pide /menu, que es donde se pidió el cambio.
+  visorClaro?: boolean;
+  // Clave de almacenamiento local para el "me gusta" de cada fotografía. Se
+  // reenvía tal cual al visor; sin valor no hay corazón, que es lo que deja a
+  // /galeria intacta.
+  claveFavoritos?: string;
+  // Física de baraja del visor. Se reenvía tal cual; sin valor el gesto es el
+  // de siempre, que es lo que deja a /galeria intacta.
+  fisicaVisor?: boolean;
 };
 
-export function GaleriaCliente({ rellenoRiel, tarjeta }: GaleriaClienteProps) {
+export function GaleriaCliente({
+  rellenoRiel,
+  tarjeta,
+  foco,
+  visorClaro = false,
+  claveFavoritos,
+  fisicaVisor = false,
+}: GaleriaClienteProps) {
   const [abierto, setAbierto] = useState(false);
   const [indice, setIndice] = useState(0);
 
@@ -88,6 +149,7 @@ export function GaleriaCliente({ rellenoRiel, tarjeta }: GaleriaClienteProps) {
         activo={!abierto}
         rellenoRiel={rellenoRiel}
         tarjeta={tarjeta}
+        foco={foco}
         onAbrir={(i) => {
           setIndice(i);
           setAbierto(true);
@@ -108,7 +170,10 @@ export function GaleriaCliente({ rellenoRiel, tarjeta }: GaleriaClienteProps) {
         abierto={abierto}
         indiceInicial={indice}
         onCerrar={() => setAbierto(false)}
-        etiqueta="Galería de trabajos"
+        etiqueta={visorClaro ? "Galería de color" : "Galería de trabajos"}
+        claro={visorClaro}
+        claveFavoritos={claveFavoritos}
+        fisica={fisicaVisor}
         textoAnterior="Foto anterior"
         textoSiguiente="Foto siguiente"
         anuncio={(i) => `Foto ${i + 1} de ${LAMINAS.length}. ${LAMINAS[i].alt}`}
@@ -116,14 +181,77 @@ export function GaleriaCliente({ rellenoRiel, tarjeta }: GaleriaClienteProps) {
         // Alto automático con tope: las fotos son 4:5, así que el marco tiene
         // que deducir su altura del ancho y no al contrario. Ver el comentario
         // de altoVentana en VisorBaraja.
-        altoVentana={ALTO_VENTANA}
-        // La cabecera de esta ventana es solo el botón de cerrar. Se le fija el
-        // mismo alto que al pie -- 44px, el de las flechas -- para que la foto
-        // quede centrada; sin eso la fila del cierre mide 40 y la imagen queda
-        // 4px alta.
+        altoVentana={visorClaro ? ALTO_VENTANA_TITULADO : ALTO_VENTANA_SIMPLE}
+        // 14px de aire vertical solo en /menu, que es donde se pidió; /galeria
+        // se queda con los 24 por omisión.
+        aireMarco={visorClaro ? "mt-3.5" : undefined}
+        // La cabecera lleva el botón de cerrar y, en la variante clara, el
+        // titular. Se le fija el mismo alto que al pie -- 44px, el de las
+        // flechas -- para que la foto quede centrada; sin eso la fila del
+        // cierre mide 40 y la imagen queda 4px alta.
         altoCabecera="min-h-11"
+        // EL TITULAR, PIEZA HERMANA DEL DE LA PÁGINA. Es el mismo lockup que el
+        // <h1> de /menu, clase por clase: envoltorio inline-block para que su
+        // ancho sea el de la línea más larga y "de color" tenga contra qué
+        // alinearse por la derecha; primera línea en redonda; segunda en
+        // cursiva al 0.85 del cuerpo, alineada a la derecha, montada -0.22em
+        // sobre la primera y volada -0.85em fuera del bloque; leading-none e
+        // interletrado -0.056em en las dos.
+        //
+        // EL CUERPO, DE 48 A 56px, Y EL TOPE LO PONE EL BOTÓN DE CERRAR. La
+        // ventana mide 92vw con tope de 22rem, así que el ancho útil del titular
+        // es el de la ventana menos su relleno, menos el disco de 44px del
+        // cierre. Medido el volado de "de color" -- que sale -0.85em fuera del
+        // bloque -- contra el canto izquierdo del cierre:
+        //
+        //   cuerpo   holgura a 320px   a 360px   a 390px o más
+        //     48px        32.9px         69.7         90.5
+        //     52          17.8           54.6         75.4
+        //     56           2.7           39.5         60.3
+        //     60         -12.5           24.4         45.2
+        //
+        // A 56px fijos el titular roza el cierre en la pantalla más estrecha
+        // (2.7px) y a 60 lo pisa. De ahí el clamp: 48px a 320, 53 a 360 y 56
+        // desde 383, que es donde la ventana deja de crecer. La recta pasa
+        // justo por esos dos extremos.
+        //
+        // Para comparar, el <h1> de la página mide 63.7px a 360 y 69.8 a 390;
+        // aquí no se llega ahí porque la ventana es 60px más estrecha que el
+        // panel y además comparte renglón con el cierre.
+        //
+        // Con 56px la cabecera mide 108.5px medidos, y ese número está metido
+        // en la cuenta de ALTO_VENTANA (arriba): subir el cuerpo sin rehacer
+        // esa cuenta le quita altura a la foto.
+        //
+        // El nombre accesible del <dialog> pasa a decir lo mismo que se ve
+        // ("Galería de color"), así que el titular no introduce una segunda
+        // versión del nombre.
+        encabezado={
+          visorClaro
+            ? () => (
+                <h2 className="font-display text-[clamp(3rem,15vw,3.5rem)] text-tierra">
+                  <span className="inline-block">
+                    <span className="block font-medium leading-none tracking-[-0.056em]">
+                      Galería
+                    </span>{" "}
+                    <span className="-mt-[0.22em] -mr-[0.85em] block text-right text-[0.85em] font-medium italic leading-none tracking-[-0.056em]">
+                      de color
+                    </span>
+                  </span>
+                </h2>
+              )
+            : undefined
+        }
+        // El contador sigue al fondo de la ventana: tierra/70 sobre blanco da
+        // 6.14:1 y crema/70 sobre el café 7.26. En claro NO se queda en /55,
+        // que es el tono de la pista de uso sobre oscuro: sobre blanco eso cae a
+        // 3.77:1, por debajo del mínimo de 4.5 para 11px.
         pie={(i) => (
-          <p className="text-[11px] uppercase tabular-nums tracking-[0.25em] text-shell-lift/70">
+          <p
+            className={`text-[11px] uppercase tracking-[0.25em] tabular-nums ${
+              visorClaro ? "text-tierra/70" : "text-shell-lift/70"
+            }`}
+          >
             {String(i + 1).padStart(2, "0")} / {LAMINAS.length}
           </p>
         )}

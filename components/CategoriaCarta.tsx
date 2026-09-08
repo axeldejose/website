@@ -19,9 +19,9 @@ type CategoriaCartaProps = {
   // uso de la página, no de la categoría: con dos cartas en la misma página se
   // repetía dos veces a media pantalla de distancia.
   sinKicker?: boolean;
-  // Pasa los nombres de la lista a la tipografía de cuerpo y a 36px. Ver
-  // FilaEditorial.
-  nombreEnCuerpo?: boolean;
+  // Alinea las filas con la pila de "Tratamientos": su tipografía y su eje
+  // izquierdo. Se reenvía a FilaEditorial; solo la pide /menu.
+  comoPila?: boolean;
   // Con false ninguna fila arranca abierta. El acordeón es exclusivo DENTRO de
   // cada categoría, así que con dos en la misma página y las dos abriendo su
   // primer servicio, /menu cargaba con dos paneles desplegados.
@@ -33,7 +33,7 @@ export function CategoriaCarta({
   ocultarTitulo = false,
   editorial = false,
   sinKicker = false,
-  nombreEnCuerpo = false,
+  comoPila = false,
   abrirPrimero = true,
 }: CategoriaCartaProps) {
   // Acordeón exclusivo: un solo servicio abierto a la vez dentro de la
@@ -126,7 +126,7 @@ export function CategoriaCarta({
               service={service}
               isOpen={openSlug === service.slug}
               onToggle={alternar}
-              nombreEnCuerpo={nombreEnCuerpo}
+              comoPila={comoPila}
             />
           ) : (
             <ServiceRow

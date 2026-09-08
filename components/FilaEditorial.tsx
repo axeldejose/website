@@ -11,21 +11,24 @@ type FilaEditorialProps = {
   service: Service;
   isOpen: boolean;
   onToggle: () => void;
-  // Cambia la voz del nombre: de la display (Bodoni 24px) a la de cuerpo del
-  // sitio (Jost) a 30px. Solo la usa la segunda carta de /menu, y es parte de
-  // lo que la distingue de la lista de color: el CUERPO ya no, que ahora es el
-  // mismo en las dos (ver CUERPO_NOMBRE).
-  //
-  // 30px Y NO 36, QUE ES LO QUE TENÍA. A 36 la sección pesaba más que la lista
-  // de color sin necesitarlo. La referencia para bajar es la altura de tinta
-  // medida (mayúscula más asta descendente): la Bodoni de la lista mide 24.50px
-  // a 24 de cuerpo, y la Jost de aquí da 34.25 a 36, 28.5 a 30, 26.6 a 28 y
-  // 24.7 a 26. Es decir, a 26px ya empatan y la jerarquía se pierde; a 28 la
-  // ventaja es del 9% y se vuelve ambigua; a 30 queda en 16%, que se lee como
-  // un escalón claro sin volverse titular. En ancho de tinta el escalón es el
-  // mismo: "Corte dama" mide 142.2px contra los 121.3 de "Tinte global".
-  nombreEnCuerpo?: boolean;
+  // Alinea la fila con la pila de "Tratamientos": misma tipografía que ese
+  // texto -- Jost 24px peso 400 con interletrado -0.02em, no el Bodoni de la
+  // lista de color -- y mismo eje izquierdo. Solo la usa la segunda carta de
+  // /menu, que es donde los tres tienen que leerse como el mismo nivel.
+  comoPila?: boolean;
 };
+
+// EL EJE IZQUIERDO DE LA PILA, y por qué son 17px. El nombre "Tratamientos" vive
+// dentro de la carta de adelante, que lleva un contorno de 1px y un relleno de
+// px-4: su tinta arranca 17px dentro del eje de la columna. Las filas de la
+// lista van a ras de la columna, así que necesitan ese mismo desplazamiento por
+// la izquierda -- y solo por la izquierda: el relleno derecho se queda en cero
+// para que la cifra siga terminando en el margen.
+//
+// Alinear la CAJA basta para alinear la TINTA porque las dos son Jost al mismo
+// cuerpo: comparten el mismo apoyo lateral del glifo. Con familias distintas
+// habría que medir la tinta y compensar la diferencia.
+const EJE_PILA = "pl-[17px]";
 
 // Columna de cifras: SIN ancho fijo. La caja se ajusta a su contenido y va
 // shrink-0 justo antes del cheurón, así que su canto derecho siempre cae en
@@ -57,21 +60,17 @@ type FilaEditorialProps = {
 // cartas van a 30px exactos.
 const CUERPO_NOMBRE = "flex-1 whitespace-nowrap text-shell-lift";
 
-// Los dos cuerpos, uno por carta. Ya no coinciden, y es a propósito: la carta
-// de la sección bajó a 24px para dejar de dominar la página y para que su
-// tarjeta ocupe menos alto.
+// EL CUERPO, UNO SOLO PARA LAS DOS CARTAS. La sección de abajo tuvo un
+// tratamiento propio -- familia de cuerpo a 24px -- y se retiró: las dos listas
+// de /menu son ahora el mismo diseño, sin nada que las distinga salvo qué
+// servicios llevan dentro.
 //
-// En altura de tinta medida (mayúscula más asta descendente) la Bodoni rinde
-// 1.021 veces su cuerpo y la Jost 0.951, así que 30px de Bodoni dan 30.6px de
-// tinta contra los 22.8 que dan 24px de Jost: la sección queda un 25% más baja
-// que la lista de color, que es lo que la saca del primer plano sin volverla
-// secundaria.
-//
-// La lista de color conserva su escalón por debajo de 360px (26px), donde la
-// fila no da para más. La sección ya no lo necesita: a 24px su nombre más
-// ancho ("Corte dama") mide 113.8px de tinta y entra de sobra hasta en 320.
+// El escalón por debajo de 360px (26px en vez de 30) se queda: ahí la fila mide
+// 272px y un nombre de 30px ("Tinte global", 151.6px de tinta) junto a un rango
+// de precio (109.6 a 14px) más el cheurón y los huecos pide 289.2px. No cabe de
+// ninguna manera. A 26px la tinta baja a 131.4 y la fila entra con 11px de aire
+// entre nombre y cifra.
 const CUERPO_COLOR = "text-[1.625rem] min-[360px]:text-3xl";
-const CUERPO_SECCION = "text-2xl";
 
 // Interletrado para Bodoni Moda, pedido. La cifra va en Jost y no lo lleva.
 //
@@ -88,7 +87,7 @@ export function FilaEditorial({
   service,
   isOpen,
   onToggle,
-  nombreEnCuerpo = false,
+  comoPila = false,
 }: FilaEditorialProps) {
   const panelId = `servicio-${service.slug}`;
   const notaId = `rango-${service.slug}`;
@@ -112,10 +111,10 @@ export function FilaEditorial({
           cuerpos distintos. Como nada envuelve, todos los renglones de una
           misma carta miden lo mismo.
 
-          EL RELLENO VERTICAL CAMBIA POR CARTA: py-6 (24px por lado) en la lista
-          de color y py-4 (16) en la sección, que se pidió más compacta al bajar
-          el cuerpo de sus nombres. Con py-4 y el renglón de 24px, el alto de
-          toque queda en 48px, por encima del mínimo de 44.
+          EL RELLENO VERTICAL, py-6 (24px por lado) en las dos cartas. La
+          sección de abajo llevó py-4 mientras tuvo nombres más chicos; al
+          igualarse el diseño vuelve al mismo relleno, y con el renglón de 30px
+          el alto de toque de la fila queda en 78px.
 
           EL `!` DEL ANILLO DE FOCO no es cosmético: la regla global de
           :focus-visible de globals.css no está dentro de una capa, así que le
@@ -130,9 +129,7 @@ export function FilaEditorial({
         onClick={onToggle}
         aria-expanded={isOpen}
         aria-controls={panelId}
-        className={`flex w-full items-baseline gap-2 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-shell-lift! min-[360px]:gap-3 sm:gap-4 ${
-          nombreEnCuerpo ? "py-4" : "py-6"
-        }`}
+        className={`flex w-full items-baseline gap-2 py-6 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-shell-lift! min-[360px]:gap-3 sm:gap-4 ${comoPila ? EJE_PILA : ""}`}
       >
         {/* Nombre a la izquierda, en REDONDA. whitespace-nowrap es deliberado:
             ningún nombre se parte. El más ancho ("Tinte global") mide 126.8px a
@@ -174,8 +171,8 @@ export function FilaEditorial({
             jerarquía ya está resuelta por arriba. */}
         <span
           className={`${CUERPO_NOMBRE} ${
-            nombreEnCuerpo
-              ? `${CUERPO_SECCION} font-body font-normal tracking-[-0.02em]`
+            comoPila
+              ? "font-body text-2xl font-normal tracking-[-0.02em]"
               : `${CUERPO_COLOR} font-display font-medium ${TRACKING_DISPLAY}`
           }`}
         >
@@ -240,7 +237,7 @@ export function FilaEditorial({
       <div
         id={panelId}
         hidden={!isOpen}
-        className="animate-[accordion-in_200ms_ease-out] pb-8 lg:max-w-[30rem]"
+        className={`animate-[accordion-in_200ms_ease-out] pb-8 lg:max-w-[30rem] ${comoPila ? EJE_PILA : ""}`}
       >
         <p className="text-sm break-words text-shell-lift/90">{service.copy}</p>
 
