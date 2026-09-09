@@ -5,12 +5,17 @@ import { useState } from "react";
 
 import { VisorBaraja } from "@/components/VisorBaraja";
 import {
+  CATEGORIAS_GALERIA,
+  CATEGORIA_POR_FOTO,
   GALERIA,
   GALERIA_ALTO,
   GALERIA_ANCHO,
+  MINIATURA_ALTO,
+  MINIATURA_ANCHO,
   completa,
   miniatura,
 } from "@/data/galeria";
+import type { CategoriaGaleria } from "@/data/galeria";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // EL TABLERO DE /galeria
@@ -28,40 +33,48 @@ import {
 // líneas de física de arrastre.
 // ═══════════════════════════════════════════════════════════════════════════
 
-// LAS 56, EN SU ORDEN CRONOLÓGICO, apuntando a las versiones completas. Que la
-// lista exista no significa que se descarguen: el visor recibe ventana={1} y
-// monta la activa más sus dos vecinas, así que nunca hay más de tres <img>.
-const LAMINAS = GALERIA.map((f) => ({
-  id: f.id,
-  archivo: completa(f.id),
-  alt: f.alt,
-}));
+// LAS LÁMINAS DEL VISOR SE DERIVAN DE LO QUE SE VE, no de las 56 fijas. Con un
+// filtro activo, el visor navega solo entre las fotos de esa categoría: abrir
+// la tercera rubia y encontrarse una castaña al deslizar sería una sorpresa
+// desagradable. Con "Todos" la lista es la de siempre, en su orden cronológico.
+//
+// Que la lista exista no significa que se descarguen: el visor recibe
+// ventana={1} y monta la activa más sus dos vecinas, así que nunca hay más de
+// tres <img>.
+function laminasDe(fotos: typeof GALERIA) {
+  return fotos.map((f) => ({
+    id: f.id,
+    archivo: completa(f.id),
+    alt: f.alt,
+  }));
+}
 
-// ─── EL RITMO DEL MOSAICO ─────────────────────────────────────────────────
-// Las 56 están recortadas a 4:5, así que con celdas iguales la retícula sale
-// perfectamente uniforme y se lee como cuadrícula de catálogo. El carácter de
-// tablero lo da que unas ocupen más que otras.
+// ─── EL MOSAICO, EN DOS COLUMNAS QUE FLUYEN SOLAS ────────────────────────
+// ANTES ERA UNA RETÍCULA CON SALTOS DE FILA. Cada celda pedía 4, 5 u 8 filas
+// de una cuadrícula común, y como esos tres números no tejen entre sí, las
+// filas se alineaban por la pieza más alta y quedaban huecos entre una
+// fotografía y la siguiente.
 //
-// TRES FORMATOS, y los tres salen de recortar distinto con object-cover:
-// ninguna fotografía se amplía, así que no hay pérdida de nitidez en ninguna.
+// AHORA NO HAY FILAS. Son dos columnas independientes, cada una una pila
+// vertical con su propia separación: dentro de una columna, la foto siguiente
+// arranca donde termina la anterior, así que no queda hueco por construcción.
+// Es el reparto de un masonry, sin medir nada en JavaScript.
 //
-//   grande  2 columnas x 8 filas   4:5 al doble de tamaño   6 fotos
-//   alta    1 columna  x 5 filas   recorte más vertical    14 fotos
-//   normal  1 columna  x 4 filas   4:5 exacto              36 fotos
+// EL REPARTO ES ALTERNO -- par a la izquierda, impar a la derecha -- y no
+// "las primeras 28 en la columna izquierda", que es lo que haría `columns` de
+// CSS. Con el reparto alterno el orden cronológico se sigue leyendo de
+// izquierda a derecha y las que cargan primero son las de arriba de las dos
+// columnas, no las de media página de la primera.
 //
-// EL REPARTO VA ESCRITO A MANO Y NO AL AZAR. Un Math.random() daría
-// composiciones distintas en servidor y cliente -- error de hidratación -- y
-// además lo aleatorio se agrupa. Estas posiciones siguen un motivo de periodo
-// 11: 11 no divide a 56 ni coincide con 2, 3, 4 ni 5 columnas, así que el
-// patrón nunca se alinea con ninguna cuenta y el ojo no le encuentra la
-// repetición. Las seis grandes van separadas por nueve posiciones o más.
-const GRANDES = new Set([3, 14, 24, 33, 43, 52]);
-const ALTAS = new Set([1, 7, 9, 12, 18, 20, 27, 30, 36, 39, 45, 47, 50, 54]);
+// LAS FOTOGRAFÍAS YA NO SE RECORTAN. Cada una entra con su tamaño natural
+// (640x800) y la celda toma el alto que le corresponde: no hay object-cover
+// que corte ni alto de fila que deforme.
+const COLUMNAS = 2;
 
-function formato(i: number): "grande" | "alta" | "normal" {
-  if (GRANDES.has(i)) return "grande";
-  if (ALTAS.has(i)) return "alta";
-  return "normal";
+function repartir<T>(items: T[]): T[][] {
+  const columnas: T[][] = Array.from({ length: COLUMNAS }, () => []);
+  items.forEach((item, i) => columnas[i % COLUMNAS].push(item));
+  return columnas;
 }
 
 // ─── CARGA PROGRESIVA ─────────────────────────────────────────────────────
@@ -71,60 +84,115 @@ function formato(i: number): "grande" | "alta" | "normal" {
 // JavaScript, sin observadores y sin espera artificial.
 const INMEDIATAS = 8;
 
-// El ancho que ocupa cada celda en cada tramo, para que next/image pida el
-// archivo del tamaño de la celda y no el de 640 en las 56.
-const SIZES_NORMAL =
-  "(min-width: 1440px) 20vw, (min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw";
-const SIZES_GRANDE =
-  "(min-width: 1440px) 40vw, (min-width: 1024px) 50vw, (min-width: 640px) 66vw, 100vw";
+// Con dos columnas fijas, cada celda mide siempre la mitad del marco. Un solo
+// valor: no hay tramo en el que la cuenta de columnas cambie.
+const SIZES_CELDA = "50vw";
+
+// `null` es "Todos": la ausencia de filtro, no una categoría más. Tenerlo como
+// null y no como la cadena "todos" evita que el estado inicial dependa de un
+// valor mágico que también podría venir de CATEGORIAS_GALERIA.
+type Filtro = CategoriaGaleria | null;
 
 export function GaleriaTablero() {
   const [abierto, setAbierto] = useState(false);
   const [indice, setIndice] = useState(0);
+  const [filtro, setFiltro] = useState<Filtro>(null);
+
+  // La lista visible y las láminas del visor salen las dos de aquí, así que el
+  // índice que guarda el botón sirve para las dos sin traducción.
+  const visibles =
+    filtro === null
+      ? GALERIA
+      : GALERIA.filter((f) => CATEGORIA_POR_FOTO[f.id] === filtro);
+  const laminas = laminasDe(visibles);
+
+  // Cambiar de filtro reordena el tablero entero: el índice guardado apuntaría
+  // a otra foto. Se cierra el visor y se vuelve al principio.
+  const cambiarFiltro = (siguiente: Filtro) => {
+    setFiltro(siguiente);
+    setIndice(0);
+    setAbierto(false);
+  };
 
   return (
     <>
-      <ul className="gal-tablero">
-        {GALERIA.map((foto, i) => {
-          const f = formato(i);
-          return (
-            <li key={foto.id} className={`gal-celda gal-celda-${f}`}>
-              <button
-                type="button"
-                onClick={() => {
-                  setIndice(i);
-                  setAbierto(true);
-                }}
-                className="gal-foto"
-                aria-label={`Ver en grande: ${foto.alt}`}
-              >
-                <Image
-                  src={miniatura(foto.id)}
-                  alt=""
-                  fill
-                  sizes={f === "grande" ? SIZES_GRANDE : SIZES_NORMAL}
-                  priority={i < INMEDIATAS}
-                  loading={i < INMEDIATAS ? undefined : "lazy"}
-                  className="object-cover"
-                  // EL FUNDIDO DE ENTRADA se marca en el nodo desde el evento de
-                  // carga y no con estado: 56 piezas de estado re-renderizarían
-                  // el tablero entero cada vez que llega una fotografía. El
-                  // atributo lo lee el CSS.
-                  onLoad={(e) => {
-                    e.currentTarget.dataset.cargada = "si";
+      {/* ─── LAS PASTILLAS DE FILTRO ──────────────────────────────────────
+          Un grupo de botones, no una lista de enlaces: no cambian de ruta ni
+          de URL, solo de lo que se ve. `aria-pressed` es lo que anuncia cuál
+          está activa a quien no ve el relleno. */}
+      <div
+        role="group"
+        aria-label="Filtrar por tono"
+        className="gal-filtros"
+      >
+        <button
+          type="button"
+          onClick={() => cambiarFiltro(null)}
+          aria-pressed={filtro === null}
+          className="gal-filtro"
+        >
+          Todos
+        </button>
+
+        {CATEGORIAS_GALERIA.map((c) => (
+          <button
+            key={c.id}
+            type="button"
+            onClick={() => cambiarFiltro(c.id)}
+            aria-pressed={filtro === c.id}
+            className="gal-filtro"
+          >
+            {c.etiqueta}
+          </button>
+        ))}
+      </div>
+
+      {/* CADA COLUMNA ES SU PROPIA LISTA. El índice que viaja con cada foto es
+          el que tiene dentro de `visibles` -- no el de la columna --, que es
+          exactamente lo que el visor necesita para abrir en la correcta. */}
+      <div className="gal-tablero">
+        {repartir(visibles.map((foto, i) => ({ foto, i }))).map((columna, c) => (
+          <ul key={c} className="gal-columna">
+            {columna.map(({ foto, i }) => (
+              <li key={foto.id} className="gal-celda">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIndice(i);
+                    setAbierto(true);
                   }}
-                />
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+                  className="gal-foto"
+                  aria-label={`Ver en grande: ${foto.alt}`}
+                >
+                  <Image
+                    src={miniatura(foto.id)}
+                    alt=""
+                    width={MINIATURA_ANCHO}
+                    height={MINIATURA_ALTO}
+                    sizes={SIZES_CELDA}
+                    priority={i < INMEDIATAS}
+                    loading={i < INMEDIATAS ? undefined : "lazy"}
+                    className="gal-img"
+                    // EL FUNDIDO DE ENTRADA se marca en el nodo desde el evento
+                    // de carga y no con estado: 56 piezas de estado
+                    // re-renderizarían el tablero entero cada vez que llega una
+                    // fotografía. El atributo lo lee el CSS.
+                    onLoad={(e) => {
+                      e.currentTarget.dataset.cargada = "si";
+                    }}
+                  />
+                </button>
+              </li>
+            ))}
+          </ul>
+        ))}
+      </div>
 
       {/* El visor es el mismo de /menu y /galeria de siempre, sin una línea
           tocada. Lo único que cambia es lo que se le pasa: la superficie clara
-          y las 56 láminas completas. */}
+          y las láminas completas de lo que esté a la vista. */}
       <VisorBaraja
-        laminas={LAMINAS}
+        laminas={laminas}
         ancho={GALERIA_ANCHO}
         alto={GALERIA_ALTO}
         abierto={abierto}
@@ -135,7 +203,7 @@ export function GaleriaTablero() {
         fisica
         textoAnterior="Foto anterior"
         textoSiguiente="Foto siguiente"
-        anuncio={(i) => `Foto ${i + 1} de ${LAMINAS.length}. ${LAMINAS[i].alt}`}
+        anuncio={(i) => `Foto ${i + 1} de ${laminas.length}. ${laminas[i].alt}`}
         ventana={1}
         altoCabecera="min-h-11"
       />

@@ -308,3 +308,104 @@ export const SELECCION_CARRUSEL = [
   "trabajo-39",
   "trabajo-04",
 ];
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⚠️  CLASIFICACIÓN POR TONO — PROVISIONAL. CORREGIR ANTES DE PUBLICAR.  ⚠️
+//
+// ESTAS CATEGORÍAS NO SE MIRARON. El reparto de abajo es mecánico: se recorrió
+// la lista en orden y se fue rotando entre las cinco categorías, una tras otra.
+// NO corresponde al tono real de ninguna fotografía. Sirve únicamente para que
+// el filtro de /galeria funcione y para que ninguna categoría quede vacía.
+//
+// QUIÉN LO CORRIGE Y CÓMO: Axel (o quien conozca los trabajos) revisa foto por
+// foto y cambia el valor de la derecha. Los valores válidos son exactamente los
+// cinco de CategoriaGaleria; cualquier otro rompe el build, que es justo lo que
+// se quiere. El id de la izquierda no se toca: es el nombre del archivo.
+//
+// ESTE ES EL ÚNICO LUGAR DONDE VIVE LA CLASIFICACIÓN. Ni el tablero ni las
+// pastillas de filtro saben nada de tonos: leen de aquí.
+// ═══════════════════════════════════════════════════════════════════════════
+
+export type CategoriaGaleria =
+  | "rubios"
+  | "cobrizos"
+  | "caramel"
+  | "castanos"
+  | "negros";
+
+// El orden de esta lista ES el orden en que salen las pastillas en pantalla.
+// "Todos" no está aquí: no es una categoría, es la ausencia de filtro, y el
+// tablero la trata aparte.
+export const CATEGORIAS_GALERIA: {
+  id: CategoriaGaleria;
+  etiqueta: string;
+}[] = [
+  { id: "rubios", etiqueta: "Rubios" },
+  { id: "cobrizos", etiqueta: "Cobrizos" },
+  { id: "caramel", etiqueta: "Caramel" },
+  { id: "castanos", etiqueta: "Casta\u00f1os" },
+  { id: "negros", etiqueta: "Negros" },
+];
+
+// Están las 56, una por línea. El tipo valida el VALOR -- escribir "rubio" en
+// vez de "rubios" rompe el build --, no el id: si a una foto se le borra la
+// línea, esa foto deja de salir en cualquier filtro, pero sigue en "Todos".
+export const CATEGORIA_POR_FOTO: Record<string, CategoriaGaleria> = {
+  "trabajo-01": "rubios",
+  "trabajo-02": "cobrizos",
+  "trabajo-03": "caramel",
+  "trabajo-04": "castanos",
+  "trabajo-05": "negros",
+  "trabajo-06": "rubios",
+  "trabajo-07": "cobrizos",
+  "trabajo-08": "caramel",
+  "trabajo-09": "castanos",
+  "trabajo-10": "negros",
+  "trabajo-11": "rubios",
+  "trabajo-12": "cobrizos",
+  "trabajo-13": "caramel",
+  "trabajo-14": "castanos",
+  "trabajo-16": "negros",
+  "trabajo-17": "rubios",
+  "trabajo-18": "cobrizos",
+  "trabajo-19": "caramel",
+  "trabajo-20": "castanos",
+  "trabajo-21": "negros",
+  "trabajo-22": "rubios",
+  "trabajo-23": "cobrizos",
+  "trabajo-24": "caramel",
+  "trabajo-25": "castanos",
+  "trabajo-26": "negros",
+  "trabajo-27": "rubios",
+  "trabajo-28": "cobrizos",
+  "trabajo-29": "caramel",
+  "trabajo-30": "castanos",
+  "trabajo-31": "negros",
+  "trabajo-32": "rubios",
+  "trabajo-33": "cobrizos",
+  "trabajo-34": "caramel",
+  "trabajo-35": "castanos",
+  "trabajo-36": "negros",
+  "trabajo-37": "rubios",
+  "trabajo-38": "cobrizos",
+  "trabajo-39": "caramel",
+  "trabajo-40": "castanos",
+  "trabajo-41": "negros",
+  "trabajo-42": "rubios",
+  "trabajo-43": "cobrizos",
+  "trabajo-44": "caramel",
+  "trabajo-45": "castanos",
+  "trabajo-46": "negros",
+  "trabajo-47": "rubios",
+  "trabajo-48": "cobrizos",
+  "trabajo-49": "caramel",
+  "trabajo-50": "castanos",
+  "trabajo-51": "negros",
+  "trabajo-52": "rubios",
+  "trabajo-53": "cobrizos",
+  "trabajo-54": "caramel",
+  "trabajo-55": "castanos",
+  "trabajo-56": "negros",
+  "trabajo-57": "rubios",
+};
