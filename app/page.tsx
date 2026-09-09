@@ -82,7 +82,7 @@ export default function Home() {
                     className="pointer-events-none absolute inset-0 bg-linear-115 from-transparent from-40% via-white/15 via-50% to-transparent to-60% animate-[card-shine_6s_ease-in-out_infinite_both]"
                   />
                   <div className="absolute inset-x-0 bottom-0 border-t border-white/40 bg-black/50 py-0.5 text-center backdrop-blur-3xl">
-                    <span className="text-xs leading-tight text-shell-lift">
+                    <span className="text-sm leading-tight text-shell-lift">
                       Diseño de Color
                     </span>
                   </div>
@@ -107,7 +107,7 @@ export default function Home() {
                     className="pointer-events-none absolute inset-0 bg-linear-115 from-transparent from-40% via-white/15 via-50% to-transparent to-60% animate-[card-shine_6s_ease-in-out_infinite_both]"
                   />
                   <div className="absolute inset-x-0 bottom-0 border-t border-white/40 bg-black/50 py-0.5 text-center backdrop-blur-3xl">
-                    <span className="text-xs leading-tight text-shell-lift">
+                    <span className="text-sm leading-tight text-shell-lift">
                       Tratamientos
                     </span>
                   </div>
@@ -132,7 +132,7 @@ export default function Home() {
                     className="pointer-events-none absolute inset-0 bg-linear-115 from-transparent from-40% via-white/15 via-50% to-transparent to-60% animate-[card-shine_6s_ease-in-out_infinite_both]"
                   />
                   <div className="absolute inset-x-0 bottom-0 border-t border-white/40 bg-black/50 py-0.5 text-center backdrop-blur-3xl">
-                    <span className="text-xs leading-tight text-shell-lift">
+                    <span className="text-sm leading-tight text-shell-lift">
                       Galería
                     </span>
                   </div>
@@ -146,7 +146,7 @@ export default function Home() {
               href={waLink("Hola Axel, me gustaría agendar una cita.")}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex min-h-[40px] flex-[3] items-center justify-center gap-1.5 rounded-full bg-dune-deep px-3 text-xs text-shell-lift transition-opacity duration-150 hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dune-deep"
+              className="flex min-h-[40px] flex-[3] items-center justify-center gap-1.5 rounded-full bg-dune-deep px-3 text-sm text-shell-lift transition-opacity duration-150 hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dune-deep"
             >
               <svg
                 aria-hidden="true"
@@ -156,9 +156,9 @@ export default function Home() {
               >
                 <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.24.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
               </svg>
-              Hablemos por WhatsApp
+              Envíame un WhatsApp
             </a>
-            <ConoceMas className="flex-[2]" />
+            <ConoceMas className="flex-[2] text-sm!" />
           </div>
 
           <div className="flex items-center justify-between">
