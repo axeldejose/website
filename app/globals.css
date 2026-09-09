@@ -1787,32 +1787,71 @@ body {
    casa en vez de crema.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* EL VELO DEL FONDO. La fotografía (/back3tratamientos.jpeg) es un macro de gel
-   sobre blanco: luminosidad muy alta, brillos especulares y remolinos con mucho
-   contraste LOCAL. El problema no es que sea clara -- la tinta oscura encima
-   agradece eso -- sino que su varianza cae justo debajo del texto, y que sin
-   nada encima el vidrio de las ventanas no tiene de dónde despegarse.
+/* ─── EL VELO DEL FONDO ────────────────────────────────────────────────────
+   back5tratamientos.jpeg es una textura orgánica dorada y crema: pliegues
+   suaves, sin figura, sin elementos reconocibles y sin bordes duros. Eso
+   simplifica el trabajo del velo respecto de la imagen anterior -- que tenía una
+   persona y obligaba a tres capas, una para proteger el texto y otra para
+   dejarle la cara limpia --: aquí basta una.
 
-   POR QUÉ ATENÚA Y NO OSCURECE. El velo no es negro ni gris: son los dos tonos
-   claros de la paleta, shell y shell-lift, en un degradado vertical. Sube el
-   piso a un blanco cálido parejo y comprime el recorrido de la fotografía sin
-   bajarle la luminancia media, así que el carácter luminoso queda intacto.
+   LO QUE TIENE QUE RESOLVER. La textura tiene un recorrido amplio: los pliegues
+   dorados saturados del centro y de la derecha bajan bastante de luminancia, y
+   ahí es donde el texto en `casa` -- el tono de apoyo, el más claro de los que
+   se usan como tinta -- se quedaría corto.
 
-   LA OPACIDAD NO LLEGA AL 100% A PROPÓSITO. Con el velo opaco el fondo sería un
-   color plano y el desenfoque de las ventanas no tendría nada que desenfocar:
-   el vidrio esmerilado se vería como plástico liso. Entre 58 y 74% la textura
-   del gel sigue leyéndose por debajo, atenuada, y el backdrop-filter tiene
-   material con el que trabajar.
+   EL DEGRADADO ES VERTICAL Y MÁS DENSO ARRIBA (62% contra 48% abajo) porque
+   arriba es donde vive todo el texto: barra de navegación, kicker, titular,
+   párrafo y enlace ocupan el primer tercio de la pantalla. De la ficha para
+   abajo el velo se abre y deja el dorado más presente, que es donde la textura
+   se puede lucir sin competir con nada.
 
-   Es más denso en la franja central (74%) porque ahí es donde caen los brillos
-   más fuertes de la fotografía, y más abierto arriba y abajo. */
+   NO LLEGA AL 100% en ningún tramo, y eso es deliberado: con el velo opaco el
+   fondo sería un color plano, el desenfoque de la ficha y de la banda no
+   tendría nada que desenfocar y el vidrio se vería como plástico liso. */
+/* LA PANTALLA DEL ENCABEZADO. Con el bloque centrado, la caja que hay que
+   proteger cambió de sitio: ya no es la columna izquierda sino una mancha
+   central. Medida sobre el render, la tinta del encabezado ocupa de x=100 a 290
+   y de y=80 a 300 en un teléfono de 390x844.
+
+   ES UNA ELIPSE Y NO UN DEGRADADO LINEAL, y por eso no tiene un solo borde: un
+   radial que acaba en `transparent` se disuelve en todas las direcciones a la
+   vez, así que no hay ninguna línea donde el ojo pueda enganchar el canto de la
+   capa. Un degradado lineal siempre deja una frontera recta, y con el texto
+   centrado esa frontera habría cruzado la composición por algún lado.
+
+   ESTÁ DESCENTRADA HACIA LA DERECHA a propósito: el centro va al 58% del ancho
+   y no al 50. La fotografía tiene su pliegue dorado y sus brillos en ese
+   costado -- que es donde el fondo compite con el texto -- mientras que a la
+   izquierda es casi lisa. Corriendo la elipse, la densidad se concentra donde
+   hace falta y el lado izquierdo recibe menos veladura, así que la textura se
+   conserva más viva ahí.
+
+   NO NECESITA MÁSCARA. La versión anterior era un degradado lineal al que había
+   que recortarle el alto con una máscara para que no bajara hasta la ficha; la
+   elipse ya muere sola dentro del primer tercio de la pantalla. Y de todas
+   formas esta capa vive en el fondo fijo, por debajo de la ficha, así que lo
+   que le sobre por abajo queda tapado.
+
+   NO OSCURECE. Los cuatro topes son crema (shell-lift) con alfa decreciente:
+   la capa solo SUBE el piso de luminancia, nunca lo baja. La página no pierde
+   su carácter luminoso porque lo que hace es aclarar, no velar en oscuro. */
+.trat-velo-texto {
+  background-image: radial-gradient(
+    78% 34% at 58% 21%,
+    color-mix(in oklab, var(--color-shell-lift) 80%, transparent) 0%,
+    color-mix(in oklab, var(--color-shell-lift) 74%, transparent) 42%,
+    color-mix(in oklab, var(--color-shell-lift) 40%, transparent) 72%,
+    transparent 100%
+  );
+}
+
 .trat-velo {
   background-image: linear-gradient(
     to bottom,
-    color-mix(in oklab, var(--color-shell) 58%, transparent) 0%,
-    color-mix(in oklab, var(--color-shell-lift) 74%, transparent) 46%,
-    color-mix(in oklab, var(--color-shell-lift) 70%, transparent) 72%,
-    color-mix(in oklab, var(--color-shell) 64%, transparent) 100%
+    color-mix(in oklab, var(--color-shell-lift) 74%, transparent) 0%,
+    color-mix(in oklab, var(--color-shell-lift) 70%, transparent) 34%,
+    color-mix(in oklab, var(--color-shell) 52%, transparent) 62%,
+    color-mix(in oklab, var(--color-shell) 46%, transparent) 100%
   );
 }
 
@@ -1957,3 +1996,1130 @@ body {
   -webkit-backdrop-filter: blur(20px) saturate(1.1);
   backdrop-filter: blur(20px) saturate(1.1);
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   /menu/tratamientos — LA COMPOSICIÓN DE PANTALLA COMPLETA
+
+   Construida contra la referencia visual. La pantalla entera -- barra
+   superior, encabezado, ficha, barra de progreso y barra de WhatsApp -- tiene
+   que caber sin desplazamiento, así que las alturas no son fijas: la ficha
+   toma lo que sobra del viewport y todo lo demás mide lo que mide su
+   contenido.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── LA BARRA SUPERIOR ─────────────────────────────────────────────────── */
+
+/* EL REGRESO. Cápsula con flecha Y palabra: una flecha suelta no dice a dónde
+   lleva, y arriba a la izquierda se lee tanto como "anterior" o como adorno que
+   como "volver".
+
+   DISCRETA POR CONSTRUCCIÓN: versalita de 10px, vidrio claro al 46% y contorno
+   de clay fino. Ningún relleno saturado -- el único de la pantalla sigue siendo
+   el círculo de la barra de WhatsApp -- y un cuerpo cuatro veces menor que el
+   del titular, así que no le disputa la entrada al encabezado.
+
+   El alto visible son 30px y el ::after estira el área de toque a 44 sin
+   engordar la barra, que al ser de una sola línea acusa cada píxel. */
+.trat-volver {
+  position: relative;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 30px;
+  padding-inline: 0.75rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--color-clay) 50%, transparent);
+  background-color: color-mix(in oklab, white 46%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  white-space: nowrap;
+  color: var(--color-dune-deep);
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.trat-volver::after {
+  content: "";
+  position: absolute;
+  inset: -7px -4px;
+}
+
+.trat-volver:hover {
+  background-color: color-mix(in oklab, white 72%, transparent);
+  border-color: color-mix(in oklab, var(--color-clay) 80%, transparent);
+}
+
+/* La flecha conserva el empujón continuo que ya tenía: es lo que sugiere
+   "volver" sin decirlo dos veces. La regla global de prefers-reduced-motion la
+   neutraliza. */
+.trat-volver-flecha {
+  display: inline-block;
+  font-size: 0.8125rem;
+  line-height: 1;
+  animation: back-nudge 1.8s ease-in-out infinite;
+}
+
+/* LA REGLA DE LA BARRA. No tiene medida propia: es un elemento flexible que se
+   estira hasta donde le dejan la flecha y el contador, así que ordena la parte
+   alta en cualquier ancho sin una sola cifra escrita a mano. */
+.trat-nav-regla {
+  flex: 1 1 auto;
+  height: 1px;
+  background-color: color-mix(in oklab, var(--color-casa) 45%, transparent);
+}
+
+/* ─── EL ENCABEZADO ─────────────────────────────────────────────────────── */
+
+/* EL REMATE. Regla corta de terracota que cierra el bloque de texto. No es un
+   divisor: no separa dos cosas, termina una. De ahí los 48px, que es
+   aproximadamente el ancho de una palabra corta del párrafo que tiene encima. */
+.trat-remate {
+  width: 48px;
+  height: 2px;
+  border-radius: 1px;
+  background-color: var(--color-dune);
+}
+
+/* EL PUNTO SEPARADOR entre el rótulo y el titular. Cuatro píxeles de terracota
+   y márgenes automáticos: con la caja centrada por `text-center` no bastaría,
+   porque tiene ancho propio. */
+.trat-punto-sep {
+  display: block;
+  width: 4px;
+  height: 4px;
+  margin: 0.625rem auto 0;
+  border-radius: 999px;
+  background-color: var(--color-dune);
+}
+
+/* LA FIRMA DE CIERRE, Y SU SOPORTE. La fotografía de fondo es FIJA y la frase
+   se desplaza por encima, así que a lo largo del recorrido le pasa por detrás
+   toda la gama del fondo: desde el crema casi blanco hasta el pliegue dorado
+   saturado. Llevar la tinta a `tierra` ya la hace legible en todo ese
+   recorrido; esta capa es el margen de seguridad, y de paso hace que la frase
+   se lea como sostenida y no como pegada encima de la imagen.
+
+   ES UNA ELIPSE Y VIAJA CON EL TEXTO. Al ir en un pseudo-elemento del propio
+   párrafo, se desplaza con él: da igual sobre qué franja caiga, el soporte va
+   siempre debajo. Y al acabar en `transparent` no tiene un solo borde donde el
+   ojo pueda enganchar el canto de la capa.
+
+   SU ANCHO ES EXACTAMENTE EL DEL PÁRRAFO (100%), ni un punto más. Con 150% --
+   que daba una caída más suave -- la elipse se salía 85px por cada costado y le
+   regalaba desplazamiento horizontal a la página entera.
+
+   NO OSCURECE: los cuatro topes son crema con alfa decreciente, así que la capa
+   solo sube el piso de luminancia. La página no pierde su carácter luminoso
+   porque lo que hace es aclarar. */
+.trat-firma {
+  position: relative;
+}
+
+.trat-firma::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  top: 50%;
+  width: 100%;
+  height: 300%;
+  translate: -50% -50%;
+  pointer-events: none;
+  background-image: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--color-shell-lift) 68%, transparent) 0%,
+    color-mix(in oklab, var(--color-shell-lift) 54%, transparent) 46%,
+    color-mix(in oklab, var(--color-shell-lift) 22%, transparent) 76%,
+    transparent 100%
+  );
+}
+
+/* LAS PISTAS DE LA VENTANA DE CIERRE. Es el contenido que baja la fricción de
+   escribir, así que va en el cuerpo de texto normal y no en un tamaño de nota.
+
+   SIN VIÑETA REDONDA: una raya corta en terracota. El punto de lista arrastra
+   el registro hacia el formulario, que es justo lo que no puede parecer; la
+   raya se lee como una enumeración editorial. Va en un pseudo-elemento para que
+   no entre en el texto que lee un lector de pantalla, que ya recibe la
+   estructura de lista por el marcado. */
+.trat-pistas {
+  margin-top: 0.625rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.trat-pistas li {
+  position: relative;
+  padding-left: 1.125rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  /* En terracota, como el resto de la zona alta de la ventana. */
+  color: var(--color-dune-deep);
+}
+
+.trat-pistas li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  /* A la altura de la equis de la primera línea, no del centro de la caja: con
+     una sola línea da igual, pero si alguna pista creciera a dos renglones la
+     raya seguiría anclada al primero. */
+  top: 0.6em;
+  width: 10px;
+  height: 1px;
+  background-color: color-mix(in oklab, var(--color-dune) 75%, transparent);
+}
+
+/* ─── EL PIE DE LA VENTANA, EN VIDRIO TERRACOTA ────────────────────────────
+   Ocupa el ancho completo de la ventana y no lleva radio propio: el
+   `overflow: hidden` de .trat-ventana lo recorta contra su curva, así que
+   cierra los dos cantos inferiores sin que haya dos radios que cuadrar.
+
+   ─── SE OSCURECE EL FONDO EN VEZ DE TAPARLO ───────────────────────────────
+   Esta pieza estuvo mal resuelta y se corrigió midiendo. Antes la veladura era
+   un degradado de terracota al 93-97% de opacidad: a esa densidad solo pasa el
+   3-7% de lo que hay detrás, y el resultado era un bloque plano. Medido sobre el
+   render, la desviación de píxel dentro del pie era de 2.39 contra 29.57 en la
+   zona alta de la misma ventana -- doce veces menos variación, o sea nada de
+   fondo visible.
+
+   Y esa densidad no era un capricho: hacía falta para que el texto crema
+   cumpliera contraste. Detrás del pie está la superficie de la ventana, que es
+   crema y mide una luminancia de 0.75; TAPÁNDOLA con terracota hay que llegar
+   al 92% para que el suelo baje lo suficiente.
+
+   LA SALIDA ES NO TAPARLO, SINO BAJARLE LA LUZ: `brightness(0.22)` dentro del
+   propio backdrop-filter. El fondo no se sustituye por pintura, se oscurece --
+   conserva su estructura, su grano y sus pliegues, escalados -- y sobre esa base
+   ya oscura basta un tinte del 34-44% para teñirlo de terracota. El 60% de lo
+   que se ve sigue viniendo del fondo real en vez de de la pintura, que es la
+   diferencia entre vidrio y pared.
+
+   LOS NÚMEROS SE AJUSTARON MIDIENDO, no calculando, y el modelo sobre el papel
+   falló dos veces:
+
+     - Con brightness 0.4 y un tinte del 34-44%, la superficie quedaba en un
+       valor medio de 140 sobre 255 y el crema encima daba 2.72:1.
+     - Bajar el brightness a 0.22 solo la llevó a 128.5 y a 3.37:1. Es decir que
+       el `brightness` rinde mucho menos de lo que dice su número dentro de esta
+       cadena, porque el `saturate` que va detrás vuelve a subir los canales.
+
+   Haciendo la cuenta al revés desde la medición -- la superficie tiene que
+   quedar en torno a 107 para que el crema llegue a 4.5 --, la palanca que sí
+   responde es el tinte, porque el terracota (valor 85) es MÁS OSCURO que el
+   fondo ya filtrado (156). De ahí el 72-82%.
+
+   Sigue pasando el 27% del fondo, contra el 3-7% de la versión que se veía
+   plana: es lo que mantiene la variación de píxel en el orden de 8-9 frente a
+   los 2.39 de entonces.
+
+   El `saturate(1.8)` compensa lo que el oscurecimiento le quita al color: sin
+   él, a esta luz la escena queda grisácea y el terracota se pierde.
+
+   Completan el material el degradado del tinte, que le da profundidad, y el
+   filo superior de un píxel de crema al 22%, que es el canto iluminado de la
+   lámina y lo que dibuja su encuentro con la zona de arriba. */
+.trat-pie {
+  position: relative;
+  padding: 1.125rem 1.5rem 1.375rem;
+  border-top: 1px solid
+    color-mix(in oklab, var(--color-shell-lift) 30%, transparent);
+  background-image: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--color-dune-deep) 72%, transparent),
+    color-mix(in oklab, var(--color-dune-deep) 82%, transparent)
+  );
+  /* EL DESENFOQUE BAJA A 6px, Y ESO TAMBIÉN ESTÁ MEDIDO. Con 14 el propio
+     filtro aplanaba lo que el tinte ya había dejado pasar: el pie mide 130px de
+     alto y un desenfoque de 14 promedia sobre una fracción enorme de esa
+     altura, así que la estructura del fondo se disolvía dentro de la propia
+     lámina. Con 6 sigue siendo vidrio esmerilado y la variación sobrevive. */
+  -webkit-backdrop-filter: blur(6px) saturate(1.8) brightness(0.22);
+  backdrop-filter: blur(6px) saturate(1.8) brightness(0.22);
+  box-shadow: inset 0 1px 0 0
+    color-mix(in oklab, var(--color-shell-lift) 22%, transparent);
+}
+
+/* LA BOTONERA. Los dos botones a la izquierda de la zona terracota, con un
+   hueco que los separa sin soltarlos. `wrap` es el seguro: en un móvil estándar
+   entran en la misma línea y por debajo de ese ancho el segundo baja en vez de
+   encimarse. */
+.trat-botonera {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* EL BOTÓN DE CONTORNO. Claro sobre el terracota, no terracota sobre
+   terracota, que era la única forma de que no desapareciera.
+
+   Y DE CONTORNO Y NO DE RELLENO por una razón que viene de más atrás: el único
+   relleno saturado de toda la pantalla es la barra fija de WhatsApp, y que siga
+   siendo el único es lo que la mantiene como LA acción. Este botón es
+   navegación.
+
+   Se ajusta a su contenido -- inline-flex más relleno lateral -- en vez de
+   estirarse a lo ancho. Los 40px de alto más el ::after que estira el área de
+   toque a 44 dan el objetivo táctil sin engordar la pieza. */
+.trat-boton {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 40px;
+  /* 11px de relleno, 10 de cuerpo y 0.12em de interletrado. Los tres números
+     salen de la misma cuenta: el pie deja 294px por dentro y los dos botones
+     tienen que entrar ahí con su hueco. Con el tratamiento original -- 18px de
+     relleno, 11 de cuerpo y 0.2em -- sumaban 349 y el segundo se caía de línea;
+     con estos suman 287 y entran con 7 de sobra. */
+  padding-inline: 0.6875rem;
+  border-radius: 999px;
+  /* EL CONTORNO AL 78% Y NO AL 60. No es texto, así que su mínimo es el 3:1 de
+     los elementos no textuales, pero al 60% el filo se compone contra la
+     superficie terracota y se queda por debajo de eso. Medido, al 78% pasa. */
+  border: 1px solid
+    color-mix(in oklab, var(--color-shell-lift) 78%, transparent);
+  color: var(--color-shell-lift);
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.trat-boton::after {
+  content: "";
+  position: absolute;
+  inset: -2px 0;
+}
+
+.trat-boton:hover {
+  background-color: color-mix(
+    in oklab,
+    var(--color-shell-lift) 14%,
+    transparent
+  );
+  border-color: var(--color-shell-lift);
+}
+
+.trat-boton-flecha {
+  font-size: 13px;
+  line-height: 1;
+}
+
+/* LA INFORMACIÓN DE REFERENCIA, ahora en claro sobre el terracota. Conserva la
+   jerarquía que ya tenía entre sus dos piezas, y la sigue haciendo el registro
+   y no el tono: la ubicación en versalita espaciada con peso medio se lee como
+   rótulo, y la nota de precios en caja normal y peso regular queda como lo más
+   discreto de la ventana.
+
+   Las dos van en crema PLENO, sin bajarles un punto de opacidad. Sobre una
+   superficie tan cerrada, cualquier transparencia se come el contraste que
+   costó conseguir. */
+.trat-referencia {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-shell-lift);
+}
+
+.trat-referencia > p:first-child {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+/* ─── LA BARAJA ─────────────────────────────────────────────────────────────
+   Cartas apiladas en profundidad: la de arriba a tamaño pleno y las de atrás
+   asomando escalonadas por encima, más pequeñas y giradas, como un mazo abierto
+   en la mano. Al pasar de tratamiento la de arriba se retira de cuadro y deja a
+   la vista la siguiente.
+
+   EL MARCO recorta en horizontal porque la carta descartada vuela FUERA de la
+   pantalla: sin el recorte, ese vuelo le daría desplazamiento horizontal a la
+   página. `clip` y no `hidden` para que siga sin ser un contenedor de
+   desplazamiento, y solo en el eje x para que las cartas de atrás puedan asomar
+   por arriba. */
+.trat-baraja-marco {
+  /* 40px y no 28: las cartas de atrás asoman 20px POR ENCIMA del alto del
+     escenario, así que el hueco al encabezado tiene que pagar ese asomo y aun
+     así dejar aire. Con 28 el mazo llegaba a rozar el remate del encabezado. */
+  margin-top: 2.5rem;
+  margin-inline: -1.5rem;
+  padding-inline: 1.5rem;
+  overflow-x: clip;
+}
+
+@media (min-width: 1024px) {
+  .trat-baraja-marco {
+    margin-top: 0;
+    margin-inline: 0;
+    padding-inline: 0;
+  }
+}
+
+/* El escenario. Su alto es el de la carta de arriba; las de atrás se salen por
+   encima y el marco no las recorta en vertical.
+
+   `perspective` es lo que convierte el escalonado en profundidad de verdad en
+   vez de en un simple desplazamiento: las cartas de atrás no solo son más
+   chicas, están MÁS LEJOS. 900px es una fuga larga, que a este tamaño de carta
+   insinúa el volumen sin deformar los cantos. */
+.trat-baraja {
+  position: relative;
+  height: clamp(260px, calc(100dvh - 470px), 470px);
+  width: 84vw;
+  margin-inline: auto;
+  perspective: 900px;
+  touch-action: pan-y;
+}
+
+@media (min-width: 1024px) {
+  .trat-baraja {
+    width: 26rem;
+    height: 30rem;
+    margin-inline: 0;
+  }
+}
+
+/* LA CARTA. Todas ocupan el escenario entero y se diferencian por su puesto en
+   el mazo, que llega desde el componente en data-pos.
+
+   EL PIVOTE VA POR DEBAJO (50% 132%), y es lo que hace que esto se lea como una
+   baraja y no como un acordeón: girando sobre un punto exterior por abajo, las
+   cartas se abren en abanico desde la mano. Es el mismo recurso del visor de
+   galería de /menu, donde el pivote bajo convierte el arrastre en "carta que se
+   suelta de la mano". */
+.baraja-carta {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  border: 1px solid color-mix(in oklab, var(--color-shell-lift) 78%, transparent);
+  background-color: color-mix(in oklab, var(--color-shell-lift) 62%, transparent);
+  /* PIVOTE AL CENTRO PARA EL MAZO Y POR DEBAJO PARA LA CARTA DE ARRIBA (ver la
+     regla de abajo). Los dos sitios importan por razones distintas y tenerlos
+     mezclados fue el primer error: con el pivote bajo aplicado también a las
+     cartas de atrás, la reducción de escala las empujaba HACIA ABAJO -- un
+     punto del canto superior cae 493.7·(1−s) píxeles cuando se escala respecto
+     de un origen que está un 132% más abajo -- y se metían enteras detrás de la
+     de arriba en vez de asomar. */
+  transform-origin: 50% 50%;
+  will-change: transform;
+  cursor: grab;
+  /* Sin esto, arrastrar la carta selecciona el texto de la banda. */
+  user-select: none;
+  -webkit-user-select: none;
+  box-shadow:
+    0 22px 44px -28px color-mix(in oklab, var(--color-tierra) 52%, transparent),
+    0 4px 12px -8px color-mix(in oklab, var(--color-tierra) 22%, transparent);
+  /* La vuelta con rebote cuando el arrastre se queda corto: el mismo
+     cubic-bezier de sobreimpulso que usa el visor al asentar la carta. */
+  transition:
+    transform 420ms cubic-bezier(0.34, 1.46, 0.64, 1),
+    opacity 320ms ease-out;
+}
+
+.baraja-carta:active {
+  cursor: grabbing;
+}
+
+/* EL PIVOTE BAJO, SOLO DONDE HACE FALTA: la carta de arriba, que es la única
+   que se arrastra, y la que sale de cuadro. Ahí el giro sobre un punto exterior
+   por debajo es lo que lo convierte en "carta que se suelta de la mano" en vez
+   de en diapositiva. Es el recurso del visor de galería de /menu. */
+.baraja-carta[data-pos="0"],
+.baraja-carta[data-sale] {
+  transform-origin: 50% 132%;
+}
+
+/* LOS TRES PUESTOS VISIBLES. El escalonado va hacia ARRIBA y no hacia abajo
+   porque abajo está la banda de texto de la carta de arriba: unas cartas
+   asomando por debajo le comerían el canto. Asomando por encima caen sobre la
+   fotografía, que es donde hay sitio.
+
+   EL DESPLAZAMIENTO NO ES EL ASOMO, y esta es la cuenta que hay que hacer: al
+   reducir la escala respecto del centro, el canto superior de la carta ya baja
+   solo. Sobre una carta de 374px, escalar al 95.5% lo baja 8.4px y al 91.2% lo
+   baja 16.5. Para que asomen 12 y 24px de verdad, el desplazamiento tiene que
+   pagar primero esa deuda: 8.4+12 = 20, y 16.5+24 = 40.
+
+   Los tres valores -- desplazamiento, escala y giro -- crecen de forma
+   monótona, que es lo que hace que el trío se lea como una secuencia en
+   profundidad y no como tres piezas sueltas. */
+.baraja-carta[data-pos="0"] {
+  transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+  opacity: 1;
+  z-index: 3;
+}
+
+.baraja-carta[data-pos="1"] {
+  transform: translate3d(0, -18px, 0) scale(0.955) rotate(1.7deg);
+  opacity: 1;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.baraja-carta[data-pos="2"] {
+  transform: translate3d(0, -37px, 0) scale(0.912) rotate(3.3deg);
+  opacity: 1;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* De la cuarta en adelante: en el sitio de la tercera pero invisibles. No se
+   desmontan porque desmontarlas haría que la siguiente llegara en blanco al
+   avanzar, y porque es a esta posición a la que vuelve, ya transparente, la
+   carta que acaba de salir: su viaje de regreso no se ve. */
+.baraja-carta[data-fondo] {
+  transform: translate3d(0, -37px, 0) scale(0.912) rotate(3.3deg);
+  opacity: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* LA SALIDA. La carta de arriba se retira hacia la izquierda, girando desde el
+   pivote bajo, y se desvanece antes de llegar al canto. El 520ms de la
+   transición es el mismo número que SALIDA_MS en el componente: cuando acaba,
+   la baraja rota su orden y esta carta reaparece al fondo del mazo ya
+   transparente. */
+.baraja-carta[data-sale] {
+  transform: translate3d(-128%, 6px, 0) scale(0.94) rotate(-13deg);
+  opacity: 0;
+  z-index: 4;
+  pointer-events: none;
+  transition:
+    transform 520ms cubic-bezier(0.32, 0.72, 0.3, 1),
+    opacity 520ms ease-in;
+}
+
+/* LA COLUMNA DEL NÚMERO. Ya no es una franja de superficie: la fotografía va a
+   sangre por los cuatro lados, así que esto es una capa de 34px de ancho que se
+   apoya ENCIMA de la imagen, en el mismo costado y con el mismo giro.
+
+   z-index 1 la deja por delante de la fotografía y por detrás de la banda de
+   texto (2) y del botón de WhatsApp (3), que es el orden que ya tenían. */
+.trat-franja {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 34px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  pointer-events: none;
+}
+
+/* LA REGLA CORTA. En crema y con un halo propio, por lo mismo que el número:
+   ahora se apoya sobre la fotografía y no sobre una superficie clara. */
+.trat-franja-linea {
+  width: 1px;
+  height: 34px;
+  background-color: color-mix(in oklab, var(--color-shell-lift) 88%, transparent);
+  box-shadow: 0 0 5px color-mix(in oklab, var(--color-tierra) 62%, transparent);
+}
+
+/* EL NÚMERO, GIRADO NOVENTA GRADOS y leyéndose de abajo hacia arriba.
+   writing-mode más rotate(180deg) es lo que da ese sentido; con vertical-rl a
+   secas se leería de arriba hacia abajo.
+
+   ─── CÓMO SE SOSTIENE SOBRE CINCO FOTOGRAFÍAS DISTINTAS, SIN FRANJA ────────
+   El número ya no cae sobre una superficie clara y conocida sino sobre la
+   imagen, y ahí el costado izquierdo de cada fotografía es una cosa distinta:
+   el lavabo blanco de Hidratante, la cortina a contraluz de Reestructuración,
+   la pared clara de Sellado, el cabello rubio de Antishock y el salón en
+   penumbra de Ampolletas.
+
+   PRIMERO SE PROBÓ UN HALO de tres sombras en tierra, y no alcanzó: medido
+   sobre las cinco, el crema daba 1.03:1 sobre la cortina, 1.05 sobre el lavabo
+   y 1.78 sobre la pared. Una sombra difusa aclara el entorno del trazo, pero
+   sobre un fondo casi blanco no lo separa: sigue siendo crema sobre claro.
+
+   LA SOLUCIÓN ES UN CONTORNO PINTADO, no una sombra. `-webkit-text-stroke` de
+   1.5px en tierra con `paint-order: stroke fill`, que dibuja el trazo POR
+   DEBAJO del relleno en vez de encima -- sin eso el contorno se come la mitad
+   del asta y a 11px las cifras se cierran.
+
+   LO QUE ESTO CAMBIA no es cuánto contrasta el número con la foto: es CONTRA
+   QUÉ contrasta. El entorno inmediato de cada asta deja de ser la fotografía y
+   pasa a ser el contorno, que es siempre el mismo tierra. La razón de contraste
+   entre el relleno crema (shell-lift, luminancia 0.828) y ese contorno (tierra,
+   0.014) es de 13.7:1, y no depende de la imagen: es idéntica en las cinco
+   fichas por construcción.
+
+   La sombra suave se conserva encima del contorno: no aporta legibilidad, pero
+   despega el conjunto de las zonas más ruidosas de la fotografía.
+
+   EL CUERPO SUBE DE 10 A 11px. Con un contorno de 1.5px, a 10px el ojo del cero
+   empezaba a cerrarse; a 11 respira. */
+.trat-franja-num {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: var(--color-shell-lift);
+  font-variant-numeric: tabular-nums;
+  -webkit-text-stroke: 1.5px var(--color-tierra);
+  paint-order: stroke fill;
+  text-shadow: 0 0 6px color-mix(in oklab, var(--color-tierra) 55%, transparent);
+}
+
+/* LA FOTOGRAFÍA. Ocupa la ficha entera menos la franja: arranca donde acaba
+   ella y llega hasta los tres cantos restantes. La banda de vidrio se apoya
+   encima, sobre su parte baja. */
+.trat-foto {
+  position: absolute;
+  /* A SANGRE POR LOS CUATRO LADOS. Antes arrancaba en 34px para dejarle sitio a
+     la franja del número, y eso dejaba a la vista una columna de vidrio a la
+     izquierda y el canto inferior de la superficie asomando bajo la banda: la
+     imagen se leía encajonada dentro de un marco.
+
+     Ahora la fotografía ES la ficha. El contorno fino luminoso sigue estando,
+     pero pasa a ser el borde de la imagen -- lo dibuja el `border` de la ficha,
+     que con overflow:hidden recorta la foto contra el mismo radio -- en vez del
+     borde de un marco que la contenía. */
+  inset: 0;
+  /* El recorte propio es lo que absorbe el crecimiento de la imagen (ver el
+     scale de abajo) sin que asome por los cantos de la ficha. */
+  overflow: hidden;
+}
+
+/* EL VELO DE DESENFOQUE. 0.8px sobre una fotografía de 292 CSS de ancho: en una
+   escala donde el desenfoque llega a verse "al máximo" en torno a los 20px, esto
+   es el 4% que se pidió.
+
+   BAJÓ DE 1px A 0.8 después de mirarlo a cuatro aumentos: a 1px las mechas
+   seguían separándose, pero la textura fina del cabello se perdía y eso ya es
+   pérdida de definición, no un velo. A 0.8 el grano sobrevive y lo que se
+   suaviza es el ruido.
+
+   EL `scale` NO ES DECORATIVO. Un filtro de desenfoque difumina también los
+   BORDES del elemento, así que la imagen acabaría con dos píxeles de
+   transparencia en cada canto y por ahí asomaría el fondo de la ficha. Con un
+   1.2% de crecimiento, esa orla difuminada cae fuera del recorte y los cantos
+   vuelven a ser limpios.
+
+   La regla global de prefers-reduced-motion no lo toca: no es movimiento. */
+.trat-foto img {
+  filter: blur(0.8px);
+  transform: scale(1.012);
+}
+
+/* EL BOTÓN DE WHATSAPP DE LA FICHA. Cuadrado de vidrio con esquinas
+   redondeadas en la esquina superior derecha. 36px visibles y área de toque
+   estirada a 44 por el ::after, para no engordar la esquina de la fotografía. */
+.trat-ficha-wa {
+  position: absolute;
+  z-index: 3;
+  top: 0.625rem;
+  right: 0.625rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in oklab, white 70%, transparent);
+  background-color: color-mix(in oklab, white 34%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: var(--color-tierra);
+  font-size: 0.9375rem;
+  line-height: 1;
+  transition: background-color 150ms ease;
+}
+
+.trat-ficha-wa::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+}
+
+.trat-ficha-wa:hover {
+  background-color: color-mix(in oklab, white 62%, transparent);
+}
+
+/* ─── LA BANDA DE TEXTO ────────────────────────────────────────────────────
+   REDISEÑADA. La versión anterior era una tarjeta flotante metida dentro de la
+   ficha, con 8px de aire por los tres lados y esquinas propias. Fallaba en dos
+   cosas a la vez:
+
+     - EL CORTE RARO CONTRA EL CANTO DERECHO. La banda tenía su propio radio de
+       14px y la ficha el suyo de 20; en la esquina inferior derecha las dos
+       curvas se cruzaban y el recorte de la ficha le comía un trozo a la banda,
+       que se leía como un canto partido.
+     - LA DESCRIPCIÓN SE PERDÍA. Con la superficie al 78% de blanco parejo, el
+       texto chico caía sobre las zonas claras del cabello y ahí la diferencia
+       entre tinta y fondo se estrechaba.
+
+   AHORA VA A ANCHO COMPLETO Y SE ENCUENTRA CON LOS CANTOS DE LA FICHA. Sin
+   aire lateral, sin esquinas propias arriba, y con las de abajo calculadas
+   contra el radio de la ficha menos su contorno: `calc(1.25rem - 1px)`. Así las
+   dos curvas son la misma y no hay nada que recortar.
+
+   LA LEGIBILIDAD LA RESUELVE UN DEGRADADO QUE SE CIERRA HACIA LA BASE, no una
+   subida uniforme de opacidad. Arranca en blanco al 76% en el canto superior --
+   donde la fotografía todavía se intuye y la banda se lee como vidrio -- y
+   llega al 95% en la base, que es donde se apoyan el nombre y la descripción.
+
+   EL 76% DE ARRANQUE ES UNA CORRECCIÓN MEDIDA. Estuvo en 62 y ahí el kicker --
+   que es la primera línea, la que cae más cerca del canto abierto -- medía
+   3.67:1 sobre Antishock y 4.07 sobre Sellado de color, las dos fotografías con
+   más luz en esa zona. El nombre y la descripción nunca estuvieron en riesgo:
+   se apoyan más abajo, donde el degradado ya está cerrado.
+   El resultado es que la pieza conserva su carácter translúcido en el borde por
+   el que se encuentra con la imagen, y es opaca justo debajo de la tinta.
+
+   Por qué un degradado y no un 94% parejo: al 94% en todo el alto la banda deja
+   de ser vidrio y pasa a ser un rectángulo de papel pegado sobre la foto. El
+   degradado conserva el encuentro suave arriba y da certeza abajo.
+
+   EL DESENFOQUE SUBE A 28px. Sobre lo que quede visible de la fotografía, esto
+   la convierte en una mancha de color sin estructura: no hay detalle que pueda
+   competir con las letras.
+
+   EL FILO SUPERIOR de un píxel es lo que dibuja el encuentro con la fotografía.
+   Sin él, el degradado nace de la nada y la banda no tiene principio. */
+.trat-banda {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* BLOQUE, no fila. La flecha pasó a posicionarse sola en el canto inferior
+     derecho, y con eso el renglón del nombre recupera el ancho completo de la
+     banda: es lo que permite meter el precio al otro extremo sin que el nombre
+     más largo del catálogo se salga.
+
+     EL RELLENO CRECIÓ (13/16/15 -> 20/18/22) junto con los cuerpos de dentro.
+     La banda pasó de ocupar el 25% del alto de la carta al 32%, y esa altura se
+     la cede la fotografía: el texto es lo que dice qué servicio es, qué hace y
+     cuánto cuesta, así que es lo que tiene que mandar en la carta. */
+  padding: 1.25rem 1.125rem 1.5rem;
+  /* El radio de la ficha menos su contorno: la banda cierra exactamente sobre
+     la misma curva y el recorte de la ficha no tiene nada que comerse. */
+  border-radius: 0 0 calc(1.25rem - 1px) calc(1.25rem - 1px);
+  border-top: 1px solid color-mix(in oklab, white 62%, transparent);
+  background-image: linear-gradient(
+    to bottom,
+    color-mix(in oklab, white 76%, transparent) 0%,
+    color-mix(in oklab, white 88%, transparent) 46%,
+    color-mix(in oklab, white 95%, transparent) 100%
+  );
+  -webkit-backdrop-filter: blur(28px) saturate(1.18);
+  backdrop-filter: blur(28px) saturate(1.18);
+}
+
+.trat-banda-kicker {
+  font-size: 10px;
+  line-height: 1.3;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  /* VUELVE A CASA. Con la superficie anterior -- 78% de blanco parejo -- este
+     rótulo medía 4.34:1 y hubo que oscurecerlo a tierra. Con el degradado que
+     cierra hacia la base, la zona donde se apoya está muy por encima de eso, y
+     el kicker puede recuperar su tono subordinado sin perder legibilidad. */
+  color: var(--color-casa);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trat-banda-nombre {
+  margin-top: 0.5rem;
+  font-family: var(--font-display);
+  /* 30px, Y ESTE NÚMERO ES UN TECHO MEDIDO, NO UNA PREFERENCIA.
+
+     Al volver el precio al costado del nombre, los dos vuelven a repartirse el
+     mismo renglón de 290px. Medido en las cinco fichas con las cartas a escala
+     real, el caso más justo es siempre "Reestructuración":
+
+       34px -> necesita 308.2 de 290. NO CABE por 18.2, y además "Sellado de
+               color" se parte en dos renglones.
+       32px -> NO CABE por 2.9.
+       30px -> cabe con 12.3 de sobra.
+       28px -> cabe con 27.6 de sobra.
+
+     30 es el mayor cuerpo que entra en las cinco con margen real. Sigue
+     dominando la banda por goleada: triplica el cuerpo de la descripción y va
+     en la serif de display contra la de cuerpo. */
+  font-size: 1.875rem;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--color-tierra);
+}
+
+/* UN SOLO RENGLÓN, sin recorte: los resúmenes están escritos para caber. El
+   nowrap es el seguro de que ninguno futuro parta la banda en dos alturas. */
+.trat-banda-desc {
+  margin-top: 0.625rem;
+  /* DE 13 A 14px Y DE `casa` A `tierra`. La descripción es lo que explica el
+     valor del tratamiento -- lo que convence -- y estaba tratada como nota al
+     pie. Ahora queda por encima del precio en las dos palancas a la vez: un
+     punto más de cuerpo (14 contra 13) y el tono más oscuro de la paleta contra
+     el de apoyo.
+
+     No sube más de 14 por una razón medida: la descripción va en un solo
+     renglón, y la más larga del catálogo -- "Protege tu color y alarga su
+     duración." -- mide 269px a este cuerpo contra los 292 que deja la banda. A
+     15px se pasaría. */
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--color-tierra);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* EL RENGLÓN DE NOMBRE Y PRECIO. `baseline` los sienta sobre la misma línea
+   aunque tengan cuerpos y familias distintas -- 34px de serif de display contra
+   13 de la de cuerpo --, que es lo que hace que se lean como un solo dato y no
+   como dos cosas apiladas por casualidad. El precio no encoge (flex 0 0 auto):
+   si algún día el hueco no diera, se vería en el nombre y no en una cifra
+   partida. */
+.trat-banda-fila {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+/* LA FLECHA HORIZONTAL DE LA ESQUINA SE ELIMINÓ. Estaba en el canto inferior
+   derecho de la banda y no llevaba a ningún sitio: sugería una acción que no
+   existe, y el acceso a WhatsApp del tratamiento ya vive en el botón cuadrado
+   de la esquina superior de la carta. Al quitarla, la descripción recupera el
+   ancho completo y el bloque deja de tener una esquina reservada. */
+
+/* EL PRECIO. Tipografía de cuerpo contra la serif de display del nombre, y 13px
+   contra 26: la mitad del cuerpo y otra familia son las dos cosas que lo dejan
+   subordinado sin necesidad de bajarle el tono. Va en tierra, el más oscuro de
+   la paleta, porque un precio es información que se lee, no que se insinúa. */
+.trat-banda-precio {
+  flex: 0 0 auto;
+  /* 13px Y PESO REGULAR. Es un dato de apoyo, no un titular: confirma el precio
+     de quien ya se interesó por el tratamiento, así que no tiene por qué
+     competir con el nombre ni con la descripción. En `casa`, el tono de apoyo,
+     que sobre esta banda mide 5.5:1 -- se lee de inmediato sin pesar. */
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--color-casa);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── LA BARRA DE PROGRESO ──────────────────────────────────────────────── */
+
+/* Sustituye a los puntos. Regla de ancho completo en tono claro con el tramo
+   del activo en terracota. El tramo se DESPLAZA en vez de encenderse y
+   apagarse, así que el cambio de ficha se lee como un movimiento continuo. */
+.trat-progreso {
+  position: relative;
+  margin-top: 1.125rem;
+  height: 3px;
+  border-radius: 1.5px;
+  overflow: hidden;
+  background-color: color-mix(in oklab, var(--color-casa) 22%, transparent);
+}
+
+.trat-progreso-tramo {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: 1.5px;
+  background-color: var(--color-dune);
+  transition: transform 320ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* ─── LA BARRA DE WHATSAPP ──────────────────────────────────────────────── */
+
+/* EN CLARO, Y AUN ASÍ LA PIEZA DE MÁS PESO DE LA PANTALLA. La referencia la
+   dibuja oscura; se pidió por escrito conservarla clara, así que el peso se
+   construye con otros cuatro recursos:
+
+     1. Es la única superficie de la pantalla con un contorno de TERRACOTA. Todo
+        lo demás cierra con filo crema.
+     2. Lleva el único relleno saturado y macizo de la composición: el círculo
+        del logotipo, en dune-deep.
+     3. La sombra más profunda y más abierta de la pantalla.
+     4. Flota separada de los cantos, así que se lee como una pieza apoyada
+        encima y no como un pie pegado al borde.
+
+   El vidrio va más denso que el del resto de las superficies (blanco al 74%
+   contra 32-42%) porque aquí el fondo no tiene que verse: tiene que sostener el
+   elemento más importante. */
+.trat-wa-barra {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  min-height: 60px;
+  padding: 0.5rem 1.125rem 0.5rem 0.5rem;
+  border-radius: 1.75rem;
+  border: 1px solid color-mix(in oklab, var(--color-dune) 55%, transparent);
+  background-color: color-mix(in oklab, white 74%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+  backdrop-filter: blur(18px) saturate(1.15);
+  box-shadow:
+    0 18px 36px -20px color-mix(in oklab, var(--color-tierra) 62%, transparent),
+    0 4px 10px -6px color-mix(in oklab, var(--color-tierra) 28%, transparent);
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.trat-wa-barra:hover {
+  background-color: color-mix(in oklab, white 88%, transparent);
+  border-color: var(--color-dune);
+}
+
+.trat-wa-logo {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background-color: var(--color-dune-deep);
+  color: var(--color-shell-lift);
+}
+
+.trat-wa-divisor {
+  flex: 0 0 auto;
+  width: 1px;
+  height: 26px;
+  background-color: color-mix(in oklab, var(--color-clay) 70%, transparent);
+}
+
+/* El texto CENTRADO en la barra, no pegado al divisor: flex-1 más text-align
+   center reparte el sobrante a los dos lados. */
+.trat-wa-texto {
+  flex: 1 1 auto;
+  text-align: center;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--color-tierra);
+}
+
+.trat-wa-flecha {
+  flex: 0 0 auto;
+  font-size: 1.0625rem;
+  line-height: 1;
+  color: var(--color-dune-deep);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LAS GOTAS DE ACEITE
+
+   Acento atmosférico: cinco formas circulares translúcidas sobre el fondo, en
+   las zonas donde la composición no tiene nada. No es una textura.
+
+   ─── DÓNDE PUEDEN IR, Y POR QUÉ AHÍ ────────────────────────────────────────
+   Medidas todas las cajas de tinta del documento en un teléfono de 390x844, las
+   zonas realmente libres son cuatro:
+
+     A  x 0-73,    y 70-300     a la izquierda del encabezado. El titular es la
+                                tinta más ancha y arranca en x=79 (medido
+                                convirtiendo sus bloques a inline: las cajas de
+                                línea daban el ancho completo de la columna y
+                                mentían).
+     B  x 317-390, y 70-300     a la derecha del encabezado. El titular acaba en
+                                311.
+     C  ancho completo, y 715-760   entre la barra de progreso (acaba en 711) y
+                                la firma del cierre (empieza en 765).
+     D  ancho completo, y 1210-1295 entre el pie de la ventana y el final del
+                                documento. DESCARTADA: al llegar al final del
+                                desplazamiento, la barra fija de WhatsApp aparca
+                                justo encima (cubre las filas 1222-1284), así
+                                que una gota ahí solo se ve de paso y queda
+                                escondida en reposo. Quedan cuatro gotas.
+
+   Las franjas a los lados de la carta miden 31px y quedaron descartadas: una
+   gota ahí sale medio cortada por el canto de la pantalla.
+
+   ─── POR QUÉ DOS VAN ANCLADAS Y TRES NO ────────────────────────────────────
+   Las verticales del encabezado las manda el contenido, así que son las mismas
+   en cualquier teléfono. Las de las zonas C y D no: la carta se dimensiona con
+   `dvh`, así que en una pantalla más corta todo lo que va debajo sube. Fijarlas
+   en píxeles habría puesto la gota encima de la firma en un teléfono de 800.
+   Por eso esas dos cuelgan de un ancla de altura cero colocada en el flujo,
+   justo detrás de la pieza que las precede.
+
+   ─── LAS HORIZONTALES VAN EN PORCENTAJE ────────────────────────────────────
+   Por lo mismo, en el otro eje: el titular está centrado, así que sus cantos se
+   mueven con el ancho. Comprobado a 360, que es el piso de calidad: la gota más
+   expuesta queda a 8px de la tinta.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.trat-gotas {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Ancla de altura cero: no ocupa sitio en el flujo, solo le da a la gota un
+   origen de coordenadas que se mueve con el contenido que tiene encima. */
+.trat-gota-ancla {
+  position: relative;
+  height: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* ─── LA GOTA ───────────────────────────────────────────────────────────────
+   Tres capas hacen el volumen, y ninguna sola bastaría:
+
+     1. EL INTERIOR. `backdrop-filter` con un desenfoque de 2.5px: no es un
+        relleno translúcido, es el fondo REAL visto a través y ligeramente
+        distorsionado, que es lo que la separa de un círculo pintado.
+     2. EL BRILLO, concentrado arriba a la izquierda (30% 26%) y apagándose
+        antes de la mitad del radio. Es el reflejo especular: una gota no se
+        ilumina entera, se ilumina en un punto.
+     3. LA SOMBRA EN EL BORDE OPUESTO, en dos partes: una interior abajo a la
+        derecha, que curva el volumen, y una exterior desplazada 3px a la
+        derecha y 5 abajo, muy abierta y muy tenue, que la despega del fondo.
+
+   El filo superior de un píxel cierra el menisco por arriba.
+
+   `contain: paint` acota el trabajo del compositor al área de la gota: sin él,
+   una capa con backdrop-filter que se mueve invalida una región mayor. */
+.trat-gota {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  contain: paint;
+  -webkit-backdrop-filter: blur(2.5px) saturate(1.08);
+  backdrop-filter: blur(2.5px) saturate(1.08);
+  background-image: radial-gradient(
+    circle at 30% 26%,
+    color-mix(in oklab, white 60%, transparent) 0%,
+    color-mix(in oklab, white 20%, transparent) 24%,
+    transparent 48%
+  );
+  box-shadow:
+    inset 0 1px 1px color-mix(in oklab, white 55%, transparent),
+    inset -3px -4px 8px -3px color-mix(in oklab, var(--color-casa) 34%, transparent),
+    3px 5px 12px -5px color-mix(in oklab, var(--color-tierra) 28%, transparent);
+}
+
+/* ─── LA FLOTACIÓN ──────────────────────────────────────────────────────────
+   Cuatro píxeles de recorrido como máximo, en trayectorias distintas y con
+   duraciones que no comparten divisores, así que las cinco nunca coinciden. Los
+   retardos negativos las arrancan ya repartidas por su ciclo en vez de todas
+   desde el mismo punto.
+
+   ES DELIBERADAMENTE MENOS QUE LA BARAJA. Esa cambia de carta cada 5.2s con un
+   recorrido de pantalla completa; esto son 4px en medio minuto. El movimiento
+   protagónico sigue siendo el del mazo.
+
+   Con prefers-reduced-motion, la regla global del proyecto fija la duración en
+   0.01ms y una sola iteración: como el fotograma 0% es `translate: 0 0`, las
+   gotas se quedan quietas en su sitio conservando su apariencia entera. */
+@keyframes gota-a {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  33% {
+    translate: 3px -4px;
+  }
+  66% {
+    translate: -2px 3px;
+  }
+}
+
+@keyframes gota-b {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  40% {
+    translate: -4px -2px;
+  }
+  70% {
+    translate: 2px 4px;
+  }
+}
+
+@keyframes gota-c {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  25% {
+    translate: 2px 3px;
+  }
+  60% {
+    translate: -3px -2px;
+  }
+}
+
+/* ZONA A, arriba a la izquierda del titular. */
+.trat-gota-1 {
+  left: 1.5%;
+  top: 92px;
+  width: 46px;
+  height: 46px;
+  animation: gota-a 26s ease-in-out infinite;
+}
+
+/* ZONA B, a la derecha del titular. */
+.trat-gota-2 {
+  /* 2% y no 4: el titular está centrado, así que al estrechar la pantalla sus
+     cantos se acercan a esta gota. Medido a 360 -- el piso de calidad -- con el
+     4% quedaba a 2px de la tinta contando su recorrido. Pegada al canto tiene
+     16px de margen ahí. */
+  right: 2%;
+  top: 148px;
+  width: 40px;
+  height: 40px;
+  animation: gota-b 34s ease-in-out infinite -7s;
+}
+
+/* ZONA A, más abajo y más pequeña. */
+.trat-gota-3 {
+  left: 4%;
+  top: 218px;
+  width: 28px;
+  height: 28px;
+  animation: gota-c 41s ease-in-out infinite -13s;
+}
+
+/* ZONA C: la banda entre la barra de progreso y la firma. Es la zona libre más
+   estrecha de la página -- 54px -- así que esta es la gota más pequeña y va
+   centrada en la banda: 15px de margen por arriba y por abajo antes de contar
+   su recorrido.
+
+   El tamaño bajó de 28 a 24px por un caso concreto: en un Pixel de 412x915 la
+   barra fija de WhatsApp cae justo debajo de esta banda, y con 28 el recorrido
+   de la gota llegaba a rozarla. */
+.trat-gota-4 {
+  right: 16%;
+  top: 15px;
+  width: 24px;
+  height: 24px;
+  animation: gota-a 29s ease-in-out infinite -3s;
+}
+

@@ -37,20 +37,25 @@ export default function TratamientosClaroLayout({
 }: LayoutProps<"/menu/tratamientos">) {
   return (
     <>
-      {/* EL FONDO. La misma mecánica que /menu -- fotografía fija a pantalla
-          completa con un velo encima -- pero invertida en tono: aquí el velo no
-          oscurece, atenúa.
+      {/* EL FONDO. Fotografía fija a pantalla completa con un velo encima.
 
-          La fotografía es un macro de gel sobre blanco, con brillos especulares
-          y remolinos de mucho contraste local. A pelo, el texto oscuro cae
-          justo encima de esos brillos y el vidrio esmerilado de las ventanas no
-          tiene de dónde despegarse. El velo (.trat-velo, en globals.css) sube
-          el piso a un blanco cálido parejo SIN apagarla: conserva la textura
-          suficiente para que el desenfoque de las ventanas tenga algo que
-          desenfocar. Las cifras están junto a la regla. */}
+          CAMBIÓ LA IMAGEN Y CON ELLA EL PROBLEMA. La anterior era una persona
+          con el rostro visible, así que el encuadre y los velos estaban
+          calculados para dejarle la cara libre de interfaz y para proteger el
+          texto solo en la columna donde vivía. back5tratamientos.jpeg es una
+          textura orgánica -- pliegues dorados y crema, sin figura ni elementos
+          reconocibles --, así que no hay nada que esquivar: no hace falta
+          encuadre especial (object-center basta) ni la pantalla lateral ni la
+          banda superior que protegían al texto de la melena.
+
+          Quedan dos capas en vez de tres: un velo parejo que sube el piso de
+          toda la pantalla y una pantalla sobre la columna del encabezado, que
+          es donde vive la tinta pequeña. La textura conserva el dorado en el
+          tercio derecho y de la ficha para abajo. Las cifras y por qué son esas
+          están en globals.css. */}
       <div className="fixed inset-0 -z-10">
         <Image
-          src="/back3tratamientos.jpeg"
+          src="/back5tratamientos.jpeg"
           alt=""
           fill
           priority
@@ -58,9 +63,30 @@ export default function TratamientosClaroLayout({
           className="object-cover"
         />
         <div aria-hidden="true" className="trat-velo absolute inset-0" />
+        <div aria-hidden="true" className="trat-velo-texto absolute inset-0" />
       </div>
 
-      <div className="mx-auto min-h-dvh w-full min-w-0 max-w-6xl px-6 pt-8 pb-4 lg:grid lg:grid-cols-[19rem_1fr] lg:gap-16 lg:px-8 lg:pt-16">
+      <div className="relative mx-auto min-h-dvh w-full min-w-0 max-w-6xl px-6 pt-8 pb-4 lg:grid lg:grid-cols-[19rem_1fr] lg:gap-16 lg:px-8 lg:pt-16">
+        {/* ─── LAS GOTAS DEL ENCABEZADO ─────────────────────────────────────
+            Van en z-index -1: por encima del fondo fijo (que está en -10) y por
+            debajo de todo el contenido, que es estático y por tanto pinta
+            delante de cualquier capa negativa.
+
+            SUS COORDENADAS SON LAS DE ESTA COLUMNA, y las verticales del
+            encabezado se pueden fijar en píxeles porque no dependen del alto de
+            la pantalla: las manda el contenido. Las de más abajo no -- la carta
+            se dimensiona con dvh y arrastra todo lo que le sigue --, así que
+            esas dos gotas van ancladas a su sitio en el flujo y no aquí.
+
+            SOLO EN MÓVIL. Las zonas libres se midieron en un viewport de 390;
+            en escritorio la retícula reparte el espacio de otra forma y esas
+            coordenadas dejarían de significar lo mismo. */}
+        <div aria-hidden="true" className="trat-gotas lg:hidden">
+          <span className="trat-gota trat-gota-1" />
+          <span className="trat-gota trat-gota-2" />
+          <span className="trat-gota trat-gota-3" />
+        </div>
+
         {children}
       </div>
     </>
