@@ -11,24 +11,15 @@ type FilaEditorialProps = {
   service: Service;
   isOpen: boolean;
   onToggle: () => void;
-  // Alinea la fila con la pila de "Tratamientos": misma tipografía que ese
-  // texto -- Jost 24px peso 400 con interletrado -0.02em, no el Bodoni de la
-  // lista de color -- y mismo eje izquierdo. Solo la usa la segunda carta de
-  // /menu, que es donde los tres tienen que leerse como el mismo nivel.
-  comoPila?: boolean;
 };
 
-// EL EJE IZQUIERDO DE LA PILA, y por qué son 17px. El nombre "Tratamientos" vive
-// dentro de la carta de adelante, que lleva un contorno de 1px y un relleno de
-// px-4: su tinta arranca 17px dentro del eje de la columna. Las filas de la
-// lista van a ras de la columna, así que necesitan ese mismo desplazamiento por
-// la izquierda -- y solo por la izquierda: el relleno derecho se queda en cero
-// para que la cifra siga terminando en el margen.
-//
-// Alinear la CAJA basta para alinear la TINTA porque las dos son Jost al mismo
-// cuerpo: comparten el mismo apoyo lateral del glifo. Con familias distintas
-// habría que medir la tinta y compensar la diferencia.
-const EJE_PILA = "pl-[17px]";
+// EL EJE IZQUIERDO NO SE COMPENSA AQUÍ, y ahora depende de si la lista tiene
+// superficie o no (ver CategoriaCarta). Dentro del panel, el relleno de la zona
+// -- 17px -- mete los nombres por dentro del canto, en el mismo eje que el
+// rótulo y que el título de Tratamientos. Sin panel, la lista no lleva relleno y
+// los renglones ocupan la caja completa de la columna: el nombre arranca en el
+// margen de la página y el precio y el cheurón acaban en el opuesto.
+// La fila no sabe en cuál de los dos casos está, y no tiene por qué saberlo.
 
 // Columna de cifras: SIN ancho fijo. La caja se ajusta a su contenido y va
 // shrink-0 justo antes del cheurón, así que su canto derecho siempre cae en
@@ -60,10 +51,13 @@ const EJE_PILA = "pl-[17px]";
 // cartas van a 30px exactos.
 const CUERPO_NOMBRE = "flex-1 whitespace-nowrap text-shell-lift";
 
-// EL CUERPO, UNO SOLO PARA LAS DOS CARTAS. La sección de abajo tuvo un
-// tratamiento propio -- familia de cuerpo a 24px -- y se retiró: las dos listas
-// de /menu son ahora el mismo diseño, sin nada que las distinga salvo qué
-// servicios llevan dentro.
+// EL CUERPO, UNO SOLO PARA LAS DOS LISTAS, y ya no hay prop que lo cambie. La
+// sección de abajo tuvo dos tratamientos propios -- familia de cuerpo a 24px
+// para alinearla con la pila de Tratamientos, y antes de eso el suyo -- y los
+// dos se retiraron: las dos listas de /menu son el mismo diseño, display serif
+// incluido, sin nada que las distinga salvo qué servicios llevan dentro. Con la
+// pila convertida en una zona del panel, el título de Tratamientos también es
+// display serif, así que no queda nada con lo que alinearse aparte.
 //
 // El escalón por debajo de 360px (26px en vez de 30) se queda: ahí la fila mide
 // 272px y un nombre de 30px ("Tinte global", 151.6px de tinta) junto a un rango
@@ -87,7 +81,6 @@ export function FilaEditorial({
   service,
   isOpen,
   onToggle,
-  comoPila = false,
 }: FilaEditorialProps) {
   const panelId = `servicio-${service.slug}`;
   const notaId = `rango-${service.slug}`;
@@ -111,10 +104,26 @@ export function FilaEditorial({
           cuerpos distintos. Como nada envuelve, todos los renglones de una
           misma carta miden lo mismo.
 
-          EL RELLENO VERTICAL, py-6 (24px por lado) en las dos cartas. La
-          sección de abajo llevó py-4 mientras tuvo nombres más chicos; al
-          igualarse el diseño vuelve al mismo relleno, y con el renglón de 30px
-          el alto de toque de la fila queda en 78px.
+          EL RELLENO VERTICAL, py-4 (16px por lado), y es el de las DOS listas.
+          El módulo de servicios necesita más aire que la lista de color, pero
+          eso no se decide aquí: lo pone el módulo desde globals.css
+          (.modulo-servicios-lista > li > button, 28px por lado), que es donde
+          vive esa decisión de composición. Hubo una versión con el relleno
+          condicionado al contenido de la fila -- 24px donde había una línea de
+          descriptores -- y se fue con ella.
+
+          Sobre los 16: estuvo
+          en py-6 mientras la lista no tenía superficie: sin contenedor, el aire
+          era lo único que separaba un renglón de otro. Con el bloque cerrado y
+          los divisores dentro, 24px por lado sobraban -- la fila medía 85px para
+          una sola línea de texto -- y el último renglón dejaba un hueco de 24px
+          contra el canto inferior que se leía como si el contenedor no cerrara.
+
+          16px es el suelo, no un ajuste libre: es la distancia mínima a la que
+          el texto no se lee apretado contra el divisor. Por debajo (py-3, 12px)
+          la línea base del nombre queda a menos de medio cuerpo del pelo de
+          arriba. El alto de toque de la fila sigue muy por encima del mínimo de
+          44.
 
           EL `!` DEL ANILLO DE FOCO no es cosmético: la regla global de
           :focus-visible de globals.css no está dentro de una capa, así que le
@@ -129,7 +138,7 @@ export function FilaEditorial({
         onClick={onToggle}
         aria-expanded={isOpen}
         aria-controls={panelId}
-        className={`flex w-full items-baseline gap-2 py-6 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-shell-lift! min-[360px]:gap-3 sm:gap-4 ${comoPila ? EJE_PILA : ""}`}
+        className="flex w-full items-baseline gap-2 py-4 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-shell-lift! min-[360px]:gap-3 sm:gap-4"
       >
         {/* Nombre a la izquierda, en REDONDA. whitespace-nowrap es deliberado:
             ningún nombre se parte. El más ancho ("Tinte global") mide 126.8px a
@@ -170,11 +179,7 @@ export function FilaEditorial({
             adelgaza el trazo justo en el dato que la clienta viene a leer, y la
             jerarquía ya está resuelta por arriba. */}
         <span
-          className={`${CUERPO_NOMBRE} ${
-            comoPila
-              ? "font-body text-2xl font-normal tracking-[-0.02em]"
-              : `${CUERPO_COLOR} font-display font-medium ${TRACKING_DISPLAY}`
-          }`}
+          className={`${CUERPO_NOMBRE} ${CUERPO_COLOR} font-display font-medium ${TRACKING_DISPLAY}`}
         >
           {service.name}
         </span>
@@ -227,7 +232,6 @@ export function FilaEditorial({
           <path strokeLinecap="round" d="M2.5 4.5L6 8l3.5-3.5" />
         </svg>
       </button>
-
       {/* Panel: sin caja, alineado al mismo eje izquierdo que el nombre.
           lg:max-w-[30rem] no es decisión tipográfica sino de contraste: sin el
           cristal tintado, en escritorio lo que queda detrás del texto es la foto
@@ -237,7 +241,7 @@ export function FilaEditorial({
       <div
         id={panelId}
         hidden={!isOpen}
-        className={`animate-[accordion-in_200ms_ease-out] pb-8 lg:max-w-[30rem] ${comoPila ? EJE_PILA : ""}`}
+        className={`animate-[accordion-in_200ms_ease-out] pb-8 lg:max-w-[30rem] `}
       >
         <p className="text-sm break-words text-shell-lift/90">{service.copy}</p>
 
@@ -306,7 +310,7 @@ export function FilaEditorial({
             href={waLink(`Hola Axel, me interesa ${service.name}.`)}
             target="_blank"
             rel="noopener noreferrer"
-            className="relative inline-flex h-8 items-center rounded-full border border-clay/30 bg-clay/10 pb-[3px] pl-[13.3px] pr-[14.7px] font-display text-lg leading-none tracking-[-0.056em] text-shell-lift backdrop-blur-xl transition-colors duration-150 after:absolute after:inset-x-0 after:-inset-y-2 after:content-[''] hover:bg-clay/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-shell-lift!"
+            className="pastilla-contorno relative inline-flex h-8 items-center rounded-full pb-[3px] pl-[13.3px] pr-[14.7px] font-display text-lg leading-none tracking-[-0.056em] after:absolute after:inset-x-0 after:-inset-y-2 after:content-['']"
           >
             Agenda tu cita
           </a>
@@ -364,13 +368,45 @@ export function FilaEditorial({
             pareja quepa junta antes. */}
         {esRango && (
           <div className="mt-6">
-            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-6">
+            {/* LOS DOS CONTROLES EN LA MISMA LÍNEA, la pregunta a la izquierda
+                y la cápsula a su derecha.
+
+                POR QUÉ NO CABÍAN. Sus anchos naturales son 192 y 173.7px y el
+                hueco entre ellos 12: 377.6 contra los 302 que mide el panel del
+                acordeón en un teléfono de 390. Y el reparto de líneas de flex se
+                decide ANTES de encoger a nadie -- se usan los anchos
+                hipotéticos --, así que la cápsula se iba al renglón siguiente sin
+                que la pregunta llegara a estrecharse.
+
+                LA SOLUCIÓN ES DARLE A LA PREGUNTA UNA BASE ESTRECHA (7rem) en
+                vez de su ancho natural: con 112 + 8 + 173.7 = 293.7px la línea
+                entra en los 302 disponibles, y como la pregunta crece
+                (flex-grow) se queda con todo el hueco que sobra -- 120px a 390
+                --, donde su texto cae en dos renglones. El texto no se toca: lo
+                que se estrecha es su caja.
+
+                Y SIGUE BAJANDO EN PANTALLAS ANGOSTAS, que es lo que se pidió: a
+                360px el panel mide 272 y 293.7 no entra, así que la cápsula se va
+                al renglón siguiente con sus 24px de hueco vertical. El umbral
+                queda entre 360 y 390.
+
+                El tope de 19rem es para escritorio: sin él la pregunta crecería
+                hasta pegarse a la cápsula y su área de toque -- que ocupa toda
+                su caja -- pasaría de 192 a más de 500px.
+
+                items-baseline sienta la cápsula en la línea base del PRIMER
+                renglón de la pregunta, no en el centro del bloque de dos
+                renglones. El hueco vertical se queda en 24px y no baja: las dos
+                áreas de toque se extienden fuera de su caja -- 14px hacia abajo
+                la pregunta y 10 hacia arriba la cápsula -- y con menos se
+                pisarían cuando envuelven. */}
+            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-6">
               <button
                 type="button"
                 onClick={() => setNotaAbierta((v) => !v)}
                 aria-expanded={notaAbierta}
                 aria-controls={notaId}
-                className="relative inline-flex items-center gap-2 text-left text-xs font-medium text-shell-lift/80 transition-colors duration-150 after:absolute after:inset-x-0 after:-inset-y-3.5 after:content-[''] hover:text-shell-lift focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-shell-lift!"
+                className="relative inline-flex min-w-0 flex-[1_1_7rem] max-w-[19rem] items-center gap-2 text-left text-xs font-medium text-shell-lift/80 transition-colors duration-150 after:absolute after:inset-x-0 after:-inset-y-3.5 after:content-[''] hover:text-shell-lift focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-shell-lift!"
               >
                 ¿Por qué el precio es un rango?
                 <svg

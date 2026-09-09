@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { CarruselFoco } from "@/components/CarruselFoco";
 import { CarruselGaleria } from "@/components/CarruselGaleria";
 import { VisorBaraja } from "@/components/VisorBaraja";
 import {
@@ -57,8 +58,9 @@ const SELECCION = SELECCION_CARRUSEL.map((id) => {
 //   92vh  y  46rem  son los mismos topes de la guía de largos: margen visible
 //                   alrededor y un techo para que en escritorio no se estire.
 //   calc(...)       es el alto que la ventana PIDE con fotos 4:5, y tiene tres
-//                   términos. 112px son las piezas fijas (20+20 de relleno, 44
-//                   de pie y los dos huecos de 14). El segundo es la CABECERA,
+//                   términos. 96px son las piezas fijas (20+20 de relleno, 28
+//                   de pie -- era 44 antes de adelgazar la franja -- y los dos
+//                   huecos de 14). El segundo es la CABECERA,
 //                   que no es fija: depende del cuerpo del titular, que a su vez
 //                   es un clamp sobre vw. Y el tercero es la altura de la foto:
 //                   su ancho -- el de la ventana menos el relleno --
@@ -92,7 +94,7 @@ const SELECCION = SELECCION_CARRUSEL.map((id) => {
 // proporción de las fotos, hay que rehacer esta cuenta.
 // EL DE /menu, con titular y con 14px de aire vertical.
 const ALTO_VENTANA_TITULADO =
-  "h-[min(92vh,46rem,calc(112px_+_clamp(5.8125rem,29.0625vw,6.78125rem)_+_1.25_*_(var(--visor-ancho)_-_2.5rem)))]";
+  "h-[min(92vh,46rem,calc(96px_+_clamp(5.8125rem,29.0625vw,6.78125rem)_+_1.25_*_(var(--visor-ancho)_-_2.5rem)))]";
 
 // EL DE /galeria, que no lleva titular ni cambió su aire: cabecera de 44px (el
 // min-h-11 del cierre solo) y huecos de 24, o sea 40+44+44+48 = 176px de piezas
@@ -111,10 +113,11 @@ type GaleriaClienteProps = {
   // Tamaño de la tarjeta del carrusel. Se reenvía tal cual; sin valor queda el
   // de /galeria.
   tarjeta?: { clase: string; sizes: string };
-  // Foco móvil del carrusel. Se reenvía tal cual; sin valor no hay realce en el
-  // centro, que es lo que quiere /galeria: ahí el carrusel es el contenido de la
-  // página y sus tarjetas ya son grandes.
-  foco?: boolean;
+  // CARRUSEL DE FOCO CENTRAL en vez de la tira que deriva. Son dos componentes
+  // distintos, no dos modos del mismo: uno tiene índice activo y teclado; el
+  // otro es un bucle infinito que se mueve solo. Sin este valor se
+  // renderiza el de la deriva, que es el que quiere /galeria.
+  focoCentral?: boolean;
   // VISOR SOBRE SUPERFICIE CLARA, con su titular. Enciende las tres cosas que
   // van juntas y que no tendrían sentido por separado: el fondo blanco de la
   // ventana, el titular "Galería de color" y la tinta oscura del contador.
@@ -134,7 +137,7 @@ type GaleriaClienteProps = {
 export function GaleriaCliente({
   rellenoRiel,
   tarjeta,
-  foco,
+  focoCentral = false,
   visorClaro = false,
   claveFavoritos,
   fisicaVisor = false,
@@ -144,17 +147,27 @@ export function GaleriaCliente({
 
   return (
     <>
-      <CarruselGaleria
-        fotos={SELECCION}
-        activo={!abierto}
-        rellenoRiel={rellenoRiel}
-        tarjeta={tarjeta}
-        foco={foco}
-        onAbrir={(i) => {
-          setIndice(i);
-          setAbierto(true);
-        }}
-      />
+      {focoCentral ? (
+        <CarruselFoco
+          fotos={SELECCION}
+          etiqueta="Selección de trabajos"
+          onAbrir={(i) => {
+            setIndice(i);
+            setAbierto(true);
+          }}
+        />
+      ) : (
+        <CarruselGaleria
+          fotos={SELECCION}
+          activo={!abierto}
+          rellenoRiel={rellenoRiel}
+          tarjeta={tarjeta}
+          onAbrir={(i) => {
+            setIndice(i);
+            setAbierto(true);
+          }}
+        />
+      )}
 
       {/* El visor es el mismo componente que la guía de largos de /menu: mismo
           gesto de baraja, misma ventana contenida, misma entrada y salida por
@@ -171,7 +184,10 @@ export function GaleriaCliente({
         indiceInicial={indice}
         onCerrar={() => setAbierto(false)}
         etiqueta={visorClaro ? "Galería de color" : "Galería de trabajos"}
-        claro={visorClaro}
+        // La superficie: el beige de la marca en /menu, el café de siempre en
+        // /galeria. La tercera receta -- terracota -- es la de la guía de
+        // largos y no se usa aquí.
+        fondo={visorClaro ? "shell" : "tierra"}
         claveFavoritos={claveFavoritos}
         fisica={fisicaVisor}
         textoAnterior="Foto anterior"
@@ -246,15 +262,40 @@ export function GaleriaCliente({
         // 6.14:1 y crema/70 sobre el café 7.26. En claro NO se queda en /55,
         // que es el tono de la pista de uso sobre oscuro: sobre blanco eso cae a
         // 3.77:1, por debajo del mínimo de 4.5 para 11px.
-        pie={(i) => (
-          <p
-            className={`text-[11px] uppercase tracking-[0.25em] tabular-nums ${
-              visorClaro ? "text-tierra/70" : "text-shell-lift/70"
-            }`}
-          >
-            {String(i + 1).padStart(2, "0")} / {LAMINAS.length}
-          </p>
-        )}
+        // EL ALTO DEL PIE. En la variante clara es una franja delgada: 28px, el
+        // de sus flechas, contra los 44 de la oscura. Con 44 quedaban 24px de
+        // caja vacía alrededor de un cheurón de 12, y entre la foto y el canto
+        // inferior de la ventana se acumulaban 78px de nada. Ahora son 62, y el
+        // área de toque de las flechas sigue en 44 por su ::after.
+        //
+        // Este número entra en la cuenta de ALTO_VENTANA_TITULADO: si cambia,
+        // hay que rehacerla.
+        altoPie={visorClaro ? "min-h-7" : undefined}
+        // EL PIE DE LA GALERÍA CLARA: "Desliza" en el centro, no un contador.
+        // En /galeria (la piel oscura) el contador se queda: ahí son 56 fotos y
+        // saber en cuál vas es información, no ornamento.
+        //
+        // flex-1 y text-center: la pieza ocupa todo el espacio entre las dos
+        // flechas, así que la palabra queda centrada en la barra y no pegada a
+        // una de ellas.
+        //
+        // EL TONO ES tierra AL 70% Y NO MENOS. Se probó al 55% buscando algo más
+        // discreto y medido sobre el beige daba 3.44:1, por debajo del mínimo AA
+        // de 4.5 para texto pequeño; al 70% mide 5.29, el mismo tono y el mismo
+        // contraste que las flechas que lo acompañan. Lo que lo mantiene
+        // subordinado no es la opacidad sino la escala: 11px contra los 56 del
+        // titular, en versalita y con 0.25em de interletrado.
+        pie={(i) =>
+          visorClaro ? (
+            <p className="flex-1 text-center text-[11px] uppercase tracking-[0.25em] text-tierra/70">
+              Desliza
+            </p>
+          ) : (
+            <p className="text-[11px] uppercase tracking-[0.25em] tabular-nums text-shell-lift/70">
+              {String(i + 1).padStart(2, "0")} / {LAMINAS.length}
+            </p>
+          )
+        }
       />
     </>
   );

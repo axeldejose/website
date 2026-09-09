@@ -42,7 +42,7 @@ export default function TratamientosPage() {
           <Link
             href="/menu"
             aria-label="Atrás"
-            className="inline-flex h-11 w-14 shrink-0 items-center justify-center rounded-full border border-white/20 bg-dune/10 text-shell-lift backdrop-blur-md transition-colors duration-150 hover:bg-dune/20"
+            className="pastilla-contorno inline-flex h-11 w-14 shrink-0 items-center justify-center rounded-full"
           >
             <span
               aria-hidden="true"
@@ -54,8 +54,8 @@ export default function TratamientosPage() {
         </div>
 
         <p className="mt-6 max-w-prose text-sm text-shell-lift/90">
-          Cuando tu melena necesita recuperarse, estos son los tratamientos
-          con los que trabajo.
+          Cuando tu melena necesita recuperarse, estos son los tratamientos con
+          los que trabajo.
         </p>
 
         {/* Hairline bajo el bloque de título, antes de la primera categoría. */}

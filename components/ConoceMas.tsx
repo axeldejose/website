@@ -8,9 +8,10 @@ import { useRef } from "react";
 // devolución de foco al botón al cerrar de forma automática. El clic en el
 // backdrop se cierra comparando el target con el propio <dialog>.
 //
-// COMPARTIDO ENTRE LA LANDING Y /menu. El disparador no se toca aquí: /menu lo
-// reviste por la prop `className` y cualquier cambio en sus clases base movería
-// las dos rutas. Lo que se rediseñó es la ventana.
+// COMPARTIDO ENTRE LA LANDING Y /menu. El material del disparador ya no vive
+// aquí: es la clase `.pastilla-contorno` de globals.css, la misma de "Agenda tu
+// cita" y del control de regreso de /menu/tratamientos. Aquí solo quedan su
+// forma y su tamaño, y la prop `className` para el ajuste de cada sitio.
 export function ConoceMas({ className = "" }: { className?: string }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -26,7 +27,7 @@ export function ConoceMas({ className = "" }: { className?: string }) {
       <button
         type="button"
         onClick={open}
-        className={`flex min-h-[40px] items-center justify-center rounded-full border border-white/50 bg-white/10 px-3 text-xs text-shell-lift transition-colors duration-150 hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dune-deep ${className}`}
+        className={`pastilla-contorno flex min-h-[40px] items-center justify-center rounded-full px-3 text-xs ${className}`}
       >
         Conóceme más <span aria-hidden="true">→</span>
       </button>

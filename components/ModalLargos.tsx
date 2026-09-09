@@ -102,8 +102,11 @@ const LARGOS: (Lamina & { nombre: string; referencia: string })[] = [
 // derecha, porque contra el canto derecho queda el icono, que no lleva
 // interletrado ni lateral, y con relleno simétrico se veía más suelto de ese
 // lado.
+// shrink-0: en /menu esta cápsula comparte renglón con la pregunta del rango, y
+// sin esto el reparto de flex la estrecharía y le partiría la versalita en dos
+// líneas. La que se estrecha es la pregunta, que es texto corrido.
 const CAPSULA_SECUNDARIA =
-  "relative inline-flex h-7 items-center gap-1.5 rounded-full border border-dune/50 bg-dune/50 pl-3 pr-2.5 text-[11px] font-semibold uppercase leading-none tracking-[0.25em] text-shell-lift/80 backdrop-blur-xl transition-colors duration-150 after:absolute after:inset-x-0 after:-inset-y-2.5 after:content-[''] hover:bg-dune/60 hover:text-shell-lift focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-shell-lift!";
+  "relative inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full border border-dune/50 bg-dune/50 pl-3 pr-2.5 text-[11px] font-semibold uppercase leading-none tracking-[0.25em] text-shell-lift/80 backdrop-blur-xl transition-colors duration-150 after:absolute after:inset-x-0 after:-inset-y-2.5 after:content-[''] hover:bg-dune/60 hover:text-shell-lift focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-shell-lift!";
 
 export function ModalLargos() {
   const [abierto, setAbierto] = useState(false);
@@ -161,6 +164,20 @@ export function ModalLargos() {
         // tiene que igualarlo para que la foto quede centrada en la ventana.
         // Medido: 94.5px de aire arriba y abajo.
         altoPie="min-h-[50.5px]"
+        // LA SUPERFICIE ES TERRACOTA (dune), decisión de PM tras comparar las
+        // dos opciones oscuras medidas. Sobre el café la ventana no se leía
+        // como superficie: medía 1.06:1 contra su propio fondo atenuado -- era
+        // de hecho MÁS oscura que la página en penumbra que la rodea -- así que
+        // no había caja ni canto, solo una zona más de la sombra. Con dune la
+        // separación pasa a 2.71:1 y la ventana se apoya encima de la página.
+        //
+        // EL PRECIO ESTÁ EN EL TECHO DE CONTRASTE, que sobre dune es 4.75:1
+        // (ver PIELES en VisorBaraja): ninguna tinta por debajo del 100% pasa el
+        // mínimo de 4.5 para 11px. De ahí que la referencia corporal de aquí
+        // abajo vaya en crema pleno y los puntos inactivos hayan subido de /40 a
+        // /70. Lo que ya no puede hacer la opacidad lo hacen la escala, el peso
+        // y el interletrado.
+        fondo="terracota"
         fisica={FISICA_GUIA}
         // EL INDICADOR ACOMPAÑA A LA IMAGEN, no cambia de golpe. El nombre y la
         // referencia corporal se remontan con `key={i}` y entran con la MISMA
@@ -185,7 +202,13 @@ export function ModalLargos() {
               <span className="block font-display text-3xl font-bold leading-none tracking-[-0.056em] text-shell-lift">
                 {LARGOS[i].nombre}
               </span>
-              <span className="mt-1 block text-[11px] font-medium uppercase tracking-[0.25em] text-shell-lift/75">
+              {/* EN CREMA PLENO Y NO AL 75%. Sobre el café medía 8.24:1 y
+                  podía permitirse bajar el tono; sobre el terracota ese mismo
+                  /75 cae a 3.40:1, por debajo del mínimo de 4.5 para 11px. Al
+                  100% mide 4.75, que es el techo de esta superficie. Sigue
+                  subordinado al nombre por lo que siempre lo estuvo: 11px
+                  contra 30, versalita y 0.25em de interletrado. */}
+              <span className="mt-1 block text-[11px] font-medium uppercase tracking-[0.25em] text-shell-lift">
                 {LARGOS[i].referencia}
               </span>
             </span>
@@ -199,8 +222,15 @@ export function ModalLargos() {
                   type="button"
                   onClick={() => ir(k)}
                   aria-current={k === i ? "true" : undefined}
+                  // EL INACTIVO SUBE DE /40 A /70. Sobre el terracota, /40
+                  // mide 2.00:1 y un objeto gráfico necesita 3; /70 da 3.17. Es
+                  // la opacidad más baja que pasa, y se eligió la más baja a
+                  // propósito: cada punto que sube de tono le come diferencia
+                  // al activo, que ya solo puede llegar a 4.75. El paso entre
+                  // los dos queda en 1.50:1 -- era 4.10 sobre el café --, así
+                  // que el estado se apoya además en aria-current.
                   className={`block size-2 rounded-full transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-shell-lift! ${
-                    k === i ? "bg-shell-lift" : "bg-shell-lift/40"
+                    k === i ? "bg-shell-lift" : "bg-shell-lift/70"
                   }`}
                 >
                   <span className="sr-only">

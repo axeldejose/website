@@ -1,13 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 
 import { MINIATURA_ALTO, MINIATURA_ANCHO, miniatura } from "@/data/galeria";
 
@@ -39,16 +33,6 @@ type CarruselGaleriaProps = {
   // leerse como tira, con varias fotos a la vista. El valor por omisión es el
   // de /galeria.
   tarjeta?: { clase: string; sizes: string };
-  // FOCO MÓVIL. Enciende la jerarquía en movimiento: la tarjeta que pasa por el
-  // centro del encuadre crece y llega a plena nitidez, y al salir vuelve
-  // gradualmente a su tamaño base. Sin este valor todas las tarjetas se ven
-  // iguales y quietas -- es decir, /galeria no cambia en nada.
-  //
-  // El TAMAÑO BASE es uno solo para todas (`tarjeta.clase`). Hubo una versión
-  // con tres anchos alternos en un motivo de siete pasos, para dar ritmo de
-  // composición a la fila quieta, y se retiró: la única variación de escala es
-  // la del centro.
-  foco?: boolean;
 };
 
 const TARJETA_GALERIA = {
@@ -72,47 +56,12 @@ const REANUDA_MS = 2600;
 // cada lado antes de que haya que envolver.
 const COPIAS = 3;
 
-// ── EL FOCO MÓVIL ───────────────────────────────────────────────────────────
-// La tarjeta que pasa por el centro del encuadre crece y se muestra a plena
-// nitidez; las de los costados se reducen y se atenúan. Es una función continua
-// de la distancia al centro, no dos estados con un salto entre ellos.
-//
-// LA ESCALA VA EN transform, no en el ancho. Un transform no reflowa: la
-// retícula del riel, el ancho de una copia y la costura del bucle siguen
-// midiendo lo mismo con el foco encendido que sin él. Y por ser una escala
-// uniforme, la proporción 4:5 de la foto no se toca -- no hay recorte ni
-// deformación posible.
-//
-// LOS VALORES. 1 en los costados y 1.10 en el centro: los costados están en su
-// TAMAÑO BASE -- no se encogen -- y lo único que varía es el crecimiento de la
-// protagonista, un 10%. Antes eran 0.92 y 1.04, que repartía la diferencia
-// entre las dos y dejaba a las de los lados por debajo de su tamaño propio.
-//
-// El 10% tiene un techo, y no es estético: la tarjeta realzada se sale de su
-// caja la mitad de su crecimiento por arriba y por abajo, y la pista es un
-// contenedor con overflow-x:auto -- lo que hace que su overflow-y también sea
-// auto --, así que lo que se salga genera desplazamiento vertical. Con la
-// tarjeta más alta del proyecto (9rem de ancho, 180px de alto a 640px en
-// adelante) el 10% se sale 9px por lado, y el relleno de la pista es de 12.
-//
-// La atenuación es solo de opacidad, hasta 0.6: ni desenfoque ni sombra ni
-// marco, que competirían con la fotografía.
-const FOCO_ESCALA_CENTRO = 1.1;
-const FOCO_ESCALA_BORDE = 1;
-const FOCO_OPACIDAD_BORDE = 0.6;
-// Radio de influencia, en fracción del ancho visible de la pista. A 0.44 de un
-// teléfono de 390px son 172px, y el paso entre tarjetas ronda los 133: así solo
-// la del centro y sus dos vecinas inmediatas reciben algo de realce, y queda
-// UNA protagonista clara en vez de tres a medias.
-const FOCO_RADIO = 0.44;
-
 export function CarruselGaleria({
   fotos,
   onAbrir,
   activo = true,
   rellenoRiel = "px-6 lg:pl-[max(2rem,calc(50vw-34rem))] lg:pr-[max(2rem,calc(50vw-34rem))]",
   tarjeta = TARJETA_GALERIA,
-  foco = false,
 }: CarruselGaleriaProps) {
   const pista = useRef<HTMLDivElement>(null);
   const riel = useRef<HTMLUListElement>(null);
@@ -124,106 +73,6 @@ export function CarruselGaleria({
   const pausado = useRef(false);
   const enPantalla = useRef(true);
   const relojReanuda = useRef(0);
-
-  // ESCALA UNIFORME CON prefers-reduced-motion. Con la preferencia puesta no hay
-  // giro ni realce: las catorce fotografías se ven al mismo tamaño y a la misma
-  // nitidez. El estado arranca en false en los dos lados -- servidor y cliente
-  // -- así que no hay desajuste de hidratación, y el listener deja que responda
-  // al cambio en caliente desde el sistema operativo.
-  const [uniforme, setUniforme] = useState(false);
-  useEffect(() => {
-    if (!foco) return;
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const sincronizar = () => setUniforme(mq.matches);
-    sincronizar();
-    mq.addEventListener("change", sincronizar);
-    return () => mq.removeEventListener("change", sincronizar);
-  }, [foco]);
-
-  const conFoco = foco && !uniforme;
-
-  // Centro de cada tarjeta en coordenadas de contenido del riel, medido UNA vez
-  // y no por fotograma: leer una caja por tarjeta en cada cuadro forzaría un
-  // recálculo de diseño 60 veces por segundo. Los anchos son relativos al
-  // viewport, así que se vuelve a medir al redimensionar.
-  const geometria = useRef<{ centro: number; el: HTMLElement }[]>([]);
-
-  const medir = useCallback(() => {
-    const p = pista.current;
-    const r = riel.current;
-    if (!p || !r) {
-      geometria.current = [];
-      return;
-    }
-    const cajaPista = p.getBoundingClientRect();
-    const sl = p.scrollLeft;
-    geometria.current = Array.from(r.children).map((hijo) => {
-      const li = hijo as HTMLElement;
-      const caja = li.getBoundingClientRect();
-      return {
-        centro: caja.left - cajaPista.left + sl + caja.width / 2,
-        el: li,
-      };
-    });
-  }, []);
-
-  // EL PINTOR. Escribe dos propiedades personalizadas en el <li>; la escala y
-  // la opacidad las resuelve el <button> leyéndolas. Así el estado de cursor o
-  // de foco de teclado puede fijar su propio valor en el botón y ganarle al
-  // heredado, sin marcas de importancia y sin que el pintor tenga que saber
-  // nada de la interacción.
-  //
-  // Solo calcula las tarjetas dentro del radio -- tres o cuatro en un teléfono.
-  // Las de fuera valen exactamente el valor de borde, así que se escriben una
-  // sola vez al cruzar la frontera y no en cada cuadro.
-  const pintarFoco = useCallback((sl: number) => {
-    const p = pista.current;
-    const g = geometria.current;
-    if (!p || !g.length) return;
-    const centroVista = sl + p.clientWidth / 2;
-    const radio = p.clientWidth * FOCO_RADIO;
-    if (radio <= 0) return;
-    for (let i = 0; i < g.length; i += 1) {
-      const { el } = g[i];
-      const d = Math.abs(g[i].centro - centroVista);
-      if (d >= radio) {
-        if (el.dataset.foco !== "borde") {
-          el.dataset.foco = "borde";
-          el.style.setProperty("--foco-escala", String(FOCO_ESCALA_BORDE));
-          el.style.setProperty("--foco-opacidad", String(FOCO_OPACIDAD_BORDE));
-        }
-        continue;
-      }
-      // Suavizado de tercer grado: llega y sale del centro sin aristas, así que
-      // no hay ningún instante en que el realce parezca encenderse.
-      const x = 1 - d / radio;
-      const f = x * x * (3 - 2 * x);
-      el.dataset.foco = "cerca";
-      el.style.setProperty(
-        "--foco-escala",
-        (
-          FOCO_ESCALA_BORDE +
-          (FOCO_ESCALA_CENTRO - FOCO_ESCALA_BORDE) * f
-        ).toFixed(4),
-      );
-      el.style.setProperty(
-        "--foco-opacidad",
-        (FOCO_OPACIDAD_BORDE + (1 - FOCO_OPACIDAD_BORDE) * f).toFixed(3),
-      );
-    }
-  }, []);
-
-  // Al apagarse -- por movimiento reducido o porque la ruta no pide foco -- se
-  // limpian las dos propiedades y el botón cae en sus valores por omisión
-  // (escala 1, opacidad 1): todas las tarjetas iguales, sin realce.
-  useEffect(() => {
-    if (conFoco) return;
-    geometria.current.forEach(({ el }) => {
-      delete el.dataset.foco;
-      el.style.removeProperty("--foco-escala");
-      el.style.removeProperty("--foco-opacidad");
-    });
-  }, [conFoco]);
 
   // Una copia de la selección avanza esto. Se mide sobre el DOM en vez de
   // dividir scrollWidth entre tres: el riel lleva hueco entre tarjetas, así que
@@ -259,9 +108,7 @@ export function CarruselGaleria({
     const inicio = sinMovimiento ? 0 : unidad();
     posicion.current = inicio;
     el.scrollLeft = inicio;
-    medir();
-    if (conFoco) pintarFoco(inicio);
-  }, [unidad, medir, pintarFoco, conFoco]);
+  }, [unidad]);
 
   const pausar = useCallback(() => {
     pausado.current = true;
@@ -304,10 +151,8 @@ export function CarruselGaleria({
       // Una sola lectura de scrollLeft, y arriba: el pintor escribe estilos al
       // final del cuadro, así que leer después de escribir alternaría lectura y
       // escritura de diseño en cada fotograma.
-      const sl = conFoco ? el.scrollLeft : 0;
       if (!previo) {
         previo = t;
-        if (conFoco) pintarFoco(sl);
         return;
       }
       // Tope de 64ms: si la pestaña estuvo dormida, el primer fotograma al
@@ -325,28 +170,21 @@ export function CarruselGaleria({
         movimientoReducido.matches ||
         document.hidden
       ) {
-        // Quieto no significa desactualizado: mientras el usuario arrastra, el
-        // giro está en pausa y el foco tiene que seguir su dedo.
-        if (conFoco) pintarFoco(sl);
         return;
       }
 
       const u = unidad();
-      if (u <= 0) {
-        if (conFoco) pintarFoco(sl);
-        return;
-      }
+      if (u <= 0) return;
       posicion.current += (VELOCIDAD_PX_S * dt) / 1000;
       // La costura: al pasar de la copia del medio a la tercera, se resta una
       // copia. El contenido de las dos es idéntico, así que el salto no se ve.
       if (posicion.current >= u * 2) posicion.current -= u;
       el.scrollLeft = posicion.current;
-      if (conFoco) pintarFoco(posicion.current);
     };
 
     raf = requestAnimationFrame(paso);
     return () => cancelAnimationFrame(raf);
-  }, [unidad, conFoco, pintarFoco]);
+  }, [unidad]);
 
   // Envoltura del recorrido del usuario. Solo actúa cuando el movimiento es
   // suyo -- es decir, con el giro en pausa --, para no pelearse con el
@@ -382,21 +220,10 @@ export function CarruselGaleria({
     const alRedimensionar = () => {
       const el = pista.current;
       if (el) posicion.current = el.scrollLeft;
-      // Los anchos son relativos al viewport, así que los centros cambian.
-      medir();
-      if (conFoco && el) pintarFoco(el.scrollLeft);
     };
     window.addEventListener("resize", alRedimensionar);
     return () => window.removeEventListener("resize", alRedimensionar);
-  }, [medir, pintarFoco, conFoco]);
-
-  // Se encendió o apagó el foco, así que hay que rehacer la medida: el relleno
-  // vertical de la pista cambia con él y los centros se mueven.
-  useEffect(() => {
-    medir();
-    const el = pista.current;
-    if (conFoco && el) pintarFoco(el.scrollLeft);
-  }, [uniforme, foco, medir, pintarFoco, conFoco]);
+  }, []);
 
   useEffect(() => () => clearTimeout(relojReanuda.current), []);
 
@@ -415,20 +242,6 @@ export function CarruselGaleria({
     fotos.map((f) => ({ ...f, copia, clave: `${copia}-${f.id}` })),
   ).flat();
 
-  // LA ESCALA Y LA OPACIDAD LAS RESUELVE EL BOTÓN, leyendo las dos propiedades
-  // que el pintor escribe en el <li>. Los estados de cursor y de foco de teclado
-  // fijan su propio valor aquí mismo, y por estar declarados en el propio
-  // elemento le ganan al heredado: una tarjeta atenuada bajo el cursor o con el
-  // anillo de foco puesto se ve mal, y así llega a plena nitidez sin que el
-  // pintor tenga que enterarse.
-  //
-  // El realce de opacidad al pasar el cursor se retira cuando el foco está
-  // encendido: ahí la opacidad ya la gobierna la distancia al centro, y dos
-  // reglas peleándose por la misma propiedad daban un parpadeo.
-  const claseFoco = conFoco
-    ? "[transform:scale(var(--foco-escala,1))] [opacity:var(--foco-opacidad,1)] transition-[transform,opacity] duration-150 ease-out hover:[--foco-escala:1.1] hover:[--foco-opacidad:1] focus-visible:[--foco-escala:1.1] focus-visible:[--foco-opacidad:1]"
-    : "transition-opacity duration-150 hover:opacity-90";
-
   return (
     <div
       ref={pista}
@@ -438,12 +251,7 @@ export function CarruselGaleria({
       onWheel={pausar}
       onMouseEnter={pausar}
       onFocusCapture={pausar}
-      // pb-2 sin foco, py-3 con él: la tarjeta del centro se sale de su caja la
-      // mitad de su crecimiento por arriba y por abajo -- 9px con la tarjeta
-      // más alta --, y la pista es un contenedor con overflow-x:auto, lo que
-      // hace que su overflow-y también sea auto. Sin ese hueco, la tarjeta
-      // realzada generaba desplazamiento vertical dentro de la tira.
-      className={`carrusel-pista overflow-x-auto ${foco ? "py-3" : "pb-2"}`}
+      className="carrusel-pista overflow-x-auto pb-2"
     >
       {/* EL RELLENO LATERAL ALINEA LA PRIMERA TARJETA CON EL EJE DEL
           CONTENIDO, y ese eje depende de la pantalla, así que llega por prop.
@@ -462,12 +270,7 @@ export function CarruselGaleria({
       <ul
         ref={riel}
         aria-label="Selección de trabajos"
-        // items-center con foco: la tarjeta realzada crece desde su centro, así
-        // que las catorce comparten eje horizontal y el crecimiento se reparte
-        // por igual arriba y abajo. Sin foco, stretch y center son equivalentes
-        // -- todas miden lo mismo y nada las escala --, así que /galeria queda
-        // igual.
-        className={`flex w-max gap-4 ${foco ? "items-center" : "items-stretch"} ${rellenoRiel}`}
+        className={`flex w-max items-stretch gap-4 ${rellenoRiel}`}
       >
         {tarjetas.map((f) =>
           f.copia === 0 ? (
@@ -475,7 +278,7 @@ export function CarruselGaleria({
               <button
                 type="button"
                 onClick={() => onAbrir(f.indice)}
-                className={`block ${tarjeta.clase} cursor-pointer overflow-hidden rounded-2xl ${claseFoco} focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-shell-lift!`}
+                className={`block ${tarjeta.clase} cursor-pointer overflow-hidden rounded-2xl transition-opacity duration-150 hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-shell-lift!`}
               >
                 <Image
                   src={miniatura(f.id)}
@@ -495,7 +298,7 @@ export function CarruselGaleria({
                 type="button"
                 tabIndex={-1}
                 onClick={() => onAbrir(f.indice)}
-                className={`block ${tarjeta.clase} cursor-pointer overflow-hidden rounded-2xl ${claseFoco}`}
+                className={`block ${tarjeta.clase} cursor-pointer overflow-hidden rounded-2xl transition-opacity duration-150 hover:opacity-90`}
               >
                 <Image
                   src={miniatura(f.id)}

@@ -134,7 +134,10 @@ export default function ServiciosPage() {
             Decorativo: aria-hidden en la ventana y alt vacío en la imagen. */}
         <MechonEntrada />
 
-        <div className="relative">
+        {/* encabezado-color declara --titulo-cuerpo, el cuerpo del titular, que
+            el control de regreso necesita para montarse en la segunda línea.
+            Vive en globals.css junto con los dos factores medidos del lockup. */}
+        <div className="encabezado-color relative">
           {/* Resplandor suave detrás del título: blob difuminado, cálido
               claro, descentrado. Opacidad baja para no bajar el contraste. */}
           <span
@@ -232,7 +235,7 @@ export default function ServiciosPage() {
 
               `relative` se queda: hace que el titular pinte por delante de las
               capas decorativas de la palabra "color", que van antes en el DOM. */}
-          <h1 className="relative font-display text-[clamp(3.4rem,20.4vw-0.61rem,4.55rem)] text-shell-lift lg:text-[3.875rem]">
+          <h1 className="titular-color relative font-display text-shell-lift">
             {/* Lockup de dos piezas. El envoltorio es inline-block, así que su
                 ancho es el de la línea más ancha -- "Diseños" -- y eso es lo
                 que le da a "de color" un borde derecho contra el que alinearse
@@ -247,6 +250,48 @@ export default function ServiciosPage() {
               </span>
             </span>
           </h1>
+
+          {/* EL CONTROL DE REGRESO, montado en la segunda línea del titular, a
+              la izquierda de "de color". Va FUERA del <h1> a propósito: dentro,
+              su nombre accesible entraría en el del encabezado y el titular se
+              anunciaría como "Diseños Atrás de color". Aquí queda como un
+              hermano posicionado, y su orden de tabulación sigue siendo el
+              primero del panel, como antes.
+
+              La geometría -- de dónde salen el 1.081 y el 1.195 que lo colocan,
+              y por qué no puede centrarse en la tinta de la palabra -- está en
+              globals.css (.regreso-titular). Forma, tamaño, vidrio, área de
+              toque de 46px y animación de la flecha son los mismos de antes: lo
+              único que cambió es dónde vive.
+
+              EL ÁREA DE TOQUE se solapa 3.4px con la tinta de "Diseños" en el
+              ancho más justo, y eso no es un problema: el titular no es
+              accionable, así que no hay dos blancos compitiendo. El siguiente
+              control de la columna (ContactoAside) queda a más de 100px.
+
+              LA CÁPSULA LLENA EL ENVOLTORIO (w-full), así que su canto
+              izquierdo cae en el margen del texto de la página -- x=24 en un
+              teléfono de 390, el mismo eje en el que arrancan la caja del
+              titular, el muestrario de abajo, la lista de color, el panel de
+              servicios y el pie -- y su canto derecho se queda donde estaba,
+              porque lo fija el ancho del envoltorio y ese no cambió. Solo creció
+              hacia la izquierda: de 41.4px de ancho a 51-64 según el ancho de
+              pantalla. La flecha se centra en la cápsula alargada
+              (justify-center); antes el relleno px-3 la centraba por sí solo. */}
+          <div className="regreso-titular">
+            <Link
+              href="/"
+              aria-label="Atrás"
+              className="relative inline-flex w-full items-center justify-center rounded-full border border-clay/20 bg-clay/10 px-3 py-1 text-shell-lift backdrop-blur-xl transition-colors duration-150 after:absolute after:inset-x-0 after:-inset-y-2.5 after:content-[''] hover:bg-clay/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-shell-lift!"
+            >
+              <span
+                aria-hidden="true"
+                className="inline-block text-base leading-none animate-[back-nudge_1.8s_ease-in-out_infinite]"
+              >
+                ←
+              </span>
+            </Link>
+          </div>
         </div>
 
         {/* Columna de texto angosta, a 31ch = 260px. Ensanchada desde 26ch
@@ -319,65 +364,34 @@ export default function ServiciosPage() {
           </p>
         </div>
 
-        {/* FILA DEL MUESTRARIO Y EL REGRESO.
+        {/* EL MUESTRARIO DE TINTE, SOLO Y A TODO EL ANCHO.
 
-            La regla sólida de 3px en `dune` que vivía aquí se fue, y en su lugar
-            entró el MUESTRARIO DE TINTE que estaba bajo el encabezado del
-            disclaimer de rango: la misma clase .hair-swatch, el mismo alto (h-2)
-            y el mismo rounded-full, así que conserva su degradado de los siete
-            tokens y su deriva lenta. El efecto no depende del ancho: la
-            animación desplaza `background-position` sobre un degradado al 200%,
-            así que funciona igual en 242 que en 720px.
+            Es la misma clase .hair-swatch que estaba aquí -- mismo alto (h-2),
+            mismo rounded-full, mismo degradado de los siete tokens y misma
+            deriva lenta --. Lo que cambió es que el control de regreso se fue a
+            la segunda línea del titular y la barra se quedó sola en la fila, así
+            que ahora ocupa el ancho completo del bloque: de margen a margen,
+            x=24 a 366 en un teléfono de 390, contra los 29 a 366 de antes.
 
-            EL BOTÓN ABRE LA FILA, alineado con el eje izquierdo del contenido
-            -- el mismo ml-[5px] que comparten el titular, la bajada y esta fila
-            --, y el muestrario ocupa con flex-1 todo lo que queda a su derecha,
-            hasta el canto del panel. Es el orden invertido de lo que había: la
-            barra no quedó descolocada, cambió de lado y conserva su ancho,
-            porque en los dos casos mide el ancho de la fila menos el botón y el
-            hueco. Medido: 280px a 390 y 242 en lg, igual que antes.
+            SE FUE EL ml-[5px]. Ese margen alineaba la fila con el eje óptico del
+            titular, que es donde arranca la tinta de la "D". Con la barra a todo
+            el ancho ya no aplica: lo que se pidió es de margen a margen del
+            bloque, y el margen del bloque está 5px a la izquierda de ese eje.
 
-            El ml-[5px] y el mt-5 son los que tenía la regla cuando vivía dentro
-            de la columna de texto, así que la fila arranca en el mismo eje
-            óptico del titular y de la bajada y conserva sus 20px de aire.
+            LA ANIMACIÓN NO DEPENDE DEL ANCHO y por eso el recorrido no se
+            parte: desplaza `background-position` sobre un degradado dimensionado
+            al 200% del elemento, así que el ciclo recorre exactamente dos veces
+            el ancho de la barra, sea el que sea. Verificado en el reporte con
+            dos fotogramas del ciclo.
 
-            EL BOTÓN VA AQUÍ, junto a la regla y a su misma altura (items-center
-            los centra sobre el mismo eje). No al canto derecho del panel: ahí
-            caería dentro de la franja del mechón -- a 320px la franja arranca en
-            x=232 y el botón terminaba en 296 -- y un cristal con blur encima del
-            pelo ensucia las dos cosas. Al lado de la regla queda a 100px o más
-            de esa franja en todos los anchos.
-
-            FORMA MÁS DELGADA: 26px de alto contra los 44px de antes -- y por
-            debajo de los 30px de los botones de la carta, que es lo que lo deja
-            como el control más discreto de la página --, con el mismo vidrio
-            secundario de esos botones (clay al 10% con borde a /20 y blur) en
-            vez del dune con borde blanco que tenía. El área de toque se queda en
-            46px por ::after con inset vertical negativo, así que no engorda la
-            fila ni corre la regla.
-
-            El foco de teclado va forzado a crema: la regla global de
-            :focus-visible en globals.css pinta el anillo en dune-deep, que sobre
-            este fondo mide 1.65:1 -- por debajo del mínimo de 3:1. El `!` es
-            necesario porque esa regla no está en una capa y le gana a las
-            utilidades de Tailwind. */}
-        <div className="ml-[5px] mt-5 flex items-center gap-4">
-          <Link
-            href="/"
-            aria-label="Atrás"
-            className="relative inline-flex items-center rounded-full border border-clay/20 bg-clay/10 px-3 py-1 text-shell-lift backdrop-blur-xl transition-colors duration-150 after:absolute after:inset-x-0 after:-inset-y-2.5 after:content-[''] hover:bg-clay/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-shell-lift!"
-          >
-            <span
-              aria-hidden="true"
-              className="inline-block text-base leading-none animate-[back-nudge_1.8s_ease-in-out_infinite]"
-            >
-              ←
-            </span>
-          </Link>
-
+            EL ENVOLTORIO CONSERVA LOS 26px de alto que tenía la fila cuando el
+            control vivía aquí, con la barra centrada. No es un resto: es lo que
+            mantiene la barra exactamente donde estaba (y=312.44 a 390px), que es
+            lo que se pidió. */}
+        <div className="mt-5 flex h-[1.625rem] items-center">
           <div
             aria-hidden="true"
-            className="hair-swatch h-2 flex-1 rounded-full"
+            className="hair-swatch h-2 w-full rounded-full"
           />
         </div>
 
@@ -413,7 +427,15 @@ export default function ServiciosPage() {
           {/* ocultarTitulo: el h2 "Diseño de color" repetía lo que ya dice la
               bajada del panel a pocos centímetros. La sección conserva nombre
               accesible vía aria-label, así que sigue anunciándose igual. */}
-          <CategoriaCarta category={color} ocultarTitulo editorial />
+          <CategoriaCarta
+            category={color}
+            ocultarTitulo
+            editorial
+            // Sin superficie: los cuatro servicios de color se apoyan
+            // directamente sobre la fotografía del layout. La segunda lista es
+            // la que vive dentro del módulo de servicios.
+            modulo={false}
+          />
 
           {/* EL CARRUSEL DE TRABAJOS, Y ES LO QUE SEPARA LAS DOS CARTAS.
 
@@ -467,7 +489,7 @@ export default function ServiciosPage() {
               El componente es el mismo de /galeria, con su visor. Solo las
               miniaturas cargan con la página; las completas se piden al abrir
               una foto, y solo la activa con sus dos vecinas. */}
-          <div className="-mt-1 -mr-6 -ml-6 min-w-0 lg:ml-0 lg:-mr-[max(2rem,calc(50vw-34rem))]">
+          <div className="relative -mt-14 -mx-6 min-w-0 lg:mx-0 lg:max-w-[32rem]">
             {/* EL FOCO MÓVIL, Y NADA MÁS. Hubo una versión con tres anchos
                 alternos en un motivo de siete pasos, para que la fila quieta
                 tuviera ritmo de composición, y se retiró: las catorce
@@ -480,345 +502,354 @@ export default function ServiciosPage() {
                 ancho base, next/image pediría el archivo de 9rem y la
                 protagonista se vería blanda al crecer. */}
             <GaleriaCliente
-              rellenoRiel="px-6 lg:pl-0 lg:pr-[max(2rem,calc(50vw-34rem))]"
-              tarjeta={{
-                clase: "w-[min(30vw,9rem)]",
-                sizes: "(min-width: 640px) 10rem, 33vw",
-              }}
-              foco
+              // -mx-6 EN MÓVIL: SIN ESTO EL SANGRADO NO LLEGA. El contenedor del
+              // layout lleva px-6, cinco niveles más arriba, y eso dejaba el
+              // módulo de x=24 a 366 en una pantalla de 390: entre el canto de
+              // la foto lateral y el borde de la ventana quedaban 41.2px de
+              // fondo visible -- medido --, y esa franja es la que hacía que el
+              // recorte de las laterales se leyera como un corte y no como un
+              // sangrado. Con el margen negativo la pista ocupa los 390 y quien
+              // recorta las laterales es el borde de la pantalla.
+              //
+              // En lg no: ahí el módulo vive dentro de la columna derecha de la
+              // retícula y su canto ES el eje del contenido.
+              //
+              // La tira de deriva se cambió por el carrusel de foco central:
+              // una foto activa adelante, las vecinas detrás y un contador. Las
+              // props de la tira (rellenoRiel, tarjeta, foco) ya no aplican y se
+              // fueron; el de foco central resuelve su geometría solo, desde
+              // globals.css.
+              focoCentral
               visorClaro
               // La clave del almacenamiento local. No se cambia: renombrarla
               // borra los favoritos de todo el que ya tenga alguno.
               claveFavoritos="axel:galeria:favoritas"
               fisicaVisor
             />
+
+            {/* ──────────────────────────────────────────────────────────────
+                LA SALIDA A LA GALERÍA COMPLETA, DENTRO DEL HUECO QUE YA HABÍA.
+
+                VA POSICIONADA Y NO EN FLUJO, y esa es la decisión que hace que
+                la distancia entre el carrusel y el panel no se mueva ni un
+                píxel: el botón no reserva sitio, se coloca DENTRO del hueco de
+                48px que separa los dos bloques. En flujo habría entrado como un
+                hijo más de la columna, con sus dos huecos de 56px, y habría
+                empujado el panel 86px hacia abajo; compensarlo pedía dos
+                márgenes negativos acoplados entre sí.
+
+                CENTRADO EN EL HUECO: top-full lo apoya en el canto inferior del
+                módulo del carrusel y el mt-[10px] lo baja a la mitad -- 10px de
+                aire arriba, la cápsula de 28 y 10px de aire abajo --. Su área de
+                toque de 44px se extiende 8px por lado, así que queda a 2px del
+                canto del módulo y a 2px del panel: no toca ni las fotos del
+                carrusel (sus botones acaban 48px más arriba) ni el primer
+                renglón del panel (empieza 35px más abajo).
+
+                CENTRADO HORIZONTALMENTE: el envoltorio sangra a los cantos de la
+                pantalla en móvil, y su centro coincide con el del contenido
+                (x=195 en un teléfono de 390), así que centrar aquí es centrar en
+                la columna. En lg el envoltorio ES la columna.
+
+                MATERIAL: la cápsula de contorno del sitio (.pastilla-contorno),
+                la misma de "Conóceme más" y de "Agenda tu cita" -- borde de
+                crema al 62%, velo de crema al 8% y desenfoque de fondo --. No se
+                reinventa aquí: es el material único de los secundarios, y es lo
+                que la deja subordinada al panel y sin competir con el botón de
+                WhatsApp, que es el único sólido de la página.
+
+                ALTO 28px, el mínimo que deja tocarla con comodidad: el área real
+                son 44px, que es el suelo del proyecto, y los 16 que faltan los
+                pone el ::after fuera de la caja, así que no engordan el hueco.
+
+                EL TEXTO ESTÁ PENDIENTE DE APROBACIÓN. Va "Todos mis trabajos"
+                como provisional -- primera persona, la voz del sitio, tres
+                palabras -- y las otras opciones están en el reporte. El copy es
+                decisión de marca.
+                ────────────────────────────────────────────────────────────── */}
+            {/* EL BOTÓN VA CENTRADO Y AL ANCHO DE SU CONTENIDO. Hubo una
+                versión extendida de canto a canto del panel y se retiró: como
+                barra competía con el panel de abajo, y lo que se busca es una
+                pieza contenida. El envoltorio ocupa el ancho disponible y solo
+                sirve para centrarla; su centro coincide con el de la columna
+                (x=195 en un teléfono de 390) tanto en móvil -- donde el
+                envoltorio del carrusel sangra a los cantos de la pantalla --
+                como en lg, donde es la columna con su tope de 32rem.
+
+                mt-3 lo acerca a las fotos: 12px por debajo del canto del módulo
+                en vez de 24, o sea 42.4px desde la foto más baja contra los 54.4
+                de antes. No baja de 12 porque su área de toque se extiende 10px
+                por arriba: con menos, el toque entraría en la caja de la pista
+                del carrusel. */}
+            <div className="absolute inset-x-0 top-full mt-3 flex justify-center">
+              {/* EL LOCKUP: "ver" y "trabajos" en versalita espaciada de cuerpo,
+                  "más" en la display serif, en caja baja, un paso más grande y
+                  a tono pleno. El contraste entre las dos voces es lo que le da
+                  el carácter; el tamaño de la serif es solo un paso porque la
+                  Bodoni tiene la altura de x más baja que la Jost y a igual
+                  cuerpo se leería más pequeña.
+
+                  items-baseline y NO items-center: las tres palabras se sientan
+                  en la misma línea base, que es lo que las hace leerse como una
+                  unidad y no como tres piezas apiladas ópticamente. Por eso el
+                  alto no se fija con h-7 sino con el relleno: con altura fija,
+                  un grupo alineado por línea base se pega al canto superior de
+                  la caja en vez de centrarse.
+
+                  El texto va al 70% y "más" al 100%: el tono discreto que se
+                  pidió para las mayúsculas, y la serif como la pieza clara. */}
+              <Link
+                href="/galeria"
+                className="pastilla-contorno relative flex items-baseline justify-center gap-1.5 rounded-full px-4 py-1 after:absolute after:inset-x-0 after:-inset-y-2.5 after:content-[''] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-shell-lift!"
+              >
+                <span className="text-[11px] uppercase tracking-[0.22em] text-shell-lift/70">
+                  Ver
+                </span>
+                <span className="font-display text-[0.9375rem] leading-none tracking-[-0.02em] text-shell-lift">
+                  más
+                </span>
+                <span className="text-[11px] uppercase tracking-[0.22em] text-shell-lift/70">
+                  trabajos
+                </span>
+                <span
+                  aria-hidden="true"
+                  className="ml-0.5 text-xs leading-none text-shell-lift/70"
+                >
+                  →
+                </span>
+              </Link>
+            </div>
           </div>
 
-          {/* SEGUNDA CARTA, SIN ENCABEZADO: las ondas, el corte y la salida a
-              tratamientos.
+          {/* ──────────────────────────────────────────────────────────────
+              EL MÓDULO DE SERVICIOS: UNA TARJETA CERRADA, HECHA MIDIENDO UNA
+              REFERENCIA.
 
-              MISMO DISEÑO EXACTO QUE LA LISTA DE COLOR. Ya no tiene voz propia:
-              se le quitó la prop `nombreEnCuerpo`, que era lo único que la
-              separaba, y con ella cayeron los cuatro rasgos que la hacían
-              flotar aparte -- familia de cuerpo en vez de display, 24px en vez
-              de 26/30, peso 400 en vez de 500 e interletrado -0.02em en vez de
-              -0.056em -- más el relleno vertical, que vuelve a py-6. El nombre
-              a la izquierda, la cifra en el margen derecho, el cheurón después,
-              la línea de un pelo entre renglones y el acordeón exclusivo ya los
-              daba el modo editorial de la carta, que es el mismo componente.
+              Quinta versión de esta pieza. El historial importa para no dar
+              vueltas: tres tarjetas apiladas, una superficie de vidrio con
+              contorno de clay, un panel de dos zonas con filo perimetral, una
+              composición abierta sin caja, y esta. La diferencia es que esta no
+              sale de interpretar una descripción sino de medir una imagen de
+              referencia: radio, degradado del contorno lado por lado, altos de
+              franja, sangría de los divisores y extensión de la veladura están
+              tomados de ahí y documentados en globals.css.
 
-              Lo único que sigue distinto es que ninguna fila arranca abierta
-              (abrirPrimero={false}), y eso no es tratamiento sino estado: el
-              acordeón es exclusivo POR CATEGORÍA, así que con las dos cartas
-              abriendo su primer servicio la página cargaba con dos paneles
-              desplegados.
+              QUÉ LA ESTRUCTURA. Un panel con radio de 24px y un contorno de 1px
+              que CIERRA los cuatro lados, más luminoso en el costado izquierdo y
+              en la esquina superior izquierda y atenuándose hacia la derecha y
+              hacia abajo sin apagarse. Dentro, tres franjas separadas por
+              divisores que se desvanecen en sus extremos. El cristal ahumado
+              deja pasar el grano de la fotografía: el desenfoque es de 4px y no
+              de 10 justamente para eso.
 
-              El kicker no se repite (sinKicker): es una indicación de uso de la
-              página, no de la categoría, y con dos cartas se decía dos veces.
+              LO QUE SE DESMONTÓ de la versión abierta: la línea de marfil en
+              cuatro tramos, la lámina con máscara vertical y horizontal, el
+              cálculo que ataba el final del tramo vertical a la altura de la
+              flecha y el token --trat-fila del que dependía.
 
-              -mt-13 ACERCA ESTA CARTA AL CARRUSEL, Y A PROPÓSITO NO LO DEJA
-              SIMÉTRICO. El aire de la tira es asimétrico: 64px por arriba y 32
-              por abajo, medidos de canto de tarjeta a canto de texto.
-
-              Los dos números dicen cosas distintas. Los 64 de arriba separan la
-              tira del final de la lista de color, que es donde termina un
-              bloque; los 32 de abajo la cosen con la sección que sigue, para
-              que Wavys se lea como continuación de la página y no como algo que
-              empieza de nuevo. Simétrico, la sección quedaba flotando.
-
-              La cuenta: el gap de la columna es de 56px y la pista aporta 12 de
-              relleno por lado. Por arriba, 56 - 4 del -mt-1 del envoltorio + 12
-              = 64. Por abajo, 12 + 56 + 16 del mt-4 que la lista trae de fábrica
-              sobre su primer renglón - 52 de este margen = 32. En lg el gap
-              sube a 64 y las dos cifras suben con él, a 72 y 40.
-
-              Va aquí y no quitando el relleno de la pista, porque ese vive en el
-              componente del carrusel, que comparte con /galeria. */}
-          {/* SIN SUPERFICIE PROPIA. Aquí vivía un envoltorio que sangraba a los
-              cantos de la pantalla y una capa de degradado de clay (.zona-
-              seccion) por detrás, para que esta sección se leyera como una zona
-              aparte. Se fueron las dos: la sección vuelve al fondo normal de la
-              página, el mismo que la lista de color, y ya no hay tarjeta, ni
-              velo, ni sangrado, ni máscara. El envoltorio se queda solo por el
-              margen negativo que iguala el aire del carrusel. */}
-          <div className="-mt-13">
+              LO QUE SE CONSERVA: el acordeón con su cheurón y su panel
+              desplegable, los precios en el eje derecho, el ancho y los
+              márgenes del bloque, y el aire con el carrusel de arriba y con el
+              pie de abajo.
+              ────────────────────────────────────────────────────────────── */}
+          {/* EL MÓDULO SUBE. El hueco con el carrusel eran 64px -- los 56 del gap
+              de la columna, menos los 8 de este margen, más los 16 que el propio
+              módulo traía de mt-4 -- y se leía como un hueco muerto: el canto
+              inferior del carrusel ya no es una foto ni el contador, es el
+              relleno que la pista reserva para el glow, así que a esos 64 hay
+              que sumarles otros 48 de aire visual. Ahora son 32: se quitó el
+              mt-4 del módulo y este margen negativo pasa de 8 a 24. Del canto de
+              la última foto al canto del panel siguen quedando 80px, que es más
+              que suficiente para que se lean como dos bloques. */}
+          {/* mt-1: el panel sube con el botón. Los 12px que el botón se acercó
+              al carrusel se le restan aquí también, así que la distancia entre
+              el botón y el canto del panel se conserva -- 20.5px medidos -- y el
+              hueco del módulo al panel baja de 72 a 60. Este margen es lo único
+              que queda de la compensación por el menguado del módulo: sin nada,
+              el panel habría subido los 23.4px que el módulo perdió. */}
+          <div className="mt-1">
             <CategoriaCarta
               category={CORTE_Y_ESTILO}
               ocultarTitulo
               editorial
+              // El kicker de uso ("Toca para descubrir cada servicio") no se
+              // repite: ya lo dice la lista de color arriba, y aquí el
+              // encabezado del módulo es el rótulo.
               sinKicker
-              comoPila
+              rotulo="Servicios"
+              // Ninguna fila arranca abierta: el acordeón es exclusivo POR
+              // CATEGORÍA, así que con las dos listas abriendo su primer
+              // servicio la página cargaba con dos paneles desplegados.
               abrirPrimero={false}
-            />
-
-            {/* LA SALIDA A TRATAMIENTOS: UNA PILA DE CARTAS.
-
-                Era un renglón de texto con una flecha, al mismo nivel que los
-                dos servicios de arriba. Ahora es una pieza con cuerpo propio:
-                tres cartas apiladas, las dos de atrás asomando por el canto
-                superior, reducidas y desfasadas respecto a la de adelante.
-
-                QUE SE LEA COMO NAVEGACIÓN Y NO COMO VISOR. Es el riesgo de la
-                figura: una pila anuncia varias piezas que se van a hojear, y lo
-                que pasa al tocarla es que se cambia de página. Se resuelve con
-                tres decisiones, no con un texto explicativo:
-
-                  - LAS HOJAS ASOMAN POR ARRIBA, no por el costado. Un mazo
-                    escalonado hacia la derecha es la figura de "desliza para
-                    ver la siguiente"; un taco de hojas que asoma por el canto
-                    superior es la figura de "aquí dentro hay varias cosas". La
-                    primera invita a arrastrar, la segunda a entrar.
-                  - LA FLECHA SE QUEDA, y apunta hacia adelante. Un visor
-                    llevaría puntos, un contador o cheurones a los lados; una
-                    flecha de avance a la derecha solo significa ir a otro
-                    sitio. Es el signo que desambigua la figura.
-                  - EL NOMBRE ES EL PROTAGONISTA y vive en la carta de
-                    adelante, con el mismo tratamiento exacto que Wavys y Corte
-                    dama: Jost, 24px, peso 400, interletrado -0.02em y crema al
-                    100%. La pila no lo compite: las hojas de atrás son dos
-                    bandas de 7 y 14px de alto, y solo la de adelante lleva
-                    contenido.
-
-                VIDRIO EN EL RANGO TERRACOTA. Hubo una versión de relleno
-                opaco de `dune` y se veía como un bloque pesado; y antes de esa,
-                una de vidrio claro. Esta es la tercera: el material de la de
-                vidrio -- desenfoque de fondo, superficie translúcida y contorno
-                cálido apenas perceptible -- pero trabajando en el terracota.
-
-                TRES CAPAS Y NINGUNA PLANA. Cada una lleva un degradado vertical
-                de `dune` (#a05035) a `dune-deep` (#8a4229) -- el rango terracota
-                de la paleta, el acento y su variante oscurecida -- que además
-                BAJA DE OPACIDAD al descender: la de adelante va de 68% a 44%,
-                la hoja media de 48 a 30 y la del fondo de 30 a 18.
-
-                El degradado hace dos cosas a la vez: recorre el tono, que es de
-                donde sale la profundidad, y abre la translucidez, así que por la
-                parte baja de cada carta se transparenta más el fondo de la
-                página. Eso es lo que da sensación de material -- el desenfoque y
-                la transparencia -- y no la saturación.
-
-                SIN BANDAS. Los dos topes son del mismo rango y la distancia entre
-                ellos es corta, así que la interpolación no tiene por dónde
-                escalonarse; y el desenfoque de fondo de la carta de adelante
-                alisa además lo que se transparenta de las hojas.
-
-                SIN BLANCO PURO NI BRILLOS EN LOS CANTOS: el contorno es clay al
-                25/18/14%, cálido y apenas perceptible, y no hay anillo interior
-                ni realce de canto en ninguna capa.
-
-                PROFUNDIDAD SIN SOMBRA. No hay box-shadow en ninguna capa. El
-                volumen se construye con dos recursos de la casa:
-
-                  - RETRANQUEO. Cada hoja es 24px más angosta que la anterior
-                    (12px por costado) y asoma 7px por arriba, así que las tres
-                    comparten centro y se escalonan en perspectiva.
-                  - RECESIÓN TONAL. Cada hoja es más transparente que la
-                    anterior -- 68-44% en la de adelante, 48-30 en la media y
-                    30-18 en la del fondo --, con el contorno de clay bajando de
-                    25 a 18 y a 14. Lo que está más lejos tiene menos materia,
-                    así que se hunde hacia el fondo oscuro de la página, y es
-                    como se lee la distancia sin proyectar sombras.
-
-                El radio es rounded-2xl en las tres, el mismo del recuadro del
-                cierre que va justo debajo.
-
-                EL ÁREA DE TOQUE es la carta completa, no el renglón de texto:
-                px-4 py-4 sobre una línea de 34px da 66px de alto, y el enlace
-                entero -- pila incluida -- mide 80px. El anillo de foco envuelve
-                la pila completa; no hay overflow-hidden en ninguna capa que lo
-                pudiera recortar.
-
-                LA VIDA Y LA RESPUESTA AL TOQUE están en globals.css
-                (.pila-tratamientos y .pila-hoja-*), con el detalle de por qué
-                la deriva usa `translate` y la respuesta `transform`. La deriva
-                continua que tenía la flecha se retiró: la pila ya respira, y
-                dos animaciones continuas en la misma pieza se leían inquietas.
-
-                Conserva el ancho de la lista (lg:max-w-[32rem]) por la misma
-                razón de contraste documentada en CategoriaCarta. La línea de un
-                pelo que la separaba de Corte dama se fue: una carta no necesita
-                divisor, lo separa el aire. */}
-            <Link
-              href="/menu/tratamientos"
-              className="pila-tratamientos group relative mt-5 block pt-3.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-shell-lift! lg:max-w-[32rem]"
-            >
-              <span
-                aria-hidden="true"
-                className="pila-hoja pila-hoja-fondo absolute inset-x-6 inset-y-0 rounded-2xl border border-clay/14 bg-linear-to-b from-dune/30 to-dune-deep/18"
-              />
-              <span
-                aria-hidden="true"
-                className="pila-hoja pila-hoja-media absolute inset-x-3 top-[7px] bottom-0 rounded-2xl border border-clay/18 bg-linear-to-b from-dune/48 to-dune-deep/30"
-              />
-
-              <span className="pila-frente relative flex items-center justify-between gap-4 rounded-2xl border border-clay/25 bg-linear-to-b from-dune/68 to-dune-deep/44 px-4 py-4 backdrop-blur-md">
-                <span className="font-body text-2xl font-normal tracking-[-0.02em] text-shell-lift">
-                  Tratamientos
-                </span>
-
-                {/* LA FLECHA. NO SE VEÍA, y la causa no era el tamaño: era el
-                    color. El trazo usa `currentColor` y este <span> no
-                    declaraba ninguno, así que heredaba el del <body> -- tierra,
-                    #2a1d14 -- y quedaba tinta oscura sobre la superficie clara
-                    de la carta: 1.83:1 medido, por debajo de cualquier mínimo.
-                    Es el mismo fallo que tuvo la flecha del pie, y el arreglo
-                    es el mismo: declarar el crema aquí, donde vive el signo.
-
-                    Y sube de escala con la pieza. Era un dibujo de 64x14 hecho
-                    para un renglón de texto; dentro de una carta de 66px de
-                    alto se quedaba corta. Pasa a 80x18 con el trazo a 1.6px:
-                    el lienzo crece un 25% en las dos dimensiones y el trazo lo
-                    acompaña -- 1.25 x 1.28 -- así que el dibujo es el mismo,
-                    escalado, y no una versión engordada de sí mismo. Sigue
-                    siendo una hairline y no un icono de interfaz. */}
-                <span
-                  aria-hidden="true"
-                  className="inline-block shrink-0 text-shell-lift"
+              zonaInferior={
+                <Link
+                  href="/menu/tratamientos"
+                  // EL ANILLO DE FOCO VA POR DENTRO (-outline-offset), y no es
+                  // cosmético: el panel lleva overflow-hidden -- es lo que
+                  // recorta la veladura y el cristal con su radio -- y esta
+                  // franja llega a los dos cantos, así que un anillo pintado
+                  // fuera de su caja se recortaría. Las dos marcas de
+                  // importancia son obligatorias: la regla global de
+                  // :focus-visible de globals.css no está dentro de una capa y
+                  // le gana a las utilidades, tanto en color como en
+                  // desplazamiento.
+                  className="zona-tratamientos group focus-visible:outline-2 focus-visible:-outline-offset-2! focus-visible:outline-shell-lift!"
                 >
-                  <svg
-                    viewBox="0 0 80 18"
-                    fill="none"
-                    className="block h-[18px] w-20 transition-transform duration-200 ease-out group-hover:translate-x-2 group-focus-visible:translate-x-2 group-active:translate-x-3.5"
-                  >
-                    <defs>
-                      {/* gradientUnits en coordenadas de usuario, no en la
-                          caja del objeto. Con el valor por omisión
-                          (objectBoundingBox) los topes se resuelven contra la
-                          caja delimitadora del trazo, y la de una línea
-                          horizontal tiene ALTURA CERO: por especificación, un
-                          degradado sobre una caja degenerada no se pinta, así
-                          que el asta desaparecía y solo quedaba la punta. */}
-                      <linearGradient
-                        id="estela-tratamientos"
-                        gradientUnits="userSpaceOnUse"
-                        x1="0.8"
-                        y1="9"
-                        x2="71"
-                        y2="9"
-                      >
-                        <stop
-                          offset="0"
-                          stopColor="currentColor"
-                          stopOpacity="0"
-                        />
-                        <stop
-                          offset="0.45"
-                          stopColor="currentColor"
-                          stopOpacity="1"
-                        />
-                      </linearGradient>
-                    </defs>
-                    <path
-                      d="M0.8 9H71.2"
-                      stroke="url(#estela-tratamientos)"
-                      strokeWidth="1.6"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M64.2 2.25L71.4 9L64.2 15.75"
-                      stroke="currentColor"
-                      strokeWidth="1.6"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </span>
-              </span>
-            </Link>
+                  {/* EL RESPLANDOR TERRACOTA, y nada más: ni superficie, ni
+                      contorno, ni radio. Va en su propia capa, por debajo del
+                      texto, y su degradado muere antes de cualquier canto de su
+                      caja -- las cuentas están en globals.css -- para que no
+                      dibuje ninguna recta. */}
+                  <span aria-hidden="true" className="zona-tratamientos-luz" />
+
+                  {/* El contenido va posicionado para quedar por encima de la
+                      veladura, que es una capa absoluta anterior en el árbol.
+                      Sin sangría propia: la pone la franja. */}
+                  <span className="relative block">
+                    <span className="modulo-rotulo block">
+                      Cuidado del cabello
+                    </span>
+
+                    {/* EL TÍTULO Y LA FLECHA. El título mide LO MISMO que los
+                        nombres de los servicios, y eso viene de la referencia:
+                        ahí la altura de mayúscula de "Tratamientos" y la de
+                        "Corte dama" miden las dos 19.2 CSS. La versión anterior
+                        lo subía un paso; se descarta.
+
+                        La flecha arranca del título y su asta ocupa todo el
+                        espacio hasta la punta, que cae en el canto interno
+                        derecho del panel -- el mismo eje en el que acaban los
+                        desplegables de la lista --. items-baseline para el
+                        conjunto, y la flecha se centra por su cuenta
+                        (align-self en su clase), que es lo que la deja a media
+                        altura de x en vez de sobre la línea base. */}
+                    <span className="mt-1.5 flex items-baseline gap-5">
+                      <span className="shrink-0 font-display text-[1.625rem] font-medium tracking-[-0.056em] text-shell-lift min-[360px]:text-3xl">
+                        Tratamientos
+                      </span>
+
+                      <span aria-hidden="true" className="flecha-linea">
+                        <span className="flecha-linea-asta" />
+                        {/* La punta mide 12x16 y no 9x14: en la referencia el
+                            cheurón ocupa unos 13 CSS en los dos ejes. El asta
+                            se queda en 1px, que es lo que mide ahí (3 píxeles de
+                            imagen a escala 2.597). */}
+                        <svg
+                          viewBox="0 0 12 16"
+                          fill="none"
+                          className="flecha-linea-punta block h-4 w-3"
+                        >
+                          <path
+                            d="M1.6 1.8L10.2 8L1.6 14.2"
+                            stroke="currentColor"
+                            strokeWidth="1.1"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </span>
+                    </span>
+                  </span>
+                </Link>
+              }
+            />
           </div>
 
           {/* ─────────────────────────────────────────────────────────────
-              CIERRE: EL RECUADRO Y EL BOTÓN DE WhatsApp, UNA SOLA PIEZA.
+              EL CIERRE: UN BLOQUE CONTENIDO.
 
-              Cuatro elementos y ninguno más: la ubicación, la nota de precios,
-              el botón que abre la biografía y el botón de WhatsApp.
+              Hubo una versión en franja de ancho completo, sangrando a los dos
+              cantos de la pantalla y opaca. Se retiró: vuelve a ser un bloque
+              contenido, con las mismas esquinas y el mismo ancho que el panel
+              de servicios, y lo que lo distingue de él no es la forma sino el
+              MATERIAL -- superficie oscura y translúcida contra el vidrio claro
+              del panel -- y la jerarquía de lo que lleva dentro.
 
-              EL BOTÓN DE WhatsApp ES EL QUE YA EXISTÍA. Vivía como barra fija
-              al pie en app/menu/layout.tsx: mismo enlace, mismo mensaje
-              prellenado, mismo relleno de `dune-deep`, mismo cuerpo en versalita
-              espaciada y mismo texto. Lo único que se le quitó es lo que
-              impedía la unión: su radio propio -- ahora lo recorta el del
-              contenedor -- y la barra que lo envolvía, con sus 12px de relleno
-              y su borde superior blanco, que era literalmente una costura.
+              EL MISMO ANCHO QUE LOS OTROS DOS BLOQUES. Sin margen negativo y
+              con el mismo tope de 32rem en escritorio, así que el bloque COLOR,
+              el panel y este pie empiezan y acaban en el mismo eje. Las medidas
+              están en el reporte.
 
-              Y tuvo que salir del layout, porque ese layout lo comparte
-              /menu/tratamientos: una barra fija al viewport no se puede unir a
-              un recuadro que se desplaza con la página. El marcado se movió sin
-              cambiarlo a cada pantalla -- aquí en flujo, allá como barra fija --
-              así que /menu/tratamientos no cambia en nada.
+              LA JERARQUÍA DE DENTRO, en dos pisos:
 
-              CÓMO SE UNEN: son dos zonas del MISMO contenedor. El
-              overflow-hidden hace que su radio recorte los cantos del botón, y
-              entre las dos no hay nada: ni borde, ni divisor, ni hueco. El
-              contorno de 1px es el de la pieza completa, no una línea entre
-              partes.
+                - Arriba, la fila de servicio: "Conóceme más" a la izquierda con
+                  su cápsula de contorno, y la ubicación alineada al canto
+                  derecho en el mismo renglón. Debajo, la nota de precios, a la
+                  izquierda.
+                - Abajo, WhatsApp: una barra que ocupa el ancho completo del
+                  bloque, en el tono cálido de marca, sin margen lateral. Sus
+                  esquinas inferiores no las declara ella: las recorta el
+                  overflow-hidden del bloque con el radio de la pieza, así que
+                  acompañan a las del pie exactamente.
 
-              EL VIDRIO ES NEUTRO: no lleva relleno de color. Lo que lo hace
-              vidrio es el desenfoque de fondo -- que alisa el grano y el
-              viñeteo de la fotografía y ya se lee como un panel -- más el
-              contorno cálido de clay al 20%, apenas perceptible. Sin blanco
-              puro en ninguna capa y sin realce en los cantos: ni sombra
-              interior, ni degradado de brillo.
+              El anillo de foco de la barra va POR DENTRO (-outline-offset con
+              marca de importancia): el overflow-hidden recortaría lo que se
+              pinte fuera de la caja, y además la regla global de :focus-visible
+              fija el offset en 2px sin estar en una capa. Y pasa a crema,
+              porque sobre un relleno de dune el dune-deep de la regla global no
+              se ve.
 
-              El anillo de foco del botón de WhatsApp va por dentro
-              (-outline-offset con marca de importancia): el overflow-hidden
-              recorta lo que se pinte fuera de la caja, y además la regla global
-              de :focus-visible fija el offset en 2px sin estar en una capa. De
-              paso el anillo pasa a crema: en su versión de barra heredaba el
-              dune-deep de la regla global, que sobre un relleno dune-deep es
-              invisible.
+              EL AIRE CON EL PANEL son 40px: los 56 del gap de la columna menos
+              este margen negativo. Estuvo en 72 y era un hueco muerto -- el
+              panel de arriba mide 319px de alto, así que 72 de aire eran casi un
+              cuarto de su altura --. Sigue siendo mayor que los 32 que separan
+              el carrusel del panel, y ese orden es deliberado: arriba se separan
+              una tira de fotografías y una tarjeta, aquí dos tarjetas con canto
+              propio, que necesitan un poco más de hueco para no leerse como una
+              partida en dos.
+
+              EL BLOQUE RESPIRA: sube 4px y vuelve, en ciclos de 8 segundos. La
+              receta y el porqué de cada decisión -- que suba en vez de bajar,
+              que la curva sea suave en los dos extremos y que vaya en
+              `translate` -- están en globals.css (.pie-flota).
+
+              EL VIDRIO ES OSCURO, y ese contraste con el vidrio claro del panel
+              de arriba es lo que distingue los dos bloques. Costó tres intentos
+              y el problema no estaba donde parecía, así que conviene dejarlo
+              escrito.
+
+              QUÉ HAY DETRÁS DEL PIE, MEDIDO CON LA PÁGINA OCULTA. El fondo
+              compuesto en esa banda del viewport es rgb(39,16,6) con L=0.0084 y
+              un recorrido de 21 niveles sobre 255. Detrás del panel de arriba es
+              rgb(64,41,24) con L=0.0295 y 53 niveles. O sea: en el sitio donde
+              cae el pie hay 3.5 veces menos luz y 2.5 veces menos textura que
+              donde cae el panel. La causa es el velo del layout, un degradado de
+              negro al 55% arriba y al 70% abajo: sin él, detrás del pie habría
+              rgb(117,49,18) y 61 niveles de recorrido, o sea que ese velo se
+              lleva dos tercios de la luz justo ahí.
+
+              POR QUÉ LAS DOS PRIMERAS VERSIONES SE VEÍAN OPACAS. No era que
+              faltara el desenfoque ni que hubiera una capa sólida encima: el
+              backdrop-filter estaba aplicado y la superficie correlacionaba
+              r=+0.94 con la fotografía. Era que de esos 21 niveles el velo del
+              pie se quedaba con más de la mitad -- al 58%, la fotografía solo
+              aporta el 42% de cada píxel -- y el desenfoque se llevaba otra
+              parte. Quedaban unos 7 niveles de recorrido: matemáticamente hay
+              fotografía detrás, pero no la ve nadie.
+
+              LA CORRECCIÓN ES AMPLIFICAR EL FONDO, no adelgazar el velo. El
+              backdrop-filter no solo desenfoca: `brightness` multiplica lo que
+              hay detrás, y multiplica el RECORRIDO igual que la media, así que
+              la textura de la fotografía crece en vez de diluirse. Con
+              brightness 2.3 y el velo bajado a tierra 34%, el fondo entra
+              amplificado y el velo lo devuelve al rango oscuro: el bloque sigue
+              siendo mucho más oscuro que el panel, pero ahora se ve lo que hay
+              detrás. Las cifras finales están en el reporte.
               ───────────────────────────────────────────────────────────── */}
-          <footer className="-mt-8 overflow-hidden rounded-2xl border border-clay/20 backdrop-blur-xl lg:max-w-[32rem]">
-            <div className="px-4 py-4 lg:px-6 lg:py-5">
-              {/* EL BOTÓN DE LA BIOGRAFÍA, CON FORMA PROPIA, Y LA UBICACIÓN.
-
-                  El componente es el de la landing, sin tocarlo, y aquí SE
-                  CONSERVA SU CÁPSULA: es lo que lo hace botón y no un enlace de
-                  texto. Todo lo que sigue se reviste por la prop `className`
-                  -- que el componente ya expone -- sin editar el componente.
-
-                  PRESENCIA POR DISEÑO, NO POR TAMAÑO. El tamaño no se toca:
-                  sigue en text-xs con px-4 y min-h-11 (medido: 130x44). Lo que
-                  cambia es el material de la cápsula, en tres registros:
-
-                    1. CANTO. El contorno de clay al 30% medía 1.35-1.42:1
-                       contra el vidrio -- por debajo del mínimo de 3:1 que pide
-                       AA para el límite de un control, y en pantalla
-                       literalmente no se veía. Pasa a crema al 45%.
-                    2. SUPERFICIE. Deja de ser transparente y toma un velo de
-                       crema al 10%: densifica el vidrio bajo la cápsula lo
-                       justo para que se lea como una pieza apoyada encima, sin
-                       convertirse en un relleno sólido que compitiera con el
-                       botón de WhatsApp.
-                    3. RESPUESTA. hover y focus-visible suben el velo a 18% y el
-                       canto a 70%; active lo presiona a 25%; y la flecha del
-                       propio componente avanza 2px, el mismo gesto del acceso a
-                       Tratamientos. La regla global de prefers-reduced-motion
-                       neutraliza las tres transiciones (0.01ms).
-
-                  Medido a 360/390/1280: el texto crema sobre el velo da
-                  12.49 / 12.56 / 11.11:1, y el canto contra el vidrio de
-                  alrededor 4.50:1 en los tres. El anillo de foco pasa de
-                  dune-deep a
-                  crema, porque el dune mide 1.65:1 sobre este fondo. gap-1.5
-                  repone el espacio entre el texto y su flecha, que en un
-                  contenedor flex se descarta por ser un nodo de solo espacio.
-
-                  Las marcas de importancia son obligatorias: en Tailwind, entre
-                  dos utilidades de la misma propiedad gana el orden de la hoja,
-                  no el del atributo -- y con la base marcada, cada estado tiene
-                  que marcarse también para poder ganarle. Las variantes
-                  arbitrarias [&>span] no las llevan porque el componente no
-                  define nada sobre ese hijo. */}
+          <footer className="pie-flota -mt-4 overflow-hidden rounded-[1.75rem] bg-tierra/34 backdrop-blur-[2px] backdrop-brightness-[2.3] lg:max-w-[32rem]">
+            {/* El relleno lateral son los mismos 17px del panel, así que la
+                cápsula, la ubicación y la nota comparten eje con los nombres de
+                la lista de color y con el rótulo del panel. */}
+            <div className="px-[17px] pt-5 pb-6">
               <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-3">
-                <ConoceMas className="gap-1.5! rounded-full! border-shell-lift/45! bg-shell-lift/10! px-4! min-h-11! transition-colors! [&>span]:transition-transform [&>span]:duration-150 hover:border-shell-lift/70! hover:bg-shell-lift/18! hover:[&>span]:translate-x-0.5 focus-visible:border-shell-lift/70! focus-visible:bg-shell-lift/18! focus-visible:outline-shell-lift! focus-visible:[&>span]:translate-x-0.5 active:bg-shell-lift/25!" />
+                <ConoceMas className="gap-1.5! px-4! min-h-11!" />
 
                 <p className="shrink-0 text-[11px] uppercase tracking-[0.25em] text-shell-lift/70">
                   {site.location}
                 </p>
               </div>
 
-              <p className="mt-4 text-[0.8125rem] leading-[1.3] text-shell-lift/85">
+              <p className="mt-4 text-[0.8125rem] leading-[1.35] text-shell-lift/70">
                 Precios en pesos mexicanos.
                 <br />
                 Sujetos a cambios sin previo aviso.
@@ -831,11 +862,60 @@ export default function ServiciosPage() {
               )}
               target="_blank"
               rel="noopener noreferrer"
-              className="block bg-dune-deep px-4 py-3 text-center text-sm uppercase tracking-widest text-shell-lift transition-colors duration-150 hover:bg-dune focus-visible:outline-2 focus-visible:-outline-offset-2! focus-visible:outline-shell-lift!"
+              className="block bg-dune px-4 py-4 text-center text-sm uppercase tracking-[0.18em] text-shell-lift transition-colors duration-150 hover:bg-dune-deep focus-visible:outline-2 focus-visible:-outline-offset-2! focus-visible:outline-shell-lift!"
             >
               Escríbeme por WhatsApp
             </a>
           </footer>
+
+          {/* ─────────────────────────────────────────────────────────────
+              LA FIRMA DE CIERRE. Lo último que se ve al terminar de recorrer la
+              página, y no un bloque más: texto suelto sobre la fotografía, sin
+              contenedor, sin superficie y sin contorno.
+
+              DOS VOCES, UNA ORACIÓN CADA UNA. La primera en el cuerpo del sitio
+              (Jost, 15px, crema al 60%) y la segunda en la display serif en
+              oblicua, a 22px y crema al 95%. El salto es de 1.47 veces el cuerpo
+              y de 35 puntos de tono, más el cambio de familia y de estilo: es
+              ese contraste el que hace que la segunda línea se lea como la firma
+              y la primera como su entrada. La primera subió de 13 a 15px para
+              ganar presencia sin acercarse a la dominante: a 15 sigue midiendo
+              el 68% del cuerpo de la segunda.
+
+              UN SOLO BLOQUE DE DOS RENGLONES. El hueco de tinta entre las dos
+              líneas era de 18.45px -- más que la altura de la tinta de la
+              primera, 9.75 --, así que se leían como dos elementos y no como una
+              frase partida. Ahora son 9.5: se quitaron los 6px de margen entre
+              ellas y las dos pasaron a interlineado ajustado (1.25 en vez de
+              1.625 y 1.375), que es lo que recorta el aire que cada caja de
+              línea deja por dentro.
+
+              LA CURSIVA ES OBLICUA SINTÉTICA. El proyecto carga Bodoni Moda solo
+              en font-style normal, así que el navegador la cizalla. A 22px
+              aguanta -- es el mismo recurso que usa el lockup del titular a
+              50-60px --, pero no es la itálica real de la familia: esa existe en
+              Google Fonts con su propio ángulo (-13) y traerla cambia la carga
+              de fuentes de TODO el sitio, así que queda a decisión del PM. Está
+              en el reporte.
+
+              EL AIRE. 72px por arriba -- los 56 del gap de la columna más este
+              mt-4 -- y 72 por abajo en móvil: los 24 de su mb-6, los 32 del pb-8
+              de la columna y los 16 del pb-4 del contenedor del layout. Es el
+              hueco más grande de la página por los dos lados, que es lo que la
+              despega del pie y la deja respirar antes del final.
+
+              UN SOLO <p> CON DOS BLOQUES: la unidad semántica es la frase
+              completa; lo que cambia es dónde parte. Es el mismo patrón que la
+              bajada del encabezado, y evita el <br /> -- con <br /> el equilibrio
+              de línea de Chrome solo trabaja el segmento anterior al salto. */}
+          <p className="mt-4 mb-6 text-center">
+            <span className="block text-[0.9375rem] leading-tight text-shell-lift/60">
+              Cada cabello tiene una historia.
+            </span>
+            <span className="block font-display text-[1.375rem] italic leading-tight tracking-[-0.02em] text-shell-lift/95">
+              Quiero ser parte de la tuya.
+            </span>
+          </p>
         </div>
       </div>
     </>

@@ -128,6 +128,613 @@ body {
 
 /* Entrada suave del contenido del acordeón al expandir. Su duración la
    neutraliza la regla de prefers-reduced-motion de arriba (0.01ms). */
+/* EL COVERFLOW de /menu. La pieza activa al frente a tamaño completo y las dos
+   vecinas escaladas hacia atrás, parcialmente ocultas detrás de ella. Cover
+   Flow de iTunes, con su fuga: las tres piezas giran sobre el eje vertical --
+   las laterales vueltas hacia el centro y la activa con una insinuación -- y
+   las tres van montadas en una lámina de vidrio con filo cálido.
+
+   EN PANTALLA HAY TRES PIEZAS Y NO MÁS. La activa y una vecina por lado; la
+   segunda de cada lado sigue en el riel, ocupando su sitio, pero con la caja a
+   opacidad cero (ver .carrusel-foco-caja[data-fuera]).
+
+   LAS PROPORCIONES SON DEL CONTENEDOR, no del viewport, y por eso el módulo
+   declara `container-type: inline-size` y todo se mide en `cqi`. Con vw las
+   cuentas se rompían en escritorio, donde el carrusel vive dentro de la columna
+   derecha de la retícula y no ocupa la pantalla.
+
+     activa   60cqi   el 60% del ancho del contenedor
+     escala   0.75    las vecinas, respecto de la activa
+     asomo    15cqi   lo que se ve de cada vecina
+
+   EL PASO LO DECIDE EL BORDE DE LA PANTALLA. La condición es que la vecina se
+   salga por el canto del viewport y sea ESE el que la recorte, sin ninguna
+   franja de fondo intermedia. Su canto exterior queda a paso + media vecina del
+   centro, así que para alcanzar la media pantalla (50cqi) el paso tiene que ser
+   50 - 0.75 x 30 = 27.5cqi. Se pone en 28.5 para que además se pase unos
+   píxeles y el corte sea del borde, no una coincidencia exacta.
+
+   Con eso el asomo sale de la cuenta y no al contrario: paso + media vecina -
+   media activa = 28.5 + 22.5 - 30 = 21cqi, o sea que de cada vecina se ve un
+   21% del ancho en vez del 15 que pedía la especificación anterior. Los dos
+   requisitos no son compatibles: con 15cqi de asomo el canto exterior de la
+   vecina cae en 37.5cqi, muy por dentro de la media pantalla, y ahí es donde
+   aparecía la franja. Se conserva el que se puede verificar mirando la
+   pantalla.
+
+   A 390px: activa 234px, vecinas 175 de las que se ven 82, y su canto exterior
+   cae en x=394 -- cuatro píxeles fuera de la ventana.
+
+   LAS VECINAS SE VEN ENTERAS. Nada las recorta en horizontal: la carta mide
+   exactamente el ancho de la activa y la foto va a 4:5 dentro de ella, así que
+   la escala del 0.75 la reduce completa, con su encuadre íntegro. Medido, la
+   proporción de la vecina es 0.800 exacta, igual que la de la activa. Lo único
+   que las recorta es el canto de la pista, que en móvil es el de la pantalla.
+
+   Y VAN A TRES ALTURAS DISTINTAS. Con la escala sola quedaban centradas
+   respecto de la activa -- 32px por dentro arriba y otros 32 por abajo --, que
+   no se lee como escalonado sino como una foto más chica en el mismo eje. Y con
+   las dos desplazadas hacia el mismo lado tampoco: eso las deja a la misma
+   altura entre ellas.
+   Van en direcciones opuestas: la izquierda baja --cf-desfase y la derecha sube
+   lo mismo, así que las tres piezas quedan escalonadas en diagonal
+   ascendente.
+
+   Las laterales no bajan de opacidad: lo que las atenúa es una veladura cálida
+   por encima (ver .carrusel-foco-carta::after). Ni desenfoque ni saturación
+   bajada. Y la veladura se detiene en el canto de la fotografía: el marco de
+   vidrio queda fuera, para que las tres luzcan el mismo marco.
+
+   LA FUGA Y EL MARCO están en los tokens del módulo (--cf-perspectiva,
+   --cf-giro, --cf-lamina) y se aplican en .carrusel-foco-carta. El giro va en
+   `transform` y no en la propiedad `rotate` porque la perspectiva tiene que
+   componerse con él en la misma función: `rotate` sin perspective() gira sin
+   fuga y se ve como una compresión horizontal, no como una pieza vuelta.
+
+   EL ARRASTRE ES DEL NAVEGADOR: overflow-x auto más scroll-snap de imán
+   obligatorio da inercia, rebote del sistema y encaje en el centro sin código de
+   gesto. El relleno lateral es medio ancho de pista menos medio paso, que es lo
+   que permite que la primera y la última lleguen al centro.
+
+   PREFERS-REDUCED-MOTION: scroll-behavior vuelve a auto, así que el salto entre
+   fotos es instantáneo, y la regla global neutraliza las transiciones de
+   escala, desfase, giro y opacidad. El carrusel sigue siendo operable.
+
+   EL CONTADOR DE POSICIÓN SE RETIRÓ. Vivía debajo de la pista, alineado al eje
+   del contenido, y con él se fueron sus reglas .carrusel-foco-contador y el
+   ajuste de relleno que necesitaba en escritorio. El canto inferior del módulo
+   es ahora el de la pista, que ya reserva el 18% del ancho de la activa por
+   arriba y por abajo para que el glow no genere desplazamiento vertical. */
+.carrusel-foco-modulo {
+  container-type: inline-size;
+  position: relative;
+  /* EL GLOW MIDE MÁS QUE EL MÓDULO -- 2.4 veces el ancho de la activa, o sea
+     562px contra 390 en un teléfono -- y sin recorte eso le daba a la PÁGINA
+     86px de desplazamiento horizontal: medido, apareció al sangrar el módulo
+     hasta los cantos de la pantalla.
+
+     `clip` y no `hidden`: hidden habría convertido el módulo en contenedor de
+     desplazamiento y habría permitido desplazarlo con el dedo o con el
+     tabulador. clip solo recorta. Y solo en horizontal, para que el glow siga
+     derramándose por arriba y por abajo. */
+  overflow-x: clip;
+  --cf-activa: 60cqi;
+  --cf-escala: 0.75;
+  --cf-paso: 28.5cqi;
+  /* DESFASE VERTICAL DE LAS LATERALES, en direcciones opuestas: 15% de la
+     ALTURA de la foto activa, que por ser 4:5 es 0.15 x 1.25 = 0.1875 de su
+     ancho. A 390px de pantalla son 43.9px hacia arriba en un lado y 43.9 hacia
+     abajo en el otro, o sea 88px de diferencia entre las dos laterales. */
+  --cf-desfase: calc(var(--cf-activa) * 0.1875);
+  /* PERSPECTIVA. La distancia del observador va en cqi y no en px para que la
+     fuga sea la misma proporción en cualquier ancho: 110cqi son 429px en un
+     teléfono de 390. Con el giro de abajo eso desplaza el canto cercano de una
+     lateral unos 24px hacia adelante y el lejano otros 24 hacia atrás, o sea
+     un 6% más de altura aparente en el canto cercano y un 5% menos en el
+     lejano. Es la fuga clásica del coverflow, moderada: se lee que la pieza
+     está girada, no que la cara está deformada.
+
+     Cada carta lleva su propia perspective() dentro de su transform, en vez de
+     una sola perspective en el riel: el riel mide 1.5 veces la pantalla de
+     ancho, así que un punto de fuga único quedaría en su centro geométrico y
+     cada foto se vería girada según su distancia a ese punto, no según su
+     papel en el trío. */
+  --cf-perspectiva: 110cqi;
+  /* Las laterales giran 16 grados hacia el centro y la activa 2, que es la
+     inclinación mínima que pedía insinuarse sin leerse torcida. Los tres
+     valores en secuencia -- -16, -2, +16 de izquierda a derecha -- son
+     monótonos, así que el trío se lee como un arco continuo. */
+  --cf-giro: 16deg;
+  --cf-giro-activa: -2deg;
+  /* EL MARCO DE VIDRIO. Un pelo de borde cálido claro y la banda translúcida
+     que separa ese borde de la fotografía. 3px de banda a 390px: suficiente
+     para leerse como una lámina y no como un margen. */
+  --cf-lamina: 3px;
+  --cf-radio: 1rem;
+  --cf-radio-foto: calc(var(--cf-radio) - var(--cf-lamina) - 1px);
+}
+
+/* EL GLOW. UNA sola capa, no una por foto, y la más de atrás de las tres del
+   carrusel: vive fuera de la pista -- que recorta en horizontal -- y la pista se
+   pone por encima con z-index. Orden de atrás hacia adelante: glow, vecinas con
+   su veladura, activa limpia.
+
+   No hace falta que se mueva: la foto activa está siempre en el centro de la
+   pista, así que una luz centrada es una luz que está siempre detrás de ella. Al
+   cambiar de foto, la que llega entra en la luz y la que sale la abandona.
+
+   NO TIENE FORMA. Es un degradado radial con `closest-side` sobre una caja
+   CUADRADA, así que el resplandor es un círculo que llega a transparente antes
+   del canto de su caja y hacia las esquinas se queda en el último tope, que
+   también es transparente: no hay ningún punto donde tenga borde. Sin
+   border-radius, sin filtro, sin sombra proyectada.
+
+   EL RADIO ES 1.2 VECES EL ANCHO DE LA ACTIVA, para que se derrame por los
+   cuatro costados y llegue MÁS ALLÁ de las vecinas: a 390px son 246px de radio
+   contra 103 de media activa y 154 hasta el canto exterior de una vecina. Es lo
+   que hace que la luz también se vea por los lados y no solo por arriba y por
+   abajo, porque la capa va por debajo de las fotos y las vecinas tapan lo que
+   quede bajo ellas.
+
+   CUATRO TOPES y no dos: el núcleo queda detrás de la foto -- donde no se ve --
+   y lo que importa es cómo cae desde el canto hacia fuera, que es la parte que
+   se ve.
+
+   EL TONO ES `casa` (#7c563d) Y NO `dune`, y esto es una corrección. Con dune al
+   92% de núcleo el resplandor medía ΔE 14 en el canto y se leía como un filtro
+   naranja encima de la escena: lo primero que veías al abrir la pantalla era el
+   color, no la fotografía. `casa` es el marrón cálido de apoyo de la paleta,
+   bastante menos saturado, y las tres densidades bajan a 42/22/9%. Con eso el
+   aporte en el canto queda en un dígito bajo -- se percibe que hay luz detrás de
+   la imagen, no que hay color sobre ella -- y el desplazamiento de tono es
+   mínimo.
+
+   El criterio con el que se calibró: si al taparlo no se nota que falta algo,
+   está bien; si el naranja es lo primero que se ve, está mal. */
+.carrusel-foco-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(var(--cf-activa) * 2.4);
+  height: calc(var(--cf-activa) * 2.4);
+  translate: -50% -50%;
+  z-index: 0;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--color-casa) 42%, transparent),
+    color-mix(in oklab, var(--color-casa) 22%, transparent) 38%,
+    color-mix(in oklab, var(--color-casa) 9%, transparent) 68%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.carrusel-foco {
+  position: relative;
+  z-index: 1;
+  overflow-x: auto;
+  overflow-y: visible;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+}
+
+.carrusel-foco::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carrusel-foco {
+    scroll-behavior: auto;
+  }
+}
+
+.carrusel-foco-riel {
+  display: flex;
+  width: max-content;
+  align-items: center;
+  /* 50% y no 50vw: el módulo vive dentro de la columna derecha de la retícula en
+     escritorio, así que el centro que importa es el de la PISTA. */
+  padding-inline: calc(50% - var(--cf-paso) / 2);
+  /* LA ACTIVA MIDE UN 25% MÁS DE ALTO QUE SU CAJA (es 4:5 sobre un ancho mayor
+     que el paso) y las laterales se desplazan en vertical, así que el riel
+     necesita relleno para que nada de eso genere desplazamiento dentro de la
+     pista.
+
+     BAJÓ DE 0.18 A 0.13 DEL ANCHO DE LA ACTIVA para subir la galería: son 30.4px
+     en vez de 42.1 en un teléfono de 390, así que las fotos suben 11.7px y el
+     módulo mengua 23.4. El margen que quedaba era de 25.7px entre la foto más
+     alta y el canto del módulo -- medido --, así que con 11.7 sigue habiendo 14
+     de sobra y la pista no gana desplazamiento vertical: su scrollHeight sigue
+     siendo igual a su clientHeight.
+
+     No se puede bajar mucho más por ahí: al llegar a cero, la lateral que sube
+     -- que va 43.9px por encima de la activa -- desbordaría la pista y el gesto
+     de arrastre empezaría a mover también en vertical. */
+  padding-block: calc(var(--cf-activa) * 0.13);
+}
+
+.carrusel-foco-caja {
+  position: relative;
+  flex: 0 0 auto;
+  width: var(--cf-paso);
+  display: flex;
+  justify-content: center;
+  scroll-snap-align: center;
+  opacity: 1;
+  transition: opacity 320ms ease-out;
+}
+
+/* LA VENTANA ES DE TRES PIEZAS: la activa y una vecina por lado. Con el paso
+   que hace que las vecinas salgan por el canto de la pantalla, la SEGUNDA de
+   cada lado también entraba en cuadro -- medido, asomaban 60px de la cuarta
+   foto por el borde derecho --, y eso rompía la lectura de tres.
+
+   Se desvanece, no se desmonta ni se oculta con visibility: el elemento sigue
+   ocupando su sitio en el riel, así que el imán del scroll-snap, el relleno
+   lateral y la cuenta de cajas de la que sale el índice activo no cambian. Y
+   como es opacidad con transición, al deslizar la pieza que entra aparece en
+   el mismo tiempo que la activa cambia de escala, en vez de encenderse de
+   golpe.
+
+   El componente marca data-fuera cuando la distancia al foco es de dos o más,
+   porque eso depende de cuál es el índice activo y el CSS no lo sabe. */
+.carrusel-foco-caja[data-fuera] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.carrusel-foco-carta {
+  position: relative;
+  display: block;
+  /* flex-shrink 0: la carta es MÁS ANCHA que su caja a propósito -- 60cqi contra
+     22.5 --, y es ese desbordamiento el que la monta encima de las vecinas. Sin
+     esto el navegador la encogía al ancho de la caja. */
+  flex: 0 0 auto;
+  width: var(--cf-activa);
+  overflow: hidden;
+  border-radius: var(--cf-radio);
+  cursor: pointer;
+  /* EL MARCO DE VIDRIO, y lo llevan las tres. El borde de 1px dibuja el
+     contorno completo con el radio de la carta; el relleno es la banda
+     translúcida entre ese borde y la imagen, y el fondo cálido de la carta es
+     lo que la hace visible. Leído de fuera hacia dentro: filo luminoso, lámina
+     de vidrio, fotografía.
+
+     El tono claro es `shell-lift`, la crema de la paleta, en mezcla con
+     transparente: así el filo toma algo de lo que tenga detrás -- el glow -- y
+     no se lee como una línea pintada encima.
+
+     LA BANDA ES CREMA AL 18%, no menos. Con el 9% que se probó primero la
+     banda medía apenas (100,74,54) contra (94,66,46) del fondo: se leía como
+     un hueco oscuro entre el filo y la foto, no como una lámina. Al 18% queda
+     en (114,90,69), un escalón claro por encima del fondo y muy por debajo del
+     filo, y el conjunto se lee de fuera hacia dentro como vidrio con canto
+     iluminado.
+
+     box-sizing es border-box en todo el proyecto, así que los 8px del marco
+     salen de dentro: la caja de la carta sigue midiendo lo mismo y la
+     geometría del carrusel no se mueve. */
+  --cf-filo: color-mix(in oklab, var(--color-shell-lift) 58%, transparent);
+  border: 1px solid var(--cf-filo);
+  padding: var(--cf-lamina);
+  background-color: color-mix(
+    in oklab,
+    var(--color-shell-lift) 18%,
+    transparent
+  );
+  /* `scale` y `translate` son propiedades independientes y se componen en
+     cascada con `transform`, en ese orden: primero el giro en el espacio de la
+     carta, luego la reducción y el desfase. Por eso el giro puede vivir en
+     transform sin pisar a los otros dos, y la perspectiva se calcula sobre la
+     carta a tamaño natural. */
+  scale: var(--cf-escala);
+  transition:
+    scale 320ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    translate 320ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 320ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    border-color 320ms ease-out;
+}
+
+/* El recorte redondeado de la carta cae en su borde, no en el canto de la
+   banda, así que la fotografía necesita su propio radio: el de la carta menos
+   la lámina y el filo. Sin esto la imagen quedaba en esquina viva dentro de un
+   marco redondeado. */
+.carrusel-foco-carta img {
+  border-radius: var(--cf-radio-foto);
+}
+
+/* LA DIAGONAL. Las dos laterales se desplazan en direcciones OPUESTAS: la que
+   queda a la izquierda del foco cuelga por debajo y la de la derecha sube por
+   encima, así que ninguna de las tres comparte altura con las otras y el
+   conjunto se lee como una diagonal ascendente.
+   El lado lo marca el componente con data-lado, porque depende de cuál es el
+   índice activo y eso el CSS no lo sabe. */
+.carrusel-foco-carta[data-lado="izq"] {
+  translate: 0 var(--cf-desfase);
+  /* GIRO NEGATIVO = el canto DERECHO se acerca al observador y el izquierdo se
+     aleja (rotateY manda el eje x positivo hacia -z cuando el ángulo es
+     positivo). En la lateral izquierda su canto derecho es el interno, así que
+     el negativo es el que la vuelve hacia el centro. */
+  transform: perspective(var(--cf-perspectiva))
+    rotateY(calc(var(--cf-giro) * -1));
+}
+
+.carrusel-foco-carta[data-lado="der"] {
+  translate: 0 calc(var(--cf-desfase) * -1);
+  /* Al contrario: aquí el canto interno es el izquierdo, y el ángulo positivo
+     es el que lo acerca. */
+  transform: perspective(var(--cf-perspectiva)) rotateY(var(--cf-giro));
+}
+
+/* Va al final: mismo peso de selector que las dos de arriba, así que gana la
+   última. La activa no lleva data-lado, pero esto lo deja explícito. */
+.carrusel-foco-carta[data-activa] {
+  scale: 1;
+  translate: 0 0;
+  transform: perspective(var(--cf-perspectiva)) rotateY(var(--cf-giro-activa));
+  /* EL FILO DE LA ACTIVA ES MÁS PRESENTE porque está al frente: 78% de crema
+     contra 58% de las vecinas. Y hay un segundo motivo por el que la
+     diferencia se ve más de lo que dicen esos números: la vecina está al 75%
+     de escala, así que su borde de 1px se pinta a 0.75 y se reparte entre dos
+     píxeles. Por eso las vecinas no van al 42% que se les puso primero -- ahí
+     el filo medía 2.98:1 de razón de contraste contra el fondo, presente pero
+     no definido -- sino al 58%: el mismo borde de 1px, con la densidad que
+     compensa el subpíxel. */
+  --cf-filo: color-mix(in oklab, var(--color-shell-lift) 78%, transparent);
+}
+
+/* LA VELADURA DE LAS VECINAS. Una capa translúcida ENCIMA de la fotografía, no
+   una bajada de opacidad de la imagen: la foto sigue opaca y con su nitidez
+   intacta, y lo que la atenúa es este velo que se interpone.
+   La diferencia importa: bajando la opacidad, la imagen se mezcla con lo que
+   tenga detrás -- aquí el glow -- y se vuelve translúcida; con la veladura, lo
+   que se mezcla es el velo con la foto, y la foto conserva su cuerpo.
+
+   EL VELO ES NEUTRO: negro al 32%, sin color. Y esto es una corrección, no una
+   preferencia. Estuvo en dune-deep al 46% -- la variante oscurecida del
+   terracota -- con la idea de que un velo oscuro acercaría las vecinas al fondo
+   café de la página. Medido, hacía justo lo contrario en las zonas oscuras de
+   la fotografía, que son la mayor parte de estas escenas: dune-deep tiene una
+   luminancia de 0.094, más alta que el cabello y las sombras que tenía debajo,
+   así que en vez de restar luz la SUMABA -- las vecinas medían 1.17 y 1.29
+   veces la luminancia que tenían sin velo -- y además metía su propio color:
+   el croma de una zona de cabello castaño pasaba de 12.9 a 22.1 (un 71% más) y
+   el matiz giraba 5 grados hacia el rojo. De ahí que las melenas castañas se
+   vieran rojizas y las escenas bañadas de cálido.
+
+   UN VELO NEGRO NO PUEDE HACER ESO. Componer negro con alfa sobre un píxel
+   equivale a multiplicarlo por (1 - alfa): las tres componentes bajan en la
+   misma proporción, así que la cromaticidad no se mueve -- el matiz queda
+   idéntico -- y lo único que cambia es la cantidad de luz. El croma en Lab baja
+   con la luminancia, que es exactamente lo que se pidió: color propio,
+   atenuado.
+
+   EL 32% deja las vecinas en torno al 40% de su luz original. Es suficiente
+   para que se lean en otro plano y no tanto como para que se vuelvan siluetas:
+   la nitidez y el color siguen ahí, con menos luz.
+
+   POR QUÉ NEGRO Y NO `tierra`, que es el token más oscuro de la paleta: tierra
+   es un café cálido con croma propio, así que volvería a teñir, poco pero en la
+   misma dirección del problema. Un oscurecimiento no es un color de marca; el
+   propio layout ya usa negro con alfa para el velo de la fotografía de fondo.
+
+   Va en ::after y no en un nodo aparte: no necesita nada dentro, y así el
+   recorte redondeado de la carta la recorta también a ella.
+
+   La activa no la lleva: su ::after se desvanece a cero, y con la misma duración
+   que la escala para que las dos cosas lleguen juntas al cambiar de foto. */
+.carrusel-foco-carta::after {
+  content: "";
+  position: absolute;
+  /* Se detiene en el canto de la fotografía y no en el de la carta: la lámina
+     de vidrio y su filo quedan FUERA del velo. Si el velo los tapara, el marco
+     de las vecinas se apagaría con la imagen y dejaría de leerse como el mismo
+     marco que lleva la activa. */
+  inset: var(--cf-lamina);
+  border-radius: var(--cf-radio-foto);
+  background-color: rgb(0 0 0 / 32%);
+  opacity: 1;
+  transition: opacity 320ms ease-out;
+  pointer-events: none;
+}
+
+.carrusel-foco-carta[data-activa]::after {
+  opacity: 0;
+}
+
+/* EL ENCABEZADO DE /menu: EL TITULAR DE DOS LÍNEAS Y EL CONTROL DE REGRESO
+   MONTADO EN SU SEGUNDA LÍNEA.
+
+   El titular es un lockup de dos piezas: "Diseños" a cuerpo completo y "de
+   color" a 0.85em, alineada a la derecha y volando por el canto derecho. Todas
+   sus medidas van en em contra su propio cuerpo, así que la composición es
+   idéntica en cualquier ancho. El control de regreso se monta en la segunda
+   línea, a la izquierda de la palabra, y para eso necesita dos números del
+   lockup: dónde empieza la tinta de "de color" y a qué altura puede caber.
+
+   EL CUERPO DEL TITULAR VIVE AQUÍ, en --titulo-cuerpo, y no en una utilidad del
+   componente. Es lo que permite que el control lo use para colocarse: un `em`
+   dentro del control se resolvería contra SU propio cuerpo (16px), no contra el
+   del titular, así que las dos posiciones se calculan multiplicando esta
+   variable por los factores medidos.
+
+   DE DÓNDE SALEN LOS DOS FACTORES, medidos en ocho anchos (320, 360, 390, 414,
+   768, 1024, 1280 y 1440) y constantes en todos ellos porque el lockup es
+   proporcional:
+
+     1.081  La tinta de "de color" arranca a 1.081 cuerpos del canto izquierdo
+            del titular. Medido: 1.0810 a 1.0817 en los ocho anchos.
+     1.33   La altura a la que se monta el centro de la cápsula.
+
+   DE DÓNDE SALE EL 1.33, Y POR QUÉ NO ES EL CENTRO DE NADA OBVIO. Las dos
+   líneas del lockup se entrelazan: el interlineado negativo deja las
+   ascendentes de "de color" 1.5 a 2.5px POR ENCIMA de la línea base de
+   "Diseños" -- está medido en el comentario del titular --, así que el hueco
+   libre a la izquierda de la palabra no es su caja de línea sino la banda entre
+   las dos líneas base: de 0.85 a 1.54 cuerpos, o sea 38.5px a 320 y 48.8 a 390.
+   La cápsula mide 26 de alto y tiene que caber ahí.
+
+   Dentro de esa banda hay dos candidatos y ninguno sirve solo. El centro
+   geométrico de la banda (1.195) deja la cápsula 11px por encima de la masa de
+   minúsculas de la palabra: se lee alta, flotando entre los dos renglones. El
+   centro de la altura de x de "de color" (1.353) la alinea con la palabra pero
+   en el ancho más justo la baja hasta cruzar su línea base. 1.33 es el valor que
+   la sienta sobre la masa de la palabra conservando holgura por los dos lados:
+   medido, 14.2px hasta la tinta de "Diseños" a 320px y 20.2 a 390, y 14.6px
+   desde su área de toque hasta el párrafo en el ancho más justo.
+
+   EL ANCHO DEL ENVOLTORIO es lo que coloca la cápsula: el envoltorio arranca en
+   el canto izquierdo del titular, mide hasta 0.16 cuerpos antes de la tinta de
+   "de color" y alinea su contenido a la derecha. Así no hace falta saber cuánto
+   mide la cápsula. Esos 0.16 son la separación con la palabra: 11px a 390 y 8.9
+   a 320. El envoltorio da de sobra para la cápsula de 41px: 51px a 320. */
+.encabezado-color {
+  --titulo-cuerpo: clamp(3.4rem, 20.4vw - 0.61rem, 4.55rem);
+}
+
+@media (width >= 64rem) {
+  .encabezado-color {
+    --titulo-cuerpo: 3.875rem;
+  }
+}
+
+.titular-color {
+  font-size: var(--titulo-cuerpo);
+}
+
+.regreso-titular {
+  position: absolute;
+  left: 0;
+  top: calc(var(--titulo-cuerpo) * 1.33);
+  width: calc(var(--titulo-cuerpo) * (1.081 - 0.16));
+  translate: 0 -50%;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* EL PIE RESPIRA. Balanceo vertical continuo del bloque de cierre de /menu, el
+   que lleva la ubicación, el aviso de precios y la franja de WhatsApp.
+
+   RECORRIDO 4px, CICLO 8s. A esa velocidad el desplazamiento por fotograma a
+   60Hz es de 0.026px en el tramo más rápido: nadie ve el movimiento ocurrir, se
+   percibe que el bloque no está quieto. Es la mitad de rápido que la respiración
+   que tenía la pila de Tratamientos (2-3.5px en 4.6s), y con razón: aquí dentro
+   está la única conversión del sitio y el gesto no puede competir con ella.
+
+   SUBE Y VUELVE, NO BAJA. Los fotogramas 0% y 100% están en reposo y el 50% es
+   el punto alto, así que el bloque nunca queda por debajo de su posición de
+   maquetación. Eso importa por dos cosas:
+
+     - Un desplazamiento hacia abajo SÍ agranda el área desplazable del
+       documento -- las transformaciones contribuyen al overflow de scroll --, y
+       la página ganaría un par de píxeles de recorrido que aparecen y
+       desaparecen solos.
+     - Con prefers-reduced-motion la regla global fija la duración en 0.01ms y
+       una sola iteración, así que el elemento se queda en su fotograma 0%: en su
+       sitio exacto, no a medio recorrido. Es el mismo criterio que ya usan
+       card-shine y back-nudge.
+
+   ease-in-out EN LOS DOS TRAMOS. La curva se aplica entre fotograma y
+   fotograma, así que la velocidad es cero en el 0%, en el 50% y en el 100%: el
+   bloque desacelera al llegar arriba y al volver abajo, y no hay ningún punto
+   donde cambie de dirección de golpe.
+
+   VA EN `translate` Y NO EN `transform`: son propiedades independientes y se
+   componen, así que si algún día el bloque necesita una transformación (una
+   respuesta al toque, por ejemplo) no se pisan. Y no toca la maquetación, así
+   que nada de lo que va arriba se mueve.
+
+   El bloque se mueve COMPLETO: la animación va en el <footer>, y la franja de
+   WhatsApp, la cápsula y los textos viajan con él como un solo objeto. */
+@keyframes pie-flota {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -4px;
+  }
+}
+
+.pie-flota {
+  animation: pie-flota 8s ease-in-out infinite;
+}
+
+/* LAS PASTILLAS DE CONTORNO DEL SITIO. Un solo sitio para el material de todos
+   los botones secundarios en forma de cápsula con contorno: "Agenda tu cita" en
+   la carta de servicios, "Conóceme más" en la landing y en el pie de /menu, y el
+   control de regreso de /menu/tratamientos.
+
+   Antes cada uno traía sus propias clases y no coincidían: clay al 30% con
+   relleno al 10% en uno, blanco al 50% con relleno al 10% en otro, blanco al 20%
+   con dune al 10% en el tercero, más un revestimiento con marcas de importancia
+   encima en el pie. Ninguno se leía como accionable a primera vista.
+
+   QUÉ GANA PRESENCIA, y por qué en ese orden:
+
+   1. EL CONTORNO, que es lo que dice "esto es un botón". Es crema al 62%, y el
+      tono importa tanto como la opacidad: con clay -- el color de bordes de la
+      paleta -- no se llega al mínimo de 3:1 ni al 100%. Lo medí: clay puro
+      contra la superficie de la lista da 2.78:1, porque esa superficie ya es un
+      velo de clay y el borde no tiene de dónde despegarse. El crema sí, y de
+      paso funciona igual sobre la fotografía oscura de la landing.
+      El 3:1 no es un gusto: por debajo de eso el límite de un control no cuenta
+      como perceptible para AA.
+   2. EL TEXTO, a peso 500. No sube de cuerpo ni de color -- ya es crema al 100%
+      --; lo que gana es cuerpo de trazo, que es lo que le faltaba para no
+      leerse como una etiqueta.
+   3. LA SUPERFICIE, un velo de crema al 8%. Densifica lo que hay detrás lo justo
+      para que la cápsula se lea como pieza apoyada, y no más: si se rellenara
+      competiría con el botón de conversión, que es el único sólido del sitio.
+
+   SIGUE SIENDO SECUNDARIO. Ni relleno opaco, ni sombra, ni versalita: el único
+   botón sólido del sitio es el de WhatsApp, y esta cápsula se distingue de él
+   justamente por ser contorno sobre transparencia.
+
+   El desenfoque de fondo la hace material en vez de un rectángulo de color, y es
+   lo que le permite funcionar sobre la fotografía del layout, sobre el vidrio del
+   pie y sobre la superficie de la lista sin cambiar de receta.
+
+   VA EN CSS Y NO EN UNA CADENA DE CLASES a propósito: al no estar dentro de una
+   capa, le gana a las utilidades de Tailwind, así que ningún sitio de uso puede
+   desviarse del material sin ponerse a pelear con marcas de importancia. El
+   tamaño, el relleno y la tipografía SÍ los pone cada sitio, que son suyos. */
+.pastilla-contorno {
+  border: 1px solid
+    color-mix(in oklab, var(--color-shell-lift) 62%, transparent);
+  background-color: color-mix(
+    in oklab,
+    var(--color-shell-lift) 8%,
+    transparent
+  );
+  color: var(--color-shell-lift);
+  font-weight: 500;
+  backdrop-filter: blur(12px);
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.pastilla-contorno:hover {
+  border-color: color-mix(in oklab, var(--color-shell-lift) 85%, transparent);
+  background-color: color-mix(
+    in oklab,
+    var(--color-shell-lift) 15%,
+    transparent
+  );
+}
+
+/* El anillo de foco en crema, no en el dune-deep de la regla global: estas
+   cápsulas viven sobre fondos oscuros, donde el dune mide 1.65:1. Esta regla
+   tiene más especificidad que `:focus-visible` y las dos están fuera de capa,
+   así que gana sin marcas de importancia. */
+.pastilla-contorno:focus-visible {
+  outline: 2px solid var(--color-shell-lift);
+  outline-offset: 2px;
+}
+
 /* EL INDICADOR DE LARGO DE LA GUÍA, en /menu.
    Entra con la misma curva y la misma duración que la carta nueva del visor --
    de 0.35 a 1 de opacidad --, así que el nombre del largo y su referencia
@@ -287,97 +894,443 @@ body {
   animation: corazon-brote 640ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
 }
 
-/* LA PILA DE TRATAMIENTOS, en /menu.
-   El acceso a esa página dejó de ser un renglón de texto con flecha y es una
-   pila de tres cartas: dos hojas de atrás que asoman por el canto superior y la
-   carta de adelante, que es la que lleva el nombre.
+/* EL MÓDULO DE SERVICIOS de /menu: UNA TARJETA CERRADA.
+   Wavys, Corte dama y Tratamientos, tres franjas dentro del mismo panel.
 
-   LO QUE ANIMA Y LO QUE NO. La carta de adelante NO respira: ahí vive el texto,
-   y un texto que sube y baja dos píxeles en bucle es exactamente lo que no se
-   puede leer con comodidad. Las que respiran son las dos hojas de atrás, que no
-   llevan contenido. El efecto es el mismo -- la pila se percibe viva -- sin
-   mover una sola letra.
+   ESTA VERSIÓN SE HIZO MIDIENDO UNA IMAGEN DE REFERENCIA, no interpretando una
+   descripción, y los números de abajo salen de ahí. La referencia es una captura
+   de 1013px de ancho que corresponde a un viewport de 390 CSS, o sea 2.597px por
+   píxel de CSS; todas las medidas están convertidas.
 
-   DOS CICLOS DESFASADOS. Mismo periodo (4.6s) y un retardo de 0.6s en la hoja
-   del fondo, así que las dos no llegan nunca juntas al tope: la separación
-   entre ellas se abre y se cierra sola, que es el gesto de un mazo de cartas
-   asentándose. El recorrido es de 2px y 3.5px; por debajo de eso no se percibe
-   y por encima empieza a leerse como un rebote.
+   LA FORMA. Radio de 24px: el ajuste del arco de la esquina superior izquierda
+   de la referencia da 23.1 CSS con un error medio de 0.45px, así que 24 es el
+   valor redondo dentro del margen de la medición. Contorno de 1px que cierra los
+   cuatro lados, sin interrupción.
 
-   POR QUÉ `translate` Y NO `transform`. La respuesta al cursor y al foco mueve
-   estas mismas hojas con una transición, y dos `transform` sobre el mismo
-   elemento se pisan -- la animación gana siempre, el mismo problema que tenía
-   la flecha. Aquí no hacen falta capas anidadas: la deriva continua usa la
-   propiedad independiente `translate` y la respuesta usa `transform`, que son
-   propiedades distintas y se componen en cascada (primero translate, después
-   transform).
+   EL CONTORNO NO ES UNIFORME, y su degradado también está medido. En la
+   referencia, el realce del contorno sobre el fondo que tiene detrás es:
 
-   PREFERS-REDUCED-MOTION. Los fotogramas 0% y 100% están en reposo y la regla
-   global fija la duración en 0.01ms con una sola iteración, así que la pila
-   queda estática y armada, no a medio recorrido.
+     costado izquierdo y esquina superior izquierda   x15
+     canto superior, a media anchura                  x6.5
+     canto superior, hacia la derecha                 x1.7
+     costado derecho                                  x1.0-1.1  (no se ve)
+     canto inferior                                   x1.3-1.5
 
-   LA RESPUESTA FÍSICA se reparte en tres cuerpos: al pasar el cursor o recibir
-   foco las hojas se separan (4 y 8px) y la de adelante se adelanta 1px; al
-   mantener pulsado la pila se cierra (1 y 2px) y la de adelante se hunde 1px.
-   Sale y entra con una curva de frenado (0.22, 0.61, 0.36, 1), sin rebote. */
-@keyframes pila-hoja-media {
-  0%,
-  100% {
-    translate: 0 0;
-  }
-  50% {
-    translate: 0 -2px;
-  }
+   O sea que la referencia ABRE el perímetro por la derecha. La instrucción pide
+   lo contrario -- "nunca desaparece del todo, es un perímetro cerrado" --, así
+   que el degradado reproduce la caída de la referencia pero con SUELO: el último
+   tope es crema al 9%, que sobre esta fotografía mide un realce de x1.5-2. Se
+   percibe que el contorno sigue ahí, atenuado, en vez de acabarse.
+
+   ES RADIAL Y NO LINEAL, con el centro en la esquina superior izquierda: un
+   degradado lineal reparte la densidad por diagonales y dejaría la esquina
+   inferior izquierda igual que la superior derecha, cuando lo que se mide es una
+   caída con la DISTANCIA a esa esquina.
+
+   CÓMO SE PINTA UN CONTORNO CON DEGRADADO. Un `border` no acepta degradados, y
+   la receta de dos fondos con recortes distintos (border-box + padding-box)
+   tampoco sirve aquí: depende de que la capa de encima sea opaca para tapar todo
+   el degradado menos el pelo del canto, y este vidrio es translúcido -- se probó
+   en una versión anterior y el crema se veía a través de toda la superficie, que
+   quedaba en (180,161,141), una tarjeta beige lechosa --. Así que el contorno es
+   un ANILLO: un pseudoelemento del tamaño del panel con el degradado de fondo y
+   una máscara de dos capas que se restan, de la que solo sobrevive el marco de
+   1px. La máscara respeta el radio, que es lo que descarta también
+   `border-image`: esa recorta las esquinas en ángulo recto.
+
+   EL CRISTAL AHUMADO TIENE QUE DEJAR PASAR EL GRANO, y ese es el ajuste más
+   importante respecto de la versión anterior. Medido en la referencia, dentro
+   del panel la desviación típica de la luminancia es 1.77e-3 contra 2.88e-3
+   fuera: el grano baja un 40%, no desaparece. La versión anterior desenfocaba
+   10px y lo bajaba un 91% -- el vidrio quedaba quieto y liso, que es lo que se
+   pidió no hacer --. Con 4px de desenfoque la caída queda en el orden de la
+   referencia. Y el tono: dentro L=0.0211 contra 0.0273 fuera, o sea un 77% del
+   fondo, que es lo que da el velo de tierra al 26%. Nada de capas lechosas: el
+   velo es del color más oscuro de la paleta, no de crema.
+
+   NINGUNA TRANSICIÓN ABRUPTA. Los divisores se desvanecen en sus dos extremos,
+   el contorno cambia de intensidad de forma continua y la veladura terracota se
+   disuelve sin canto. Lo único con canto duro es el perímetro, que es lo que
+   tiene que cerrar la figura. */
+.modulo-servicios {
+  position: relative;
+  /* overflow-hidden: es lo que recorta la veladura terracota y el cristal con
+     el radio del panel, así que ninguna de las dos capas necesita radio propio
+     ni puede asomar por las esquinas. */
+  overflow: hidden;
+  border-radius: 1.5rem;
+  /* La sangría del contenido, a los dos lados. En la referencia el texto
+     arranca 21 CSS dentro del canto y los cheurones acaban 12-17 dentro del
+     canto derecho: 20px por lado cae en ese rango y deja los dos ejes
+     simétricos. */
+  --sangria: 1.25rem;
+  /* El marfil de los divisores: el mismo tono del contorno, en la densidad con
+     la que la referencia los pinta en su tramo fuerte. */
+  /* El radio con el que los divisores se curvan al encontrarse con el contorno
+     izquierdo. 10px y no los 24 del panel: el arco sube desde el divisor hasta
+     hacerse tangente al contorno, y ese ascenso tiene que caber en el relleno
+     superior de la fila, que son 16px. Con 24 el arco entraría en el renglón de
+     arriba. */
+  --divisor-radio: 10px;
+  /* El marfil de los divisores. El 82% no es una preferencia: en la referencia
+     el realce del divisor sobre la superficie es de x14.4 en su tramo fuerte, y
+     con el 46% que se probó primero medía x3.5, con el 82% x7.9 y con el 96%
+     x10.3. El crema del proyecto al 100% es el techo: no hay un marfil más
+     claro en la paleta. */
+  --marfil: var(--color-shell-lift);
+  --marfil-fin: color-mix(in oklab, var(--color-shell-lift) 12%, transparent);
 }
 
-@keyframes pila-hoja-fondo {
-  0%,
-  100% {
-    translate: 0 0;
-  }
-  50% {
-    translate: 0 -3.5px;
-  }
+/* EL CONTORNO. z-index 2 para que cruce por delante del cristal y de la
+   veladura: cierra el PANEL, no cada capa. Con 1px no toca ningún texto. */
+.modulo-servicios::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  /* LA ELIPSE ES MÁS ESTRECHA QUE ALTA (80% del ancho contra 130% del alto), y
+     eso sale de medir la referencia: ahí el contorno cae mucho más rápido a lo
+     largo del canto SUPERIOR que a lo largo del IZQUIERDO. Medido en la
+     referencia, el costado izquierdo sigue a pleno (realce x16) al 45% de su
+     recorrido, mientras el canto superior ya ha caído a x4.6 al 55% del suyo.
+     Con una elipse circular las dos caídas serían iguales; con esta el
+     degradado se lee como luz que entra por el costado, no solo por la esquina.
+
+     EL ÚLTIMO TOPE ES TRANSPARENTE AL 92%, no un suelo de color, y eso es lo
+     que ABRE el costado derecho. Antes el degradado acababa en crema al 12% y
+     el contorno cerraba los cuatro lados; ahora llega a cero antes del canto:
+     con la elipse a 80% del ancho, la distancia normalizada del canto derecho
+     es 1.25 como mínimo -- 1.29 a media altura, 1.40 en la esquina inferior --,
+     o sea que todo ese lado cae más allá del 92% y no se pinta nada. En el
+     canto superior el degradado muere al 72% del ancho: la línea se apaga
+     progresivamente y desaparece antes de llegar a la esquina.
+
+     EL 130% DEL ALTO conserva el costado izquierdo y el canto inferior tal como
+     estaban: la esquina inferior izquierda queda a 0.77 de distancia, o sea en
+     crema al 21%, el mismo orden que tenía con la elipse anterior. Si esa cifra
+     subiera, el panel cerraría por abajo más de lo que cerraba antes, y lo que
+     se pidió abrir es solo la derecha. */
+  background-image: radial-gradient(
+    80% 130% at 0% 0%,
+    var(--color-shell-lift) 0%,
+    color-mix(in oklab, var(--color-shell-lift) 94%, transparent) 40%,
+    color-mix(in oklab, var(--color-shell-lift) 46%, transparent) 62%,
+    color-mix(in oklab, var(--color-shell-lift) 16%, transparent) 80%,
+    transparent 92%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
 }
 
-.pila-hoja-media {
-  animation: pila-hoja-media 4.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+/* EL CRISTAL AHUMADO, Y SE DISUELVE HACIA LA DERECHA. Tiene todo su cuerpo en
+   el costado izquierdo y va perdiéndolo hasta desaparecer por completo en el
+   canto derecho, donde ya no hay vidrio y la fotografía se ve directamente.
+
+   LA MÁSCARA DISUELVE LAS DOS COSAS A LA VEZ, y eso no es un efecto lateral
+   sino la razón de hacerlo así: una máscara se aplica al elemento como grupo,
+   así que se lleva el color de fondo Y el desenfoque de fondo en la misma
+   proporción. Bajar solo la opacidad habría dejado el desenfoque intacto de
+   canto a canto -- el fondo se vería liso donde ya no hay velo, que es
+   justamente el corte que hay que evitar --.
+
+   CINCO TOPES Y NO DOS. Un degradado de dos topes reparte la caída de forma
+   lineal y en una lámina tan tenue eso se nota como una banda a media anchura;
+   con la curva repartida en cinco -- 100, 92, 62, 24 y 0 -- la pendiente cambia
+   de forma continua y no hay ningún punto donde se perciba un canto. La caída
+   es lenta en el primer tercio, que es lo que le deja presencia al costado
+   izquierdo.
+
+   EL CONTORNO NO SE TOCA: vive en otra capa (el ::before del panel) y cierra los
+   cuatro lados, también el derecho, donde el vidrio ya no está. */
+.modulo-servicios-vidrio {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: color-mix(in oklab, var(--color-tierra) 26%, transparent);
+  /* 1.5px Y NO 4. El desenfoque va en píxeles de CSS, así que en una pantalla
+     de densidad 3x un blur de 4 son 12 píxeles de dispositivo, y el grano de la
+     fotografía tiene una correlación de dos o tres: a 4px se borra por completo
+     -- medido, la desviación típica de la luminancia dentro del panel caía a
+     0.07e-3, o sea superficie muerta, y a 1.5px seguía en 0.20e-3 --. La
+     referencia conserva 1.74e-3 dentro contra 2.88 fuera, una caída del 40%, y
+     0.5px es lo que deja el grano en ese orden (0.8px lo dejaba en 0.68e-3). El desenfoque sigue siendo
+     real: lo que cambia es que no se come la textura que hay que ver. */
+  -webkit-backdrop-filter: blur(0.5px);
+  backdrop-filter: blur(0.5px);
+  -webkit-mask-image: linear-gradient(
+    to right,
+    rgb(0 0 0) 0%,
+    rgb(0 0 0 / 92%) 34%,
+    rgb(0 0 0 / 62%) 62%,
+    rgb(0 0 0 / 24%) 84%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    rgb(0 0 0) 0%,
+    rgb(0 0 0 / 92%) 34%,
+    rgb(0 0 0 / 62%) 62%,
+    rgb(0 0 0 / 24%) 84%,
+    transparent 100%
+  );
 }
 
-.pila-hoja-fondo {
-  animation: pila-hoja-fondo 4.6s cubic-bezier(0.45, 0, 0.55, 1) 0.6s infinite;
+/* Los rótulos: versalita de 11px con interletrado amplio. En la referencia su
+   altura de mayúscula mide 5.8 CSS, que es lo que da un cuerpo de 11px. */
+.modulo-rotulo {
+  font-size: 11px;
+  line-height: 1.4;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: color-mix(in oklab, var(--color-shell-lift) 78%, transparent);
 }
 
-.pila-tratamientos .pila-hoja,
-.pila-tratamientos .pila-frente {
-  transition: transform 240ms cubic-bezier(0.22, 0.61, 0.36, 1);
+/* LA SANGRÍA DEL CONTENIDO, en las piezas de cada fila y no en un contenedor:
+   así los divisores pueden ir por la caja completa y colocarse ellos mismos
+   dentro de la sangría. */
+.modulo-servicios-lista > li > * {
+  padding-inline: var(--sangria);
 }
 
-.pila-tratamientos:hover .pila-hoja-media,
-.pila-tratamientos:focus-visible .pila-hoja-media {
-  transform: translateY(-4px);
+/* LOS DIVISORES, y se desvanecen en los dos extremos. No son un `border`
+   porque un borde no admite degradado: son un fondo de 1px de alto colocado en
+   el canto superior de la fila, con el ancho de la caja menos las dos sangrías.
+
+   El degradado reproduce lo medido en la referencia -- realce x13.9 en el
+   arranque y x2.2 al final del recorrido -- pero llegando al canto interno en
+   vez de morir antes: transparente en el arranque exacto, marfil completo desde
+   el 7%, y atenuado hasta el 10% al llegar al otro lado. Así la línea va de
+   borde a borde interno y aun así ningún extremo tiene corte seco. */
+.modulo-servicios-lista > li + li > *:first-child {
+  position: relative;
+  background-image: linear-gradient(
+    to right,
+    var(--marfil) 0%,
+    var(--marfil) 6%,
+    var(--marfil-fin) 92%,
+    transparent 100%
+  );
+  background-size: calc(100% - var(--sangria) - var(--divisor-radio)) 1px;
+  background-position: var(--divisor-radio) top;
+  background-repeat: no-repeat;
 }
 
-.pila-tratamientos:hover .pila-hoja-fondo,
-.pila-tratamientos:focus-visible .pila-hoja-fondo {
-  transform: translateY(-8px);
+/* LA CURVA QUE UNE EL DIVISOR CON EL CONTORNO IZQUIERDO.
+
+   El divisor ya no arranca sangrado ni desvanecido por la izquierda: llega al
+   canto y gira. Este pseudoelemento es un cuadrado de 10px cuya esquina
+   INFERIOR IZQUIERDA está redondeada y que solo pinta esos dos lados, así que
+   lo único que se ve es un cuarto de arco: entra tangente a la vertical por
+   arriba -- donde está el contorno del panel, en el mismo píxel -- y sale
+   tangente a la horizontal por abajo a la derecha, donde arranca el tramo
+   recto. Los dos trazos son de 1px y del mismo marfil, así que la unión se lee
+   como un solo trazo que dobla, no como una T.
+
+   Va 10px POR ENCIMA del divisor (top negativo) porque el arco sube: su canto
+   inferior es la línea del divisor y su canto superior es donde se encuentra
+   con el contorno. Cabe en el relleno de la fila y no toca ningún texto.
+
+   POR LA DERECHA NO CAMBIA NADA: el tramo recto sigue perdiendo cuerpo hasta
+   desvanecerse antes del canto, como antes. */
+.modulo-servicios-lista > li + li > *:first-child::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  /* El +1px no es un ajuste fino cualquiera: el borde inferior del arco ocupa
+     el último píxel de ESTE elemento, o sea la banda [-1, 0] respecto del canto
+     superior de la fila, mientras el tramo recto es un fondo de 1px colocado en
+     [0, 1]. Sin el desplazamiento los dos trazos quedan pegados pero
+     escalonados, y en el zoom se ve el diente. Con él comparten banda. */
+  top: calc(1px - var(--divisor-radio));
+  width: var(--divisor-radio);
+  height: var(--divisor-radio);
+  border-left: 1px solid var(--marfil);
+  border-bottom: 1px solid var(--marfil);
+  border-bottom-left-radius: var(--divisor-radio);
+  pointer-events: none;
 }
 
-.pila-tratamientos:hover .pila-frente,
-.pila-tratamientos:focus-visible .pila-frente {
-  transform: translateY(-1px);
+/* EL AIRE DE LAS FRANJAS: 16px por lado, y el número sale de igualar el ritmo,
+   no de una escala. Con la caja de línea del título en 36px y su tinta en 30, el
+   relleno pone la mitad del hueco y el interlineado de la caja los otros 3px, así
+   que de la tinta al divisor quedan 19px por arriba y otros 19 por abajo: el
+   título respira dentro de su franja sin acercarse al pelo.
+
+   ESTUVO EN 32 Y EL PANEL SE SENTÍA ESTIRADO. Medido entonces: 38.3px del
+   divisor a "Corte dama" y 39 de ahí al siguiente divisor, contra los 17 que hay
+   entre el rótulo y "Wavys". O sea que las dos franjas de servicio tenían más
+   del doble de aire que la primera, y el conjunto se leía sin ritmo. Con 16 las
+   tres distancias caen en la misma banda de 17 a 20px.
+
+   Los 16 valen para las tres franjas -- la de Tratamientos usa el mismo valor en
+   su propio relleno -- porque el ritmo tiene que ser el mismo en las tres. */
+.modulo-servicios-lista > li > button {
+  padding-block: 1rem;
 }
 
-.pila-tratamientos:active .pila-hoja-media {
-  transform: translateY(-1px);
+/* EL PRIMER RENGLÓN LLEVA MENOS AIRE ARRIBA, y no es una excepción arbitraria:
+   ahí lo que hay encima no es un divisor sino el rótulo de la franja, y el
+   rótulo tiene que leerse como su etiqueta, no como una pieza suelta flotando.
+   Con 32px de relleno superior, entre la tinta del rótulo y la del nombre
+   quedaban 35px -- más que el hueco entre el rótulo y el canto del panel --, así
+   que el rótulo se agrupaba con el borde en vez de con el título.
+
+   EL VALOR SALE DE LA TERCERA FRANJA, no de un tanteo: ahí el rótulo y
+   "Tratamientos" ya forman un par -- 6px entre sus cajas -- y su tinta queda a
+   17px. Con 6px de relleno superior en esta fila, el par de la primera franja
+   mide lo mismo, así que las dos etiquetas se agrupan igual. Medido: 35.3px
+   antes del cambio, 23.0 con 12px de relleno, 17.2 con 6.
+
+   El aire de la franja no se pierde: sigue estando, repartido entre el relleno
+   superior del panel y el inferior de la fila. */
+.modulo-servicios-lista > li:first-child > button {
+  padding-top: 0.375rem;
 }
 
-.pila-tratamientos:active .pila-hoja-fondo {
-  transform: translateY(-2px);
+/* LA FRANJA DE TRATAMIENTOS. No lleva superficie ni contorno propios: es una
+   franja del mismo panel, con su divisor arriba (comparte la regla de los
+   divisores) y su veladura detrás. */
+.zona-tratamientos {
+  position: relative;
+  display: block;
+  /* MISMO RITMO QUE LOS RENGLONES, arriba y abajo: 16px, los mismos que llevan
+     las filas. Del divisor a la tinta del rótulo quedan 19.3px -- los mismos que
+     del divisor a la tinta de "Corte dama", 22.3 -- y de la tinta del título al
+     canto del panel, 23.4, que es la misma distancia que "Corte dama" tiene
+     hasta su divisor (23.0). Se probó con 20 abajo, pensando en el radio de la
+     esquina, y rompía el ritmo: 27.4 contra 23. */
+  padding: 1rem var(--sangria);
 }
 
-.pila-tratamientos:active .pila-frente {
-  transform: translateY(1px);
+/* El divisor de la tercera franja va en un pseudoelemento y no en el fondo de la
+   franja, a diferencia del de los renglones: aquí hay una capa de veladura
+   posicionada encima del fondo, y un fondo se pintaría DEBAJO de ella. Con el
+   pseudoelemento la línea queda por encima de la veladura y por debajo del
+   texto. */
+.zona-tratamientos::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: var(--divisor-radio);
+  right: var(--sangria);
+  height: 1px;
+  pointer-events: none;
+  background-image: linear-gradient(
+    to right,
+    var(--marfil) 0%,
+    var(--marfil) 6%,
+    var(--marfil-fin) 92%,
+    transparent 100%
+  );
+}
+
+/* La curva de este divisor, igual que la de los renglones. Va en ::after porque
+   el ::before ya es el tramo recto. */
+.zona-tratamientos::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  /* El +1px no es un ajuste fino cualquiera: el borde inferior del arco ocupa
+     el último píxel de ESTE elemento, o sea la banda [-1, 0] respecto del canto
+     superior de la fila, mientras el tramo recto es un fondo de 1px colocado en
+     [0, 1]. Sin el desplazamiento los dos trazos quedan pegados pero
+     escalonados, y en el zoom se ve el diente. Con él comparten banda. */
+  top: calc(1px - var(--divisor-radio));
+  width: var(--divisor-radio);
+  height: var(--divisor-radio);
+  border-left: 1px solid var(--marfil);
+  border-bottom: 1px solid var(--marfil);
+  border-bottom-left-radius: var(--divisor-radio);
+  pointer-events: none;
+}
+
+/* LA VELADURA TERRACOTA. Nace difusa en la parte baja izquierda de la franja y
+   se disuelve hacia los lados y hacia arriba, que es lo que hace la referencia:
+   medido ahí, el canal rojo va de 109 en x=60 a 46 en x=960, y en vertical
+   aparece en el divisor y se mantiene hasta el canto inferior.
+
+   Es un radial con el centro en el 24% del ancho y el 82% del alto, y su caja se
+   desborda por abajo y por los lados para que ningún tope de color coincida con
+   un canto: lo que la recorta es el overflow del panel, o sea su propio radio, y
+   no el canto de esta capa. Por eso no puede dibujar un rectángulo ni una figura
+   con contorno: no tiene ninguno. */
+.zona-tratamientos-luz {
+  position: absolute;
+  z-index: 0;
+  /* El desbordamiento es moderado a propósito. Con -2rem a los lados y -3rem
+     por abajo, el centro del degradado -- que va al 82% del alto de ESTA caja --
+     caía 18px por DEBAJO de la franja visible, así que dentro de la franja solo
+     se veía la cola: medido, el canal rojo subía de 58 a 73 cuando en la
+     referencia va de 46 a 97. */
+  inset: -0.5rem -1.5rem -1.5rem -1.5rem;
+  pointer-events: none;
+  background-image: radial-gradient(
+    52% 112% at 22% 60%,
+    color-mix(in oklab, var(--color-dune) 52%, transparent) 0%,
+    color-mix(in oklab, var(--color-dune) 34%, transparent) 32%,
+    color-mix(in oklab, var(--color-dune) 16%, transparent) 58%,
+    color-mix(in oklab, var(--color-dune) 5%, transparent) 82%,
+    transparent 100%
+  );
+}
+
+/* LA FLECHA. El asta arranca del título y ocupa todo el espacio hasta la punta,
+   que cae en el canto interno derecho del panel: en la referencia la punta acaba
+   17 CSS dentro del canto, o sea en la sangría del contenido, en el mismo eje
+   vertical que los cheurones de la lista.
+
+   DOS PIEZAS Y NO UN SVG ESTIRADO: un dibujo con preserveAspectRatio "none" se
+   deformaría al ensancharse. El asta es una caja de 1px que crece con flex; la
+   punta, un cheurón de tamaño fijo. El margen negativo de la punta es lo que
+   hace que el asta llegue al VÉRTICE y no al canto de su caja.
+
+   El asta se desvanece donde nace, junto al título, y llega entera a la punta:
+   ninguna transición seca. */
+.flecha-linea {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  align-self: center;
+  height: 16px;
+  transition: transform 200ms ease-out;
+}
+
+.flecha-linea-asta {
+  flex: 1 1 auto;
+  height: 1px;
+  background-image: linear-gradient(
+    to right,
+    transparent 0%,
+    color-mix(in oklab, var(--color-shell-lift) 70%, transparent) 22%,
+    var(--color-shell-lift) 92%
+  );
+}
+
+.flecha-linea-punta {
+  flex: 0 0 auto;
+  margin-left: -10px;
+  color: var(--color-shell-lift);
+}
+
+.group:hover .flecha-linea,
+.group:focus-visible .flecha-linea {
+  transform: translateX(6px);
+}
+
+.group:active .flecha-linea {
+  transform: translateX(11px);
 }
 
 @keyframes accordion-in {

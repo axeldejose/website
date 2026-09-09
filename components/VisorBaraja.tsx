@@ -97,16 +97,17 @@ type VisorBarajaProps = {
   // La galería pasa 1: con 56 completas a ~160 KB, montarlas todas serían 9 MB
   // de red en la primera apertura.
   ventana?: number;
-  // SUPERFICIE CLARA. Invierte la ventana completa: fondo blanco y todo lo que
-  // vive encima -- texto heredado, control de cierre, flechas, pista de uso y
-  // el contorno del marco de la foto -- pasa a tinta oscura. Sin este valor la
-  // ventana es la de siempre, café con crema, así que la guía de largos y el
-  // visor de /galeria no cambian.
+  // LA SUPERFICIE DE LA VENTANA, y con ella las cinco tintas que dependen de
+  // ella. Un solo valor y no dos banderas: `claro` y un hipotético `terracota`
+  // serían dos interruptores para la misma decisión, y nada impediría
+  // encenderlos a la vez. Las recetas están en PIELES, arriba.
   //
-  // No es un tema genérico ni el arranque de uno: son los cinco sitios de este
-  // componente donde el color depende del fondo, agrupados en un solo objeto
-  // para que no se puedan desincronizar.
-  claro?: boolean;
+  //   tierra     el café de siempre. El visor de /galeria.
+  //   shell      el beige de la marca, con tinta oscura. La galería de /menu.
+  //   terracota  dune, con tinta crema. La guía de largos.
+  //
+  // Sin valor es `tierra`, así que quien no pida nada no cambia.
+  fondo?: "tierra" | "shell" | "terracota";
   // ME GUSTA POR FOTOGRAFÍA. Con una clave, cada lámina gana un corazón sobre
   // la imagen y su estado se guarda en localStorage bajo esa clave. Sin clave
   // no hay corazón: la guía de largos y el visor de /galeria no cambian.
@@ -193,6 +194,105 @@ const VELOCIDAD_MAX = 3.6;
 // cuesta un archivo y el gesto siguiente ya encuentra la vecina descargada.
 const RETRASO_VECINAS = 450;
 
+// ── LAS TRES SUPERFICIES DE LA VENTANA ──────────────────────────────────────
+//
+// Son los cinco sitios de este componente donde el color depende del fondo,
+// agrupados por superficie para que no se puedan desincronizar. No es un tema
+// genérico ni el arranque de uno: son tres recetas cerradas, cada una medida
+// sobre su propio fondo.
+//
+// EL CONTRASTE NO ES SIMÉTRICO ENTRE ELLAS, y de ahí que las opacidades no se
+// puedan copiar de una a otra. El mismo "crema al 55%" mide 5.07:1 sobre el café
+// y 2.53:1 sobre el terracota. Lo que manda es el TECHO de cada superficie: el
+// contraste de la tinta más clara disponible (shell-lift) contra ese fondo.
+//
+//   tierra      #2a1d14  Lrel 0.0142   techo 13.67:1   holgura de sobra
+//   shell       #e9dfc6  Lrel 0.7418   techo 12.33:1 (con tinta tierra)
+//   terracota   #a05035  Lrel 0.1347   techo  4.75:1   al filo del mínimo
+//
+// TIERRA es el café de siempre: el visor de /galeria. Con 13.67:1 de techo cada
+// tinta puede bajar de opacidad hasta donde lo pida la jerarquía.
+//
+// SHELL es el beige de la marca, con tinta oscura: la galería de /menu. Estuvo
+// en blanco puro y se leía clínico, fuera del registro del sitio -- todo lo
+// demás vive en el rango cálido --, y shell es el fondo oficial (el que lleva el
+// <body>), así que la ventana pasa a ser la superficie del sistema y no una
+// excepción. Sus flechas son de 28px y no de 44, y el área de toque la reponen
+// sus 8px de ::after por lado: es lo que permite que su pie sea una franja
+// delgada sin bajar del suelo de 44px de acierto.
+//
+// TERRACOTA es dune, con tinta crema: la guía de largos. Es la única de las tres
+// con el techo pegado al mínimo, y eso decide todos sus tonos:
+//
+//   subtítulo y pista, 11px   shell-lift PLENO   4.75:1   (mínimo 4.5)
+//   flechas                   shell-lift/80      3.65:1   (mínimo 3)
+//   punto inactivo            shell-lift/70      3.17:1   (mínimo 3)
+//   cruz del cierre           shell-lift         4.00:1 sobre su propio disco
+//
+// Sobre esta superficie NO EXISTE una tinta discreta que pase el piso de
+// contraste para 11px: shell-lift al 100% da 4.75:1 y cualquier opacidad por
+// debajo cae del 4.5. Lo que mantiene subordinado al subtítulo y a la pista no
+// es la opacidad sino la escala y el interletrado. Si algún día hace falta
+// recuperar tonos de tinta graduados sobre terracota, el camino es dune-deep
+// (#8a4229), que sube el techo a 6.07:1 -- a cambio de acercar el fondo todavía
+// más a los rojos de las láminas.
+//
+// EL MARCO GANA CONTORNO en shell y en terracota, y por el mismo motivo en las
+// dos: el canto de la lámina deja de separarse por valor. Sobre el café la foto
+// es mucho más clara que el fondo; sobre el beige, una foto de fondo claro se
+// desangra en la ventana, y sobre el terracota el canto superior de las láminas
+// -- follaje verde oliva -- mide 1.08:1 contra la superficie.
+//
+// Y NO PUEDE SER UN `ring-inset`, que es como estuvo escrito y por eso no se
+// veía. Un box-shadow interior se pinta encima del FONDO del elemento pero
+// DEBAJO de sus hijos, y el hijo de este marco es una fotografía a sangre que lo
+// tapa entero. Comprobado a la brava: con un inset de 3px en verde puro, el
+// render no tenía un solo píxel verde en el canto del marco. De ahí que el
+// contorno viva en un pseudo-elemento, por encima de las tres capas de la
+// baraja (z 10, 20 y 30). Sigue sin mover la geometría del marco ni la
+// proporción de la imagen: es un borde sobre inset-0.
+const ANILLO_MARCO =
+  "after:pointer-events-none after:absolute after:inset-0 after:z-40 after:rounded-2xl after:border after:content-['']";
+
+const PIELES = {
+  tierra: {
+    ventanaFondo: "bg-tierra text-shell-lift",
+    cierre:
+      "bg-shell-lift/10 text-shell-lift hover:bg-shell-lift/20 focus-visible:outline-shell-lift!",
+    marco: "",
+    flecha:
+      "text-shell-lift/70 hover:text-shell-lift focus-visible:outline-shell-lift!",
+    flechaCaja: "size-11",
+    pista: "text-shell-lift/55",
+    conPista: true,
+  },
+  shell: {
+    ventanaFondo: "bg-shell text-tierra",
+    cierre:
+      "bg-tierra/8 text-tierra hover:bg-tierra/15 focus-visible:outline-dune-deep!",
+    marco: `${ANILLO_MARCO} after:border-tierra/15`,
+    flecha: "text-tierra/70 hover:text-tierra focus-visible:outline-dune-deep!",
+    flechaCaja:
+      "size-7 relative after:absolute after:-inset-2 after:content-['']",
+    pista: "text-tierra/70",
+    conPista: false,
+  },
+  terracota: {
+    ventanaFondo: "bg-dune text-shell-lift",
+    cierre:
+      "bg-shell-lift/10 text-shell-lift hover:bg-shell-lift/20 focus-visible:outline-shell-lift!",
+    marco: `${ANILLO_MARCO} after:border-tierra/25`,
+    flecha:
+      "text-shell-lift/80 hover:text-shell-lift focus-visible:outline-shell-lift!",
+    flechaCaja: "size-11",
+    // La pista va en crema PLENO y no al 55% como sobre el café: ahí medía
+    // 2.53:1. Es el único valor que pasa el mínimo de 4.5 sobre esta
+    // superficie.
+    pista: "text-shell-lift",
+    conPista: true,
+  },
+} as const;
+
 export function VisorBaraja({
   laminas,
   ancho,
@@ -210,7 +310,7 @@ export function VisorBaraja({
   altoPie = "min-h-11",
   altoVentana = "h-[min(92vh,46rem)]",
   ventana,
-  claro = false,
+  fondo = "tierra",
   claveFavoritos,
   fisica = false,
   aireMarco = "mt-6",
@@ -886,24 +986,6 @@ export function VisorBaraja({
   const sizes = "(min-width: 640px) 22rem, 88vw";
   const proporcion = { aspectRatio: `${ancho} / ${alto}` };
 
-  // LOS CINCO SITIOS DONDE EL COLOR DEPENDE DEL FONDO. Medidos sobre blanco en
-  // la variante clara (ver el reporte):
-  //
-  //   texto heredado   tierra          16.34:1
-  //   cierre           tierra          16.34:1 sobre su propio relleno
-  //   flechas          tierra/70        6.14:1
-  //   pista "Desliza"  tierra/70        6.14:1
-  //   anillo de foco   dune-deep        7.20:1
-  //
-  // La pista y las flechas NO se quedaron en /55, que es su valor sobre el
-  // fondo oscuro: sobre blanco eso da 3.77:1, por debajo del mínimo de 4.5 para
-  // texto chico. Es el mismo tono relativo pero no el mismo número, porque el
-  // crema sobre café y la tinta sobre blanco no son simétricos.
-  //
-  // EL MARCO GANA CONTORNO. Sobre el café, el canto de la foto se definía solo
-  // por contraste con el fondo; sobre blanco, una fotografía de fondo claro se
-  // desangraba en la ventana. El anillo va por dentro (ring-inset), así que no
-  // mueve ni la geometría del marco ni la proporción de la imagen.
   // EL RECORTE SE MUDA DEL MARCO A LAS CAPAS. Sin física, el marco recorta y
   // redondea las tres a la vez con su overflow-hidden. Con física ese recorte
   // es justo lo que impedía que la carta saliera de cuadro, así que se apaga
@@ -912,25 +994,7 @@ export function VisorBaraja({
   // sangre dentro de ellos.
   const recorteCapa = conFisica ? "overflow-hidden rounded-2xl" : "";
 
-  const piel = claro
-    ? {
-        ventanaFondo: "bg-white text-tierra",
-        cierre:
-          "bg-tierra/8 text-tierra hover:bg-tierra/15 focus-visible:outline-dune-deep!",
-        marco: "ring-1 ring-tierra/15 ring-inset",
-        flecha:
-          "text-tierra/70 hover:text-tierra focus-visible:outline-dune-deep!",
-        pista: "text-tierra/70",
-      }
-    : {
-        ventanaFondo: "bg-tierra text-shell-lift",
-        cierre:
-          "bg-shell-lift/10 text-shell-lift hover:bg-shell-lift/20 focus-visible:outline-shell-lift!",
-        marco: "",
-        flecha:
-          "text-shell-lift/70 hover:text-shell-lift focus-visible:outline-shell-lift!",
-        pista: "text-shell-lift/55",
-      };
+  const piel = PIELES[fondo];
 
   return (
     <dialog
@@ -1201,7 +1265,7 @@ export function VisorBaraja({
               type="button"
               onClick={() => mover(-1)}
               disabled={i === 0}
-              className={`inline-flex size-11 shrink-0 items-center justify-center transition-opacity duration-150 disabled:opacity-25 focus-visible:outline-2 focus-visible:outline-offset-2 ${piel.flecha}`}
+              className={`inline-flex shrink-0 items-center justify-center transition-opacity duration-150 disabled:opacity-25 focus-visible:outline-2 focus-visible:outline-offset-2 ${piel.flechaCaja} ${piel.flecha}`}
             >
               <svg
                 aria-hidden="true"
@@ -1222,7 +1286,7 @@ export function VisorBaraja({
               type="button"
               onClick={() => mover(1)}
               disabled={i === laminas.length - 1}
-              className={`inline-flex size-11 shrink-0 items-center justify-center transition-opacity duration-150 disabled:opacity-25 focus-visible:outline-2 focus-visible:outline-offset-2 ${piel.flecha}`}
+              className={`inline-flex shrink-0 items-center justify-center transition-opacity duration-150 disabled:opacity-25 focus-visible:outline-2 focus-visible:outline-offset-2 ${piel.flechaCaja} ${piel.flecha}`}
             >
               <svg
                 aria-hidden="true"
@@ -1239,15 +1303,22 @@ export function VisorBaraja({
 
             {/* La pista de deslizamiento, en la voz de uso de la página. Se
                 desvanece por opacidad al primer gesto, así que nada se mueve de
-                sitio. */}
-            <span
-              aria-hidden="true"
-              className={`ml-auto text-[11px] uppercase tracking-[0.25em] transition-opacity duration-300 ${piel.pista} ${
-                pista ? "opacity-100" : "opacity-0"
-              }`}
-            >
-              Desliza
-            </span>
+                sitio.
+
+                SOLO EN LA PIEL OSCURA. La galería de /menu lleva ahora ese
+                mismo rótulo FIJO y centrado en su pie, en el sitio donde estaba
+                el contador, así que aquí duplicaría la palabra en el mismo
+                renglón. */}
+            {piel.conPista && (
+              <span
+                aria-hidden="true"
+                className={`ml-auto text-[11px] uppercase tracking-[0.25em] transition-opacity duration-300 ${piel.pista} ${
+                  pista ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                Desliza
+              </span>
+            )}
           </div>
 
           {/* Región viva: anuncia el cambio de lámina a lectores de pantalla,
