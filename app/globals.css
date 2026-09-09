@@ -1773,3 +1773,187 @@ body {
   mask-repeat: repeat, no-repeat;
   mask-composite: intersect;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   /menu/tratamientos — LA VERSIÓN CLARA
+
+   Todo lo de abajo es exclusivo de esa ruta y va con prefijo `trat-`. Nada de
+   aquí lo consume /menu, la landing ni la galería: se agregó al final del
+   archivo sin tocar ninguna regla anterior.
+
+   Es la única pantalla del sitio con paleta clara, y es deliberado. Donde el
+   resto del sitio pone cristal ahumado sobre fotografía oscura, aquí va vidrio
+   esmerilado luminoso sobre fotografía clara, con la tinta invertida: tierra y
+   casa en vez de crema.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* EL VELO DEL FONDO. La fotografía (/back3tratamientos.jpeg) es un macro de gel
+   sobre blanco: luminosidad muy alta, brillos especulares y remolinos con mucho
+   contraste LOCAL. El problema no es que sea clara -- la tinta oscura encima
+   agradece eso -- sino que su varianza cae justo debajo del texto, y que sin
+   nada encima el vidrio de las ventanas no tiene de dónde despegarse.
+
+   POR QUÉ ATENÚA Y NO OSCURECE. El velo no es negro ni gris: son los dos tonos
+   claros de la paleta, shell y shell-lift, en un degradado vertical. Sube el
+   piso a un blanco cálido parejo y comprime el recorrido de la fotografía sin
+   bajarle la luminancia media, así que el carácter luminoso queda intacto.
+
+   LA OPACIDAD NO LLEGA AL 100% A PROPÓSITO. Con el velo opaco el fondo sería un
+   color plano y el desenfoque de las ventanas no tendría nada que desenfocar:
+   el vidrio esmerilado se vería como plástico liso. Entre 58 y 74% la textura
+   del gel sigue leyéndose por debajo, atenuada, y el backdrop-filter tiene
+   material con el que trabajar.
+
+   Es más denso en la franja central (74%) porque ahí es donde caen los brillos
+   más fuertes de la fotografía, y más abierto arriba y abajo. */
+.trat-velo {
+  background-image: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--color-shell) 58%, transparent) 0%,
+    color-mix(in oklab, var(--color-shell-lift) 74%, transparent) 46%,
+    color-mix(in oklab, var(--color-shell-lift) 70%, transparent) 72%,
+    color-mix(in oklab, var(--color-shell) 64%, transparent) 100%
+  );
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   LA VENTANA DE VIDRIO. La usan las cinco fotografías de tratamiento y la
+   pieza de cierre, para que el final se lea como parte del mismo sistema.
+
+   TRES CAPAS Y CADA UNA HACE UNA COSA:
+
+   1. El cuerpo: blanco al 46% con desenfoque de fondo. El 46% es el punto en el
+      que el vidrio se despega del fondo sin volverse una superficie opaca --
+      por debajo del 35% la ventana desaparecía contra el velo, y por encima del
+      60% el desenfoque dejaba de percibirse porque ya casi no pasaba fondo.
+   2. El contorno (::before): 1px en diagonal, de blanco casi puro en la esquina
+      superior izquierda a un rastro de clay en la inferior derecha. Un contorno
+      blanco parejo sobre fondo claro es invisible; el degradado lo hace legible
+      en el lado donde el fondo se oscurece y lo deja desaparecer en el otro.
+   3. La sombra: muy abierta, muy tenue y desplazada hacia abajo. Es lo que
+      levanta la ventana del fondo. En tierra al 45%, no en negro: una sombra
+      neutra sobre esta paleta cálida se ve gris y sucia.
+
+   El brillo interior del canto superior (el primer inset del box-shadow) es el
+   reflejo del filo del vidrio. Un píxel, blanco al 70%.
+   ─────────────────────────────────────────────────────────────────────────── */
+.trat-ventana {
+  position: relative;
+  /* Esquinas generosas: 28px en móvil, 32 desde sm. El radio grande es parte
+     del carácter -- una ventana de cantos duros se lee como un recuadro de
+     interfaz, no como una lámina de vidrio. */
+  border-radius: 1.75rem;
+  /* overflow-hidden es lo que recorta la fotografía con el radio del panel, así
+     que la imagen no necesita radio propio ni puede asomar por las esquinas. */
+  overflow: hidden;
+  background-color: color-mix(in oklab, white 46%, transparent);
+  -webkit-backdrop-filter: blur(16px) saturate(1.08);
+  backdrop-filter: blur(16px) saturate(1.08);
+  box-shadow:
+    inset 0 1px 0 0 color-mix(in oklab, white 70%, transparent),
+    0 24px 48px -32px color-mix(in oklab, var(--color-tierra) 45%, transparent),
+    0 4px 12px -8px color-mix(in oklab, var(--color-tierra) 22%, transparent);
+}
+
+@media (min-width: 640px) {
+  .trat-ventana {
+    border-radius: 2rem;
+  }
+}
+
+.trat-ventana::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background-image: linear-gradient(
+    145deg,
+    color-mix(in oklab, white 92%, transparent) 0%,
+    color-mix(in oklab, white 55%, transparent) 42%,
+    color-mix(in oklab, var(--color-clay) 26%, transparent) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* EL CANTO DE LA FOTOGRAFÍA. Un fundido de 40px donde la imagen se encuentra
+   con el vidrio, para que no haya un corte duro entre los dos materiales.
+
+   La dirección cambia con el ancho y NO con un prefijo `lg:` de Tailwind: las
+   variantes de Tailwind solo se generan para utilidades que conoce, y estas son
+   reglas propias. Por debajo de 1024px la foto va arriba y el fundido cae en su
+   canto inferior; desde 1024 la foto va a un costado y el fundido pasa al canto
+   que toca la columna de texto. */
+.trat-foto-canto {
+  background-image: linear-gradient(
+    to bottom,
+    transparent 78%,
+    color-mix(in oklab, white 34%, transparent) 100%
+  );
+}
+
+@media (min-width: 1024px) {
+  .trat-foto-canto-der {
+    background-image: linear-gradient(
+      to right,
+      transparent 82%,
+      color-mix(in oklab, white 34%, transparent) 100%
+    );
+  }
+
+  .trat-foto-canto-izq {
+    background-image: linear-gradient(
+      to left,
+      transparent 82%,
+      color-mix(in oklab, white 34%, transparent) 100%
+    );
+  }
+}
+
+/* LA PASTILLA DE CONTORNO en claro. La usan los accesos discretos: el WhatsApp
+   de cada una de las cinco ventanas, el CTA del panel de escritorio y el botón
+   de regreso del encabezado.
+
+   Es de contorno y no de relleno a propósito: el único relleno saturado de la
+   página es el CTA del cierre, y que sea el único es lo que lo vuelve el punto
+   focal. Su tinta es dune-deep, que sobre este vidrio mide 5.9:1 -- por encima
+   del mínimo AA de 4.5 para texto chico. dune a secas no: mide 4.29 y CLAUDE.md
+   lo prohíbe expresamente para texto pequeño. */
+.trat-pastilla {
+  border: 1px solid color-mix(in oklab, var(--color-clay) 45%, transparent);
+  background-color: color-mix(in oklab, white 55%, transparent);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.trat-pastilla:hover {
+  background-color: color-mix(in oklab, white 78%, transparent);
+  border-color: color-mix(in oklab, var(--color-clay) 70%, transparent);
+}
+
+/* LA BARRA FIJA DE MÓVIL, rematerializada. Mismo sitio y mismo comportamiento
+   que la barra oscura que tenía esta pantalla; lo que cambia es de qué está
+   hecha: vidrio blanco con desenfoque y una regla de clay arriba, en vez del
+   negro al 40% con borde blanco.
+
+   El desenfoque es más fuerte aquí que en las ventanas (20px contra 16) porque
+   la barra se superpone al contenido que pasa por debajo al desplazarse, no
+   solo al fondo: necesita separar dos capas de tinta, no una. */
+.trat-barra {
+  border-top: 1px solid color-mix(in oklab, var(--color-clay) 40%, transparent);
+  background-color: color-mix(in oklab, white 72%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(1.1);
+  backdrop-filter: blur(20px) saturate(1.1);
+}
