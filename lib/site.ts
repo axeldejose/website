@@ -7,8 +7,7 @@ export const site = {
   whatsapp: "5215570715376",
   social: {
     tiktok: "https://www.tiktok.com/@axeldejose.hairartist",
-    // TODO: verificar que este handle de Instagram exista.
-    instagram: "https://www.instagram.com/axeldejose.hairartist",
+    instagram: "https://www.instagram.com/axeldejose/",
   },
 };
 
