@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { site } from "@/lib/site";
+import { site, waLink } from "@/lib/site";
 
 // EL CIERRE DE /menu/tratamientos, en tres tiempos y de más aire a más acción.
 //
@@ -9,11 +9,15 @@ import { site } from "@/lib/site";
 // rompería lo que la página entera sostiene.
 //
 //   1. La firma editorial. Texto suelto sobre el fondo, sin superficie.
-//   2. La ventana de cierre, en el mismo vidrio claro de los cinco
-//      tratamientos, para que el final se lea como parte del sistema y no como
-//      un pie pegado al último bloque.
-//   3. La barra fija de móvil, rematerializada en claro (vive en la página, no
-//      aquí, porque va fija al viewport y no al flujo de esta pieza).
+//   2. La ventana de conversión: la invitación, las tres preguntas y el botón
+//      de WhatsApp, que es la única acción de toda la página.
+//   3. La ventana de referencia: los dos enlaces de navegación, la ubicación y
+//      la nota de precios, en el lenguaje del pie de /menu -- superficie oscura
+//      y translúcida, cápsulas de contorno y ubicación al canto derecho.
+//
+// LA PRIMERA VA EN EL VIDRIO CLARO de los cinco tratamientos y la segunda en
+// oscuro. Ese contraste de material es lo que separa la acción de la
+// referencia: no hay que leer para saber cuál es cuál.
 //
 // ─── EL RITMO VERTICAL, CALIBRADO ───────────────────────────────────────────
 // El bloque venía con el aire de cuando el cierre era el final de una página
@@ -42,6 +46,22 @@ export function CierreTratamientos() {
           Dos voces, una oración cada una, sin contenedor ni contorno. Es el
           mismo mecanismo que cierra /menu, invertido en tono: allá crema sobre
           oscuro, aquí tinta sobre claro.
+
+          ─── CAMBIÓ EL TEXTO Y CON ÉL LA CONSTRUCCIÓN ────────────────────
+          Antes eran dos voces sueltas y centradas -- una línea de cuerpo y una
+          cursiva más grande debajo --. Ahora es la misma construcción que el
+          titular de la página: primera línea en la redonda de la serif de
+          display, segunda debajo en su cursiva y desplazada, con interlineado
+          ajustado y sin margen entre ellas.
+
+          SE ALINEÓ A LA IZQUIERDA, y no es un cambio suelto: un desplazamiento
+          solo se lee si las dos líneas comparten un eje. Centrada, la segunda
+          línea corrida habría parecido un error de composición en vez de un
+          escalón.
+
+          ES UN SUBTÍTULO, NO UN TITULAR, y eso lo dicen dos palancas a la baja:
+          22px contra los 55.3 del titular de la página -- el 40% -- y peso 400
+          contra su 500. La construcción es la misma; el rango, no.
 
           LAS DOS LÍNEAS VAN EN `tierra`, y la primera no siempre fue así.
           Estaba en `casa`, el tono de apoyo, y sobre este fondo no se sostenía:
@@ -91,64 +111,54 @@ export function CierreTratamientos() {
 
           En 360x800 la cuenta cierra igual: progreso en 667, barra en 722, y 56
           deja la firma en 723. */}
-      <p className="trat-firma mt-14 text-center">
-        <span className="block text-[0.9375rem] leading-[1.15] tracking-[0.06em] text-dune-deep">
-          Tu cabello me dice qué necesita.
-        </span>
-        <span className="block font-display text-[1.65rem] italic leading-[1.02] tracking-[0.015em] text-dune-deep">
-          Yo solo lo entiendo.
+      <p className="trat-firma trat-subtitulo mt-7 text-center">
+        {/* EL ENVOLTORIO ES `inline-block` Y ES LO QUE PERMITE LAS DOS COSAS A
+            LA VEZ: por dentro las dos líneas comparten eje izquierdo y la
+            segunda va sangrada, que es lo que hace legible el escalón; por
+            fuera el envoltorio mide lo que la línea más ancha y el `text-center`
+            del párrafo lo centra en la columna. Centrar cada línea por separado
+            habría borrado el desplazamiento. */}
+        <span className="inline-block text-left">
+          <span className="block">Llevo años aprendiendo</span>
+          <span className="block italic">a leer lo que el cabello necesita.</span>
         </span>
       </p>
 
-      {/* ─── 2. LA VENTANA DE CIERRE ───────────────────────────────────────
-          REDISEÑADA. Antes era un contenedor con cinco cosas al mismo nivel --
-          título, párrafo, botón, enlace, ubicación y nota de precios -- y sin
-          jerarquía entre ellas: al leerla no se sabía qué había que hacer.
+      {/* ─── 2. LA VENTANA DE CONVERSIÓN ──────────────────────────────────
+          SE PARTIÓ EN DOS. Antes era una sola ventana con las preguntas arriba
+          y una zona terracota abajo que cargaba con todo lo demás: los dos
+          enlaces de navegación, la ubicación y la nota de precios. Eso mezclaba
+          dos cosas que no se parecen -- una invitación a escribir y un pie de
+          referencia -- dentro de la misma caja.
 
-          DEJÓ DE TENER ACCIÓN PROPIA. El botón sólido de WhatsApp que vivía
-          aquí duplicaba literalmente el de la barra fija, con el mismo texto y
-          a menos de 90px de distancia. La única acción visible de la pantalla
-          vuelve a ser la barra.
+          Ahora son dos ventanas. Esta concentra la conversión y la secuencia se
+          lee de corrido: no tienes que saber -> cuéntame estas tres cosas ->
+          escríbeme. El botón es el final de esa frase, no un elemento suelto.
 
-          SU TRABAJO AHORA ES OTRO: bajar la fricción de escribir. Mucha gente
-          no contacta porque no sabe qué decir, así que la ventana no pide la
-          acción -- de eso se encarga la barra -- sino que le quita el obstáculo:
-          dice con qué empezar.
-
-          TRES NIVELES DE LECTURA, y ninguno compite con otro:
-
-            1. El titular, en la display serif. Lo que domina.
-            2. Las tres pistas de qué contar. Es el contenido, y lo que resuelve
-               el "no sé qué decir".
-            3. Debajo de una regla: la navegación (el enlace al color) y, por
-               último y agrupada, la información de referencia (ubicación y nota
-               de precios). Esas dos últimas van juntas porque son la misma
-               clase de dato -- contexto, no acción -- y estaban compitiendo por
-               estar sueltas y al mismo tamaño que todo lo demás.
-
-          LO DISCRETO SE CONSIGUE CON CUERPO Y AGRUPACIÓN, NO CON TONO. La
-          tentación era aclarar la nota de precios, pero el texto pequeño sobre
-          esta superficie ya va justo de contraste: bajarle el tono la habría
-          sacado del mínimo AA. Baja de 13 a 11px y se agrupa con la ubicación;
-          el tono se queda en `casa`. */}
-      <div className="trat-ventana mt-7">
-        {/* LA ZONA ALTA. Va con su propio relleno porque el pie de abajo tiene
-            que llegar a los cantos de la ventana, y un relleno común se lo
-            habría impedido. */}
-        <div className="px-6 pt-6 pb-6 sm:px-8 lg:px-9 lg:pt-8">
-          <p className="font-display text-[1.375rem] leading-snug tracking-tight text-dune-deep">
-            El tuyo lo definimos hablando.
+          Y ES LA ÚNICA ACCIÓN DE LA PÁGINA. La barra fija de WhatsApp que
+          flotaba al pie se retiró: repetía esta misma acción a media pantalla de
+          distancia y sin el contexto que la hace fácil de usar. */}
+      <div className="trat-ventana mt-[27px]">
+        <div className="px-6 py-6 text-center sm:px-8 lg:px-9 lg:py-8">
+          {/* EL TITULAR QUITA EL PESO DE ENCIMA ANTES DE PEDIR NADA. El anterior
+              -- "El tuyo lo definimos hablando" -- no decía qué hacer ni a qué
+              invitaba. Este dice primero que la clienta no tiene que saber,
+              después que la tarea es de Axel, y solo entonces pide. Copy
+              aprobada por el PM. */}
+          {/* EL ENVOLTORIO `inline-block` es lo que permite centrar el bloque
+              conservando el escalón: por dentro las dos líneas comparten eje
+              izquierdo y la primera va sangrada; por fuera el envoltorio mide lo
+              que la línea más ancha y el `text-center` de la zona lo centra.
+              Centrar cada línea por separado habría borrado el desplazamiento. */}
+          <p className="trat-frase">
+            <span className="inline-block text-left">
+              <span className="block">No tienes que saber</span>
+              <span className="block italic">qué necesita tu cabello.</span>
+            </span>
           </p>
 
-          {/* LA ENTRADA Y LAS TRES PISTAS. Copy aprobada por el PM.
-
-              La entrada dice primero quién decide -- "yo te digo cuál
-              necesitas" -- y solo después pide algo. Ese orden es lo que le
-              quita el peso de encima a la clienta antes de pedirle nada: no
-              tiene que saber elegir, tiene que contar. El "solo" delante de
-              "cuéntame" remata esa idea: lo que se le pide es poco. */}
           <p className="mt-3 text-sm leading-relaxed text-dune-deep">
-            Yo te digo cuál necesitas. Solo cuéntame:
+            Para eso estoy yo. Cuéntame tres cosas:
           </p>
 
           <ul className="trat-pistas">
@@ -158,59 +168,105 @@ export function CierreTratamientos() {
           </ul>
         </div>
 
-        {/* ─── EL PIE, EN VIDRIO TERRACOTA ─────────────────────────────────
-            Va a ancho completo de la ventana y sin esquinas propias: el
-            `overflow: hidden` de .trat-ventana lo recorta contra su radio, así
-            que cierra los dos cantos inferiores sin que haya dos curvas que
-            cuadrar.
+        {/* ─── EL BOTÓN, Y AHORA SÍ EN RELLENO SATURADO ──────────────────
+              Conserva la anatomía de la barra que sustituye -- logotipo en
+              círculo, divisor vertical, versalita espaciada centrada y flecha --
+              porque es la misma acción y tiene que reconocerse como tal. Lo que
+              se invierte es el tono.
 
-            LA REGLA DIVISORIA QUE HABÍA AQUÍ SE FUE. Separaba dos zonas que se
-            veían iguales; ahora el cambio de superficie es el que separa, y una
-            línea encima de ese cambio habría sido decir lo mismo dos veces. Lo
-            que queda es el filo claro de un píxel del canto superior del pie,
-            que es lo que dibuja el encuentro entre las dos superficies. */}
-        <div className="trat-pie">
-          {/* DE ENLACE SUBRAYADO A BOTÓN. Sobre el terracota, un enlace
-              subrayado en el mismo terracota habría desaparecido; y un botón
-              relleno habría competido con la barra fija de WhatsApp, que es la
-              única acción sólida de la pantalla. De contorno claro y texto
-              claro: se distingue del fondo sin disputarle el papel a la barra. */}
-          {/* EL PAR DE BOTONES. Mismo tratamiento en los dos -- contorno
-              claro, versalita espaciada y flecha -- para que se lean como una
-              pareja y no como una acción con un apéndice. Alineados a la
-              izquierda de la zona terracota y con un hueco que los separa sin
-              soltarlos.
+              La barra iba en vidrio claro porque flotaba sobre la fotografía y
+              tenía toda la pantalla para pesar. Aquí vive DENTRO de una ventana
+              de vidrio claro, y vidrio sobre vidrio se lee turbio: no hay
+              contraste de superficie entre los dos. En terracota macizo se
+              despega de la ventana de un vistazo.
 
-              `flex-wrap` es el seguro para pantallas muy estrechas: en un móvil
-              estándar entran los dos en la misma línea (medido), y por debajo de
-              ese ancho el segundo baja en vez de encimarse. */}
-          <div className="trat-botonera">
-            <Link href="/menu" className="trat-boton">
-              Diseños de color
-              <span aria-hidden="true" className="trat-boton-flecha">
-                ↗
-              </span>
-            </Link>
+              Y hay una segunda razón, de página entera: al quitarle el fondo
+              terracota a la ventana de referencia, este botón queda como el
+              único relleno saturado que hay. Ese era el papel de la barra y es
+              lo que mantiene una sola cosa evidente por pantalla. */}
+          <a
+            href={waLink(
+              "Hola Axel, vi tus tratamientos y quiero agendar una cita.",
+            )}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="trat-wa-boton"
+          >
+            <span className="trat-wa-texto">Escríbeme por WhatsApp</span>
 
-            {/* Lleva a la portada, que es donde Axel se presenta. La biografía
-                completa vive en el modal de components/ConoceMas.tsx, que es
-                compartido con /menu y la landing y trae su propio tratamiento
-                oscuro: reusarlo aquí habría significado o modificarlo o pelear
-                con sus clases. Está reportado. */}
-            <Link href="/" className="trat-boton">
-              Sobre Axel
-              <span aria-hidden="true" className="trat-boton-flecha">
-                ↗
-              </span>
-            </Link>
+            <span aria-hidden="true" className="trat-wa-flecha">
+              →
+            </span>
+          </a>
+      </div>
+
+      {/* ─── 3. LA VENTANA DE REFERENCIA, EN OSCURO ───────────────────────
+          VUELVE A LA PALETA CLARA. Estuvo en café oscuro, copiando el pie de
+          /menu, y ahí estaba el error: esta página es la versión clara de la
+          marca y el café no se usa aquí. Lo que se conserva de aquel es la
+          construcción -- cápsulas de contorno, ubicación al canto derecho, nota
+          debajo --, no el material.
+
+          NO LLEVA LA FRANJA DE WHATSAPP que aquel remata abajo: la conversión
+          vive entera en la ventana de arriba, y repetirla aquí era justo lo que
+          se quitó al retirar la barra fija.
+
+          ─── CÓMO SE DISTINGUE DE LA PRIMERA SIN OSCURECERSE ────────────────
+          Dos vidrios claros idénticos se leerían como una ventana partida en
+          dos, así que hacen falta diferenciadores, y uno solo no basta. Van
+          tres, todos en la dirección de MENOS MATERIA: menos densidad de
+          superficie, contorno dibujado en vez de sombra, y sin elevación. Las
+          cifras están en globals.css.
+
+          La jerarquía queda en el orden correcto sin tocar el tono: la pieza
+          que pide la acción tiene más materia y la que da referencia tiene
+          menos. El terracota sigue siendo acento -- las flechas y la ubicación
+          --, no superficie.
+
+          `.pastilla-contorno` ya no se usa aquí: está calibrada para fondos
+          oscuros. Las cápsulas pasan a la variante clara de esta página. */}
+      <div className="trat-cierre-claro mt-4">
+        <div className="px-6 pt-5 pb-4 sm:px-8">
+          {/* ─── LA BANDA DE ARRIBA, EN DOS COLUMNAS ────────────────────────
+              Las dos cápsulas se APILAN en la columna izquierda en vez de ir en
+              fila, y eso es lo que libera el ancho que la ubicación necesitaba.
+              Antes iban una al lado de otra, la ubicación no entraba en ese
+              renglón y caía al siguiente pegada a la derecha: el costado
+              izquierdo se quedaba vacío justo ahí.
+
+              Ahora los dos costados están ocupados en toda la altura del
+              bloque. La ubicación se centra verticalmente contra el par. */}
+          <div className="trat-cierre-fila">
+            <div className="trat-cierre-enlaces">
+              <Link href="/menu" className="trat-pastilla-clara">
+                Diseños de color
+                <span aria-hidden="true" className="trat-pastilla-flecha">
+                  →
+                </span>
+              </Link>
+
+              {/* Lleva a la portada, que es donde Axel se presenta. La
+                  biografía completa vive en el modal de ConoceMas.tsx. */}
+              <Link href="/" className="trat-pastilla-clara">
+                Sobre Axel
+                <span aria-hidden="true" className="trat-pastilla-flecha">
+                  →
+                </span>
+              </Link>
+            </div>
+
+            {/* Zona, nunca dirección: sale de lib/site.ts. */}
+            <p className="trat-cierre-lugar">{site.location}</p>
           </div>
 
-          <div className="trat-referencia">
-            <p>{site.location}</p>
-            <p>
-              Precios en pesos mexicanos. Sujetos a cambios sin previo aviso.
-            </p>
-          </div>
+          {/* La regla separa la banda de acción de la nota, que es de otra
+              clase: aquello son enlaces y un dato de contacto, esto una
+              aclaración legal. */}
+          <span aria-hidden="true" className="trat-cierre-regla" />
+
+          <p className="trat-cierre-nota">
+            Precios en pesos mexicanos. Sujetos a cambios sin previo aviso.
+          </p>
         </div>
       </div>
     </>

@@ -53,14 +53,20 @@ export default function TratamientosClaroLayout({
           es donde vive la tinta pequeña. La textura conserva el dorado en el
           tercio derecho y de la ficha para abajo. Las cifras y por qué son esas
           están en globals.css. */}
+      {/* `sizes="50vw"` PIDE LA MITAD DEL ANCHO Y NO EL ANCHO ENTERO, y es el
+          desenfoque el que lo permite: con 26px de blur encima, la diferencia
+          entre servir la imagen a 1200 de ancho o a 640 no se ve en ningún
+          píxel. A cambio, en un teléfono de 390 con DPR 3 el navegador baja
+          640w en vez de 1200w, así que el filtro -- la única pieza cara de
+          todo el efecto -- trabaja sobre una cuarta parte de los píxeles. */}
       <div className="fixed inset-0 -z-10">
         <Image
           src="/back5tratamientos.jpeg"
           alt=""
           fill
           priority
-          sizes="100vw"
-          className="object-cover"
+          sizes="50vw"
+          className="trat-fondo-foto object-cover"
         />
         <div aria-hidden="true" className="trat-velo absolute inset-0" />
         <div aria-hidden="true" className="trat-velo-texto absolute inset-0" />
@@ -85,6 +91,33 @@ export default function TratamientosClaroLayout({
           <span className="trat-gota trat-gota-1" />
           <span className="trat-gota trat-gota-2" />
           <span className="trat-gota trat-gota-3" />
+
+          {/* ─── EL GRANO DE LOS EXTREMOS ────────────────────────────────
+              Catorce gotas de 7 a 11px por los cantos y la banda superior.
+              Estas SÍ pueden ir todas aquí, aunque la capa cubra el documento
+              entero y las de más abajo caigan lejos del encabezado: sus
+              verticales van en porcentaje del alto del contenedor, así que se
+              reparten solas cuando la carta cambia de tamaño con el dvh. Las
+              cuatro grandes no podían -- las suyas van en píxeles -- y por eso
+              una de ellas sigue colgando de un ancla en el flujo.
+
+              Sus coordenadas horizontales caben en el carril de 16px que deja
+              la barra fija de WhatsApp por cada canto; el porqué está en
+              globals.css. */}
+          <span className="trat-gota trat-gota-mini trat-gota-m1" />
+          <span className="trat-gota trat-gota-mini trat-gota-m2" />
+          <span className="trat-gota trat-gota-mini trat-gota-m3" />
+          <span className="trat-gota trat-gota-mini trat-gota-m4" />
+          <span className="trat-gota trat-gota-mini trat-gota-m5" />
+          <span className="trat-gota trat-gota-mini trat-gota-m6" />
+          <span className="trat-gota trat-gota-mini trat-gota-m7" />
+          <span className="trat-gota trat-gota-mini trat-gota-m8" />
+          <span className="trat-gota trat-gota-mini trat-gota-m9" />
+          <span className="trat-gota trat-gota-mini trat-gota-m10" />
+          <span className="trat-gota trat-gota-mini trat-gota-m11" />
+          <span className="trat-gota trat-gota-mini trat-gota-m12" />
+          <span className="trat-gota trat-gota-mini trat-gota-m13" />
+          <span className="trat-gota trat-gota-mini trat-gota-m14" />
         </div>
 
         {children}

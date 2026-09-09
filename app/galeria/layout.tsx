@@ -1,32 +1,24 @@
-import Image from "next/image";
-
-// Mismo fondo que /menu: la fotografía fija con su oscurecimiento, para que las
-// dos pantallas se sientan la misma casa. Va duplicado a propósito y no
-// extraído a un componente compartido: /menu/layout.tsx además arma la retícula
-// de dos columnas y la barra fija de WhatsApp, que aquí no aplican, y un
-// componente que reciba todo eso por props sería más difícil de leer que estas
-// doce líneas.
+// EL FONDO CLARO DE /galeria. Es la segunda pantalla clara del sitio, junto con
+// /menu/tratamientos, y eso es deliberado: la galería es exploración abierta,
+// no carta de servicios.
 //
-// La diferencia con /menu es el contenedor: aquí NO hay uno horizontal. El
-// carrusel tiene que llegar a los cantos de la pantalla, así que cada bloque de
-// la página resuelve su propio ancho -- el encabezado con su max-w-6xl, el
-// carrusel a sangre --, y este layout solo aporta el fondo y el aire vertical.
+// NO LLEVA FOTOGRAFÍA DE FONDO, y ahí se separa de tratamientos. Aquella tiene
+// una textura desenfocada porque su contenido son cinco tarjetas sobre mucho
+// aire; aquí el contenido son cincuenta y seis fotografías cubriendo casi toda
+// la pantalla, y una imagen debajo competiría con ellas además de costar un
+// desenfoque a pantalla completa que nadie llegaría a ver. El fondo es un
+// degradado plano de la paleta: barato, quieto y sin nada que disputarle al
+// tablero.
+//
+// SIGUE SIN CONTENEDOR HORIZONTAL, como antes: cada bloque resuelve su propio
+// ancho. El encabezado y el cierre se ciñen a max-w-6xl y el tablero llega casi
+// a los cantos.
 export default function GaleriaLayout({ children }: LayoutProps<"/galeria">) {
   return (
     <>
-      <div className="fixed inset-0 -z-10">
-        <Image
-          src="/back-servicios.jpeg"
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/55 to-black/70" />
-      </div>
+      <div aria-hidden="true" className="gal-fondo fixed inset-0 -z-10" />
 
-      <div className="min-h-dvh min-w-0 pt-8 pb-16 lg:pt-16">{children}</div>
+      <div className="min-h-dvh min-w-0 pt-8 pb-12 lg:pt-16">{children}</div>
     </>
   );
 }

@@ -2093,7 +2093,7 @@ body {
   display: block;
   width: 4px;
   height: 4px;
-  margin: 0.625rem auto 0;
+  margin: 0.625rem 0 0;
   border-radius: 999px;
   background-color: var(--color-dune);
 }
@@ -2121,21 +2121,126 @@ body {
   position: relative;
 }
 
+/* ─── EL SUBTÍTULO DEL CIERRE ──────────────────────────────────────────────
+   Comparte con el titular de la página todo lo que define su construcción: la
+   serif de display, dos líneas con la segunda en cursiva y desplazada,
+   interletrado cerrado en -0.056em e interlineado ajustado sin margen entre
+   renglones.
+
+   Y queda subordinado por las dos palancas que no comparte: 1.375rem contra los
+   3.46rem del titular a 390px, y peso 400 contra su 500.
+
+   EL DESPLAZAMIENTO VA POR LA IZQUIERDA, como en la frase de la ventana de
+   conversión y por la misma razón: "a leer lo que el cabello necesita." es MÁS
+   LARGA que la primera línea, así que el volado por la derecha del titular no
+   la desplazaría, la alinearía al canto. La sangría da el mismo escalón en el
+   sentido que esta frase permite.
+
+   0.9em son 19.8px a este cuerpo. La segunda línea mide 272 y en la columna más
+   estrecha -- 312px en un teléfono de 360 -- la suma da 292: entra sin
+   partirse. */
+.trat-subtitulo {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 400;
+  line-height: 1.06;
+  letter-spacing: -0.056em;
+  /* ─── EN `tierra` Y NO EN `dune-deep`, POR DOS RAZONES QUE COINCIDEN ─────
+     La de medida: en terracota la primera línea caía a 4.41 en el tramo medio
+     del scroll, y el velo local no da más sin volverse una mancha visible. La
+     fotografía de fondo es fija y la frase se desplaza por encima, así que
+     puede caer en cualquier franja; solo el tono más oscuro de la paleta
+     aguanta el peor punto.
+
+     Y la de composición: este subtítulo replica la construcción del titular de
+     la página, y aquel va en `tierra`. Compartir tinta refuerza el parentesco
+     que se pidió. El rango lo siguen marcando el cuerpo y el peso, no el
+     color. */
+  color: var(--color-tierra);
+}
+
+/* ─── LA SANGRÍA CAMBIA DE LÍNEA, Y ESO ES LO QUE EQUILIBRA EL BLOQUE ───────
+   Estaba en la SEGUNDA línea, que es la larga. Sangrar la larga empuja su
+   remate todavía más a la derecha mientras las dos arrancan casi en el mismo
+   sitio: el costado derecho quedaba lleno y el izquierdo vacío. Medido, la
+   segunda sobresalía 65px por la derecha y las dos empezaban con 20 de
+   diferencia.
+
+   Ahora la sangría vive en la PRIMERA, que es la corta. La larga define los dos
+   extremos del bloque -- arranca en el canto izquierdo y acaba en el derecho --
+   y la corta queda dentro de ella. Los dos costados se ocupan por igual.
+
+   1.1em Y NO 1.48. El valor que centraría exactamente la primera sobre la
+   segunda es (W2-W1)/2 = 32.5px, o sea 1.48em. Con 1.1 quedan 24px de sangría
+   contra 41 de sobrante por la derecha: equilibrado sin quedar simétrico, que
+   es lo que se pidió.
+
+   ES EL MISMO ESCALÓN DEL TITULAR DE LA PÁGINA, con la dirección invertida
+   porque la relación de largos entre las dos líneas también está invertida.
+   Allá la segunda es más corta y se desplaza a la derecha; aquí la segunda es
+   la larga, así que la que se desplaza es la primera. */
+/* EL SELECTOR APUNTA AL NIETO, no al hijo: dentro de .trat-subtitulo el primer
+   <span> es el ENVOLTORIO del lockup, no la primera línea. Con
+   `span:first-child` la sangría caía en el envoltorio, que es justo lo que no
+   se quiere: ensanchaba la caja por la izquierda -- medido, 305.5 contra los
+   281.3 de las líneas -- y empujaba el bloque 24px a la derecha, dejando las
+   dos líneas arrancando en el mismo sitio y sin escalón ninguno. */
+.trat-subtitulo > span > span:first-child {
+  padding-left: 1.1em;
+}
+
+/* ─── EL CENTRADO ÓPTICO DEL LOCKUP ────────────────────────────────────────
+   La caja del envoltorio SÍ estaba centrada en la columna, y aun así la frase
+   se leía corrida a la izquierda. La razón es que la caja mide lo que la línea
+   más ancha -- la segunda, sangría incluida -- mientras que la primera arranca
+   pegada al canto izquierdo de esa caja. El centro de la MASA de tinta no
+   coincide con el centro de la caja.
+
+   La cuenta sale exacta y no depende de la sangría: el desfase es (W1-W2)/4,
+   donde W1 y W2 son los anchos de tinta de las dos líneas. Medido a 22px,
+   215.9 y 281.3, o sea -16.35px. Dividido por el cuerpo son 0.743em, y va en em
+   para que el centrado se sostenga solo si el cuerpo cambia.
+
+   Se corrige con `translate` y no con un margen: mueve la tinta sin tocar el
+   ancho de la caja, así que el envoltorio sigue midiendo lo que mide y el
+   `text-center` del párrafo sigue haciendo su trabajo.
+
+   YA NO HACE FALTA CORREGIRLO. Con la sangría en la primera línea, la caja del
+   envoltorio mide exactamente lo que la segunda -- que es la que marca los dos
+   extremos --, así que el centro de la caja y el de la tinta coinciden solos.
+   El desplazamiento que había aquí compensaba un desfase que ya no existe. */
+
 .trat-firma::before {
   content: "";
   position: absolute;
   z-index: -1;
   left: 50%;
   top: 50%;
-  width: 100%;
+  /* MÁS ANCHO QUE EL TEXTO, Y AHÍ ESTABA EL FALLO. Con el 100% la elipse
+     terminaba justo en los cantos de la caja, así que los EXTREMOS de cada
+     renglón -- que llegan al 67% del ancho -- caían en el tramo del 22%, casi
+     sin veladura. El peor píxel de la firma nunca estuvo en el centro: estaba
+     en la primera y la última letra.
+
+     Con el 165% esos extremos caen dentro del tramo denso y la elipse muere
+     fuera de la caja, donde no hay texto que proteger.
+
+     ─── Y POR QUÉ HIZO FALTA SUBIRLA AHORA ────────────────────────────────
+     El desenfoque del fondo SUBE el contraste de la tinta clara y lo BAJA el de
+     la oscura, porque promediar acerca todo a la media: los pliegues oscuros
+     suben y los brillos bajan. La firma es lo único de esta pantalla que es
+     tinta oscura sobre una zona sin superficie propia, así que fue la única que
+     lo acusó. Medida en el barrido completo del scroll, la primera línea caía a
+     4.08 a los 60px de desplazamiento. */
+  width: 165%;
   height: 300%;
   translate: -50% -50%;
   pointer-events: none;
   background-image: radial-gradient(
     closest-side,
-    color-mix(in oklab, var(--color-shell-lift) 68%, transparent) 0%,
-    color-mix(in oklab, var(--color-shell-lift) 54%, transparent) 46%,
-    color-mix(in oklab, var(--color-shell-lift) 22%, transparent) 76%,
+    color-mix(in oklab, var(--color-shell-lift) 84%, transparent) 0%,
+    color-mix(in oklab, var(--color-shell-lift) 72%, transparent) 46%,
+    color-mix(in oklab, var(--color-shell-lift) 32%, transparent) 76%,
     transparent 100%
   );
 }
@@ -2148,11 +2253,18 @@ body {
    raya se lee como una enumeración editorial. Va en un pseudo-elemento para que
    no entre en el texto que lee un lector de pantalla, que ya recibe la
    estructura de lista por el marcado. */
+/* LA LISTA SE CENTRA COMO BLOQUE, no renglón a renglón. `inline-flex` hace que
+   su caja mida lo que la pista más larga y el `text-center` de la zona la
+   centre; por dentro, `text-align: left` mantiene las tres rayas alineadas en
+   un mismo eje. Centrar cada pista por separado habría dejado las rayas
+   escalonadas, que es ilegible en una lista. */
 .trat-pistas {
   margin-top: 0.625rem;
-  display: flex;
+  display: inline-flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 0.375rem;
+  text-align: left;
 }
 
 .trat-pistas li {
@@ -2175,172 +2287,6 @@ body {
   width: 10px;
   height: 1px;
   background-color: color-mix(in oklab, var(--color-dune) 75%, transparent);
-}
-
-/* ─── EL PIE DE LA VENTANA, EN VIDRIO TERRACOTA ────────────────────────────
-   Ocupa el ancho completo de la ventana y no lleva radio propio: el
-   `overflow: hidden` de .trat-ventana lo recorta contra su curva, así que
-   cierra los dos cantos inferiores sin que haya dos radios que cuadrar.
-
-   ─── SE OSCURECE EL FONDO EN VEZ DE TAPARLO ───────────────────────────────
-   Esta pieza estuvo mal resuelta y se corrigió midiendo. Antes la veladura era
-   un degradado de terracota al 93-97% de opacidad: a esa densidad solo pasa el
-   3-7% de lo que hay detrás, y el resultado era un bloque plano. Medido sobre el
-   render, la desviación de píxel dentro del pie era de 2.39 contra 29.57 en la
-   zona alta de la misma ventana -- doce veces menos variación, o sea nada de
-   fondo visible.
-
-   Y esa densidad no era un capricho: hacía falta para que el texto crema
-   cumpliera contraste. Detrás del pie está la superficie de la ventana, que es
-   crema y mide una luminancia de 0.75; TAPÁNDOLA con terracota hay que llegar
-   al 92% para que el suelo baje lo suficiente.
-
-   LA SALIDA ES NO TAPARLO, SINO BAJARLE LA LUZ: `brightness(0.22)` dentro del
-   propio backdrop-filter. El fondo no se sustituye por pintura, se oscurece --
-   conserva su estructura, su grano y sus pliegues, escalados -- y sobre esa base
-   ya oscura basta un tinte del 34-44% para teñirlo de terracota. El 60% de lo
-   que se ve sigue viniendo del fondo real en vez de de la pintura, que es la
-   diferencia entre vidrio y pared.
-
-   LOS NÚMEROS SE AJUSTARON MIDIENDO, no calculando, y el modelo sobre el papel
-   falló dos veces:
-
-     - Con brightness 0.4 y un tinte del 34-44%, la superficie quedaba en un
-       valor medio de 140 sobre 255 y el crema encima daba 2.72:1.
-     - Bajar el brightness a 0.22 solo la llevó a 128.5 y a 3.37:1. Es decir que
-       el `brightness` rinde mucho menos de lo que dice su número dentro de esta
-       cadena, porque el `saturate` que va detrás vuelve a subir los canales.
-
-   Haciendo la cuenta al revés desde la medición -- la superficie tiene que
-   quedar en torno a 107 para que el crema llegue a 4.5 --, la palanca que sí
-   responde es el tinte, porque el terracota (valor 85) es MÁS OSCURO que el
-   fondo ya filtrado (156). De ahí el 72-82%.
-
-   Sigue pasando el 27% del fondo, contra el 3-7% de la versión que se veía
-   plana: es lo que mantiene la variación de píxel en el orden de 8-9 frente a
-   los 2.39 de entonces.
-
-   El `saturate(1.8)` compensa lo que el oscurecimiento le quita al color: sin
-   él, a esta luz la escena queda grisácea y el terracota se pierde.
-
-   Completan el material el degradado del tinte, que le da profundidad, y el
-   filo superior de un píxel de crema al 22%, que es el canto iluminado de la
-   lámina y lo que dibuja su encuentro con la zona de arriba. */
-.trat-pie {
-  position: relative;
-  padding: 1.125rem 1.5rem 1.375rem;
-  border-top: 1px solid
-    color-mix(in oklab, var(--color-shell-lift) 30%, transparent);
-  background-image: linear-gradient(
-    to bottom,
-    color-mix(in oklab, var(--color-dune-deep) 72%, transparent),
-    color-mix(in oklab, var(--color-dune-deep) 82%, transparent)
-  );
-  /* EL DESENFOQUE BAJA A 6px, Y ESO TAMBIÉN ESTÁ MEDIDO. Con 14 el propio
-     filtro aplanaba lo que el tinte ya había dejado pasar: el pie mide 130px de
-     alto y un desenfoque de 14 promedia sobre una fracción enorme de esa
-     altura, así que la estructura del fondo se disolvía dentro de la propia
-     lámina. Con 6 sigue siendo vidrio esmerilado y la variación sobrevive. */
-  -webkit-backdrop-filter: blur(6px) saturate(1.8) brightness(0.22);
-  backdrop-filter: blur(6px) saturate(1.8) brightness(0.22);
-  box-shadow: inset 0 1px 0 0
-    color-mix(in oklab, var(--color-shell-lift) 22%, transparent);
-}
-
-/* LA BOTONERA. Los dos botones a la izquierda de la zona terracota, con un
-   hueco que los separa sin soltarlos. `wrap` es el seguro: en un móvil estándar
-   entran en la misma línea y por debajo de ese ancho el segundo baja en vez de
-   encimarse. */
-.trat-botonera {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-/* EL BOTÓN DE CONTORNO. Claro sobre el terracota, no terracota sobre
-   terracota, que era la única forma de que no desapareciera.
-
-   Y DE CONTORNO Y NO DE RELLENO por una razón que viene de más atrás: el único
-   relleno saturado de toda la pantalla es la barra fija de WhatsApp, y que siga
-   siendo el único es lo que la mantiene como LA acción. Este botón es
-   navegación.
-
-   Se ajusta a su contenido -- inline-flex más relleno lateral -- en vez de
-   estirarse a lo ancho. Los 40px de alto más el ::after que estira el área de
-   toque a 44 dan el objetivo táctil sin engordar la pieza. */
-.trat-boton {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-height: 40px;
-  /* 11px de relleno, 10 de cuerpo y 0.12em de interletrado. Los tres números
-     salen de la misma cuenta: el pie deja 294px por dentro y los dos botones
-     tienen que entrar ahí con su hueco. Con el tratamiento original -- 18px de
-     relleno, 11 de cuerpo y 0.2em -- sumaban 349 y el segundo se caía de línea;
-     con estos suman 287 y entran con 7 de sobra. */
-  padding-inline: 0.6875rem;
-  border-radius: 999px;
-  /* EL CONTORNO AL 78% Y NO AL 60. No es texto, así que su mínimo es el 3:1 de
-     los elementos no textuales, pero al 60% el filo se compone contra la
-     superficie terracota y se queda por debajo de eso. Medido, al 78% pasa. */
-  border: 1px solid
-    color-mix(in oklab, var(--color-shell-lift) 78%, transparent);
-  color: var(--color-shell-lift);
-  font-size: 10px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  white-space: nowrap;
-  transition:
-    background-color 150ms ease,
-    border-color 150ms ease;
-}
-
-.trat-boton::after {
-  content: "";
-  position: absolute;
-  inset: -2px 0;
-}
-
-.trat-boton:hover {
-  background-color: color-mix(
-    in oklab,
-    var(--color-shell-lift) 14%,
-    transparent
-  );
-  border-color: var(--color-shell-lift);
-}
-
-.trat-boton-flecha {
-  font-size: 13px;
-  line-height: 1;
-}
-
-/* LA INFORMACIÓN DE REFERENCIA, ahora en claro sobre el terracota. Conserva la
-   jerarquía que ya tenía entre sus dos piezas, y la sigue haciendo el registro
-   y no el tono: la ubicación en versalita espaciada con peso medio se lee como
-   rótulo, y la nota de precios en caja normal y peso regular queda como lo más
-   discreto de la ventana.
-
-   Las dos van en crema PLENO, sin bajarles un punto de opacidad. Sobre una
-   superficie tan cerrada, cualquier transparencia se come el contraste que
-   costó conseguir. */
-.trat-referencia {
-  margin-top: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--color-shell-lift);
-}
-
-.trat-referencia > p:first-child {
-  font-size: 11px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
 }
 
 /* ─── LA BARAJA ─────────────────────────────────────────────────────────────
@@ -2381,7 +2327,27 @@ body {
    insinúa el volumen sin deformar los cantos. */
 .trat-baraja {
   position: relative;
-  height: clamp(260px, calc(100dvh - 470px), 470px);
+  /* ─── `lvh` Y NO `dvh`, Y ESTE CAMBIO ARREGLA UN DEFECTO DE MÓVIL ────────
+     Con `dvh` la carta se dibujaba pequeña al cargar y CRECÍA al desplazar. La
+     causa es qué mide cada unidad: `dvh` es el viewport ACTUAL, así que en un
+     teléfono vale una cosa con la barra de direcciones desplegada y otra
+     cuando el navegador la colapsa al primer scroll. En un iPhone de 390x844
+     esa barra ocupa unos 99px, así que `100dvh - 470` pasaba de 275 a 374 --
+     la carta crecía un 36% -- y además cada colapso de la barra provocaba un
+     recálculo de layout en pleno desplazamiento.
+
+     `lvh` es el viewport GRANDE, el que hay con la barra recogida: un número
+     que no cambia nunca durante la sesión. La carta se dibuja desde el primer
+     fotograma en el tamaño que antes solo alcanzaba después de desplazar, y no
+     hay salto porque no hay nada que recalcular.
+
+     ¿Y NO SE SALE DE LA PANTALLA MIENTRAS LA BARRA ESTÁ VISIBLE? No, y está
+     medido: en 390x844 la carta a tamaño grande mide 374 y la barra de
+     progreso acaba en y=711, mientras que el viewport pequeño -- con la barra
+     de direcciones desplegada -- da 745. Sobran 34px. En 360x780 la cuenta es
+     647 contra 681. La composición de una pantalla se conserva en los dos
+     estados de la barra; lo que se pierde es el salto. */
+  height: clamp(260px, calc(100lvh - 470px), 470px);
   width: 84vw;
   margin-inline: auto;
   perspective: 900px;
@@ -2814,11 +2780,46 @@ body {
    la paleta, porque un precio es información que se lee, no que se insinúa. */
 .trat-banda-precio {
   flex: 0 0 auto;
-  /* 13px Y PESO REGULAR. Es un dato de apoyo, no un titular: confirma el precio
-     de quien ya se interesó por el tratamiento, así que no tiene por qué
-     competir con el nombre ni con la descripción. En `casa`, el tono de apoyo,
-     que sobre esta banda mide 5.5:1 -- se lee de inmediato sin pesar. */
-  font-size: 13px;
+  /* ─── 17px, Y LA JERARQUÍA SE SOSTIENE CON EL TONO ──────────────────────
+     A 13px el precio quedaba demasiado discreto para un dato que la persona
+     viene buscando. Sube a 17 -- un 31% -- y con eso deja de haber que buscarlo.
+
+     LO QUE NO SUBE ES EL TONO, y ahí es donde se conserva el orden acordado.
+     El nombre manda por cuerpo, familia y tono: 30px de serif de display en
+     `tierra`. La descripción va segunda: 14px en `tierra`, el tono más oscuro
+     de la paleta. El precio va tercero porque se queda en `casa`, el tono de
+     apoyo, y en peso regular. Gana tamaño y no gana jerarquía: es la única
+     pieza de la banda que no está en la tinta principal.
+
+     ─── EL TECHO ESTÁ MEDIDO ──────────────────────────────────────────────
+     El caso más justo del catálogo es siempre "Reestructuración": 209.9px de
+     nombre, que no se toca. Lo que sobra para el precio depende del ancho de la
+     pantalla, y ahí está el problema:
+
+     El nombre más largo del catálogo es "Reestructuración" y a 30px mide 229px.
+     Contra el renglón de la carta de delante:
+
+       390px de ancho -> renglón 289.6 -> quedan 231.8 para el nombre con el
+                         precio a 17. Entra con 2.8 de sobra.
+       375px de ancho -> renglón 277.0 -> con el precio a 17 quedan 219.2. El
+                         nombre NO entra. Con el precio a 13 quedan 230.9 y sí.
+       360px de ancho -> renglón 264.4 -> ni siquiera con el precio a 13: quedan
+                         218.3 contra 229. Se pasa por 10.7.
+
+     El desbordamiento de 360 ES ANTERIOR A ESTE CAMBIO y no se puede resolver
+     desde aquí: "Reestructuración" es una sola palabra, así que su ancho mínimo
+     de contenido son los 229px enteros. No se parte en dos renglones como
+     "Sellado de color" ni encoge, porque un elemento flex no baja de su
+     min-content. Está reportado con tres propuestas; ninguna se aplica sin que
+     el PM elija, porque las tres tocan la jerarquía acordada.
+
+     Mientras tanto la rampa está calibrada para NO EMPEORARLO: 13px -- lo
+     mismo que había -- hasta 375, y de ahí a 17 en 390. El precio crece en
+     todos los teléfonos donde crecer cabe, y donde no cabe se queda como
+     estaba.
+
+     Sobre la banda mide 5.68:1. */
+  font-size: clamp(13px, calc(13px + (100vw - 375px) * 0.2667), 17px);
   line-height: 1.2;
   font-weight: 400;
   letter-spacing: -0.01em;
@@ -2852,39 +2853,72 @@ body {
 
 /* ─── LA BARRA DE WHATSAPP ──────────────────────────────────────────────── */
 
-/* EN CLARO, Y AUN ASÍ LA PIEZA DE MÁS PESO DE LA PANTALLA. La referencia la
-   dibuja oscura; se pidió por escrito conservarla clara, así que el peso se
-   construye con otros cuatro recursos:
+/* ─── EL BOTÓN DE WHATSAPP, DENTRO DE LA VENTANA DE CONVERSIÓN ────────────
+   Sustituye a la barra fija que flotaba al pie del viewport. Conserva su
+   anatomía entera -- logotipo en círculo, divisor, versalita centrada y flecha
+   -- porque es la misma acción y tiene que reconocerse como tal; lo que se
+   invierte es el tono.
 
-     1. Es la única superficie de la pantalla con un contorno de TERRACOTA. Todo
-        lo demás cierra con filo crema.
-     2. Lleva el único relleno saturado y macizo de la composición: el círculo
-        del logotipo, en dune-deep.
-     3. La sombra más profunda y más abierta de la pantalla.
-     4. Flota separada de los cantos, así que se lee como una pieza apoyada
-        encima y no como un pie pegado al borde.
+   ─── POR QUÉ MACIZO Y NO EN VIDRIO COMO LA BARRA ──────────────────────────
+   La barra iba en vidrio claro porque flotaba sobre la fotografía de fondo y
+   tenía toda la pantalla para pesar. Este vive DENTRO de una ventana que ya es
+   vidrio claro, y vidrio sobre vidrio no tiene contraste de superficie: se leía
+   turbio. En terracota macizo se despega de la ventana de un vistazo.
 
-   El vidrio va más denso que el del resto de las superficies (blanco al 74%
-   contra 32-42%) porque aquí el fondo no tiene que verse: tiene que sostener el
-   elemento más importante. */
-.trat-wa-barra {
+   Y hay una razón de página entera: al quitarle el fondo terracota a la ventana
+   de referencia, este botón queda como el ÚNICO relleno saturado que hay. Ese
+   era el papel de la barra, y es lo que mantiene una sola cosa evidente por
+   pantalla.
+
+   ─── VA A SANGRE POR EL PIE DE LA VENTANA, Y ESO ES UNA MEDIDA ────────────
+   No lleva radio propio ni márgenes laterales: el `overflow: hidden` de
+   .trat-ventana lo recorta contra su curva, así que cierra los dos cantos
+   inferiores. La ventana termina EN la acción, que es exactamente la secuencia
+   que se pidió.
+
+   Pero además es lo único que hace que el rótulo quepa en un renglón. Medido en
+   un teléfono de 360, dentro del relleno de texto el botón mide 264px y al
+   rótulo le quedan 134 después del logotipo, el divisor, la flecha y los
+   huecos; "ESCRÍBEME POR WHATSAPP" necesita unos 200 a 11px con 0.2em de
+   interletrado, así que partía en dos renglones. A sangre gana los 48px del
+   relleno, y con el círculo a 40, los huecos a 0.75rem y el interletrado a
+   0.16em entra de sobra. Las cifras finales están comprobadas a 360, 390 y 412.
+
+   El interletrado baja de 0.2 a 0.16em y no más: por debajo de 0.14 la
+   versalita deja de leerse como rótulo y empieza a leerse como palabra
+   corriente, que es justo el registro que la separa del resto del texto. */
+.trat-wa-boton {
   position: relative;
+  margin-top: 1.5rem;
   display: flex;
   align-items: center;
-  gap: 0.875rem;
-  min-height: 60px;
-  padding: 0.5rem 1.125rem 0.5rem 0.5rem;
-  border-radius: 1.75rem;
-  border: 1px solid color-mix(in oklab, var(--color-dune) 55%, transparent);
-  background-color: color-mix(in oklab, white 74%, transparent);
-  -webkit-backdrop-filter: blur(18px) saturate(1.15);
-  backdrop-filter: blur(18px) saturate(1.15);
+  /* SIN LOGOTIPO NI DIVISOR: queda el rótulo centrado y la flecha al canto. El
+     relleno vuelve a ser simétrico, que es lo que pedía la pieza en cuanto dejó
+     de tener un círculo apoyado en el costado izquierdo. */
+  gap: 0.75rem;
+  min-height: 62px;
+  padding: 0.5rem 1.25rem;
+  /* ─── EL CAMPO SE CIERRA UN PUNTO PARA QUE EL RÓTULO SUBA DE RANGO ───────
+     Sobre `dune-deep` puro el rótulo en crema medía 6.07:1. Pasa AA de sobra,
+     pero se pidió que fuera perfectamente legible y 6.07 se queda por debajo de
+     los 7 que marca AAA para texto normal. Mezclando el terracota con un 22% de
+     `tierra` la luminancia baja sin que el TONO se mueva -- los dos son de la
+     misma familia cálida -- y el rótulo cruza ese umbral. La cifra final está
+     en el informe. */
+  background-color: color-mix(
+    in oklab,
+    var(--color-dune-deep) 78%,
+    var(--color-tierra)
+  );
   box-shadow:
-    0 18px 36px -20px color-mix(in oklab, var(--color-tierra) 62%, transparent),
-    0 4px 10px -6px color-mix(in oklab, var(--color-tierra) 28%, transparent);
-  transition:
-    background-color 150ms ease,
-    border-color 150ms ease;
+    inset 0 1px 0 0 color-mix(in oklab, var(--color-shell-lift) 26%, transparent),
+    0 18px 36px -22px color-mix(in oklab, var(--color-tierra) 70%, transparent),
+    0 4px 10px -6px color-mix(in oklab, var(--color-tierra) 30%, transparent);
+  transition: background-color 150ms ease;
+}
+
+.trat-wa-boton:hover {
+  background-color: color-mix(in oklab, var(--color-dune-deep) 88%, black);
 }
 
 .trat-wa-barra:hover {
@@ -2892,41 +2926,32 @@ body {
   border-color: var(--color-dune);
 }
 
-.trat-wa-logo {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 999px;
-  background-color: var(--color-dune-deep);
-  color: var(--color-shell-lift);
-}
-
-.trat-wa-divisor {
-  flex: 0 0 auto;
-  width: 1px;
-  height: 26px;
-  background-color: color-mix(in oklab, var(--color-clay) 70%, transparent);
-}
-
 /* El texto CENTRADO en la barra, no pegado al divisor: flex-1 más text-align
    center reparte el sobrante a los dos lados. */
 .trat-wa-texto {
   flex: 1 1 auto;
   text-align: center;
-  font-size: 11px;
+  /* ─── DE 11 A 13px Y DE REGULAR A 500 ───────────────────────────────────
+     A 11px con peso regular el rótulo no se sostenía sobre un campo terracota
+     de 62px de alto: cumplía el mínimo de contraste -- 6.07 medido -- pero le
+     faltaba PRESENCIA, que es otra cosa. El trazo era demasiado fino para el
+     área que tenía que ocupar.
+
+     Al quitar el logotipo y el divisor se liberaron 55px de ancho, así que el
+     cuerpo puede subir sin que el rótulo vuelva a partirse. */
+  font-size: 13px;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: var(--color-tierra);
+  letter-spacing: 0.16em;
+  white-space: nowrap;
+  color: var(--color-shell-lift);
 }
 
 .trat-wa-flecha {
   flex: 0 0 auto;
   font-size: 1.0625rem;
   line-height: 1;
-  color: var(--color-dune-deep);
+  color: var(--color-shell-lift);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -3010,6 +3035,12 @@ body {
   border-radius: 50%;
   pointer-events: none;
   contain: paint;
+  /* El flotar se declara con la forma abreviada y con propiedades
+     personalizadas, no con valores literales: así cada gota solo declara su
+     trayectoria, su ritmo y su retardo, y el bloque @supports del parallax
+     puede reconstruir la lista completa sin repetir cuatro veces lo mismo. */
+  animation: var(--flotar) var(--flotar-dur) ease-in-out infinite
+    var(--flotar-retardo);
   -webkit-backdrop-filter: blur(2.5px) saturate(1.08);
   backdrop-filter: blur(2.5px) saturate(1.08);
   background-image: radial-gradient(
@@ -3025,28 +3056,42 @@ body {
 }
 
 /* ─── LA FLOTACIÓN ──────────────────────────────────────────────────────────
-   Cuatro píxeles de recorrido como máximo, en trayectorias distintas y con
-   duraciones que no comparten divisores, así que las cinco nunca coinciden. Los
-   retardos negativos las arrancan ya repartidas por su ciclo en vez de todas
-   desde el mismo punto.
+   RECALIBRADA, PORQUE ANTES NO SE VEÍA. La versión anterior eran 4px de
+   recorrido repartidos en 26-41s. Las animaciones corrían -- comprobado en el
+   navegador: playState `running`, iteraciones infinitas y el `translate`
+   computado cambiando entre fotogramas -- pero en su tramo más rápido daban
+   0.46 px/s. Sobre un teléfono a 30cm eso son unos 0.3 minutos de arco por
+   segundo, por debajo del umbral al que el ojo detecta movimiento; y una forma
+   de borde suave sin ninguna referencia estática al lado sube ese umbral
+   todavía más. No estaba rota: estaba por debajo de lo perceptible.
 
-   ES DELIBERADAMENTE MENOS QUE LA BARAJA. Esa cambia de carta cada 5.2s con un
-   recorrido de pantalla completa; esto son 4px en medio minuto. El movimiento
-   protagónico sigue siendo el del mazo.
+   Ahora son 6px en 15-23s, o sea ~1.2 px/s en el tramo rápido. Es el borde de
+   lo perceptible, que es exactamente lo que se pidió: que se note que flota sin
+   que compita con nada.
 
-   Con prefers-reduced-motion, la regla global del proyecto fija la duración en
-   0.01ms y una sola iteración: como el fotograma 0% es `translate: 0 0`, las
-   gotas se quedan quietas en su sitio conservando su apariencia entera. */
+   SIGUE SIENDO EL MOVIMIENTO SECUNDARIO, y ahora hay dos por encima: la baraja,
+   que cambia de carta cada 5.2s con un recorrido de pantalla completa, y el
+   parallax, que es el movimiento protagónico del fondo. 6px en veinte segundos
+   no le disputa el papel a ninguno de los dos.
+
+   Trayectorias distintas y duraciones sin divisores comunes, así que las cuatro
+   nunca coinciden. Los retardos negativos las arrancan ya repartidas por su
+   ciclo en vez de todas desde el mismo punto.
+
+   Con prefers-reduced-motion hay una regla dedicada más abajo que apaga esto y
+   el parallax de golpe. La regla global del proyecto -- duración 0.01ms -- no
+   basta aquí: sobre una animación de timeline de scroll una duración explícita
+   no la detiene, la deja clavada en su fotograma final. */
 @keyframes gota-a {
   0%,
   100% {
     translate: 0 0;
   }
   33% {
-    translate: 3px -4px;
+    translate: 4px -6px;
   }
   66% {
-    translate: -2px 3px;
+    translate: -3px 4px;
   }
 }
 
@@ -3056,10 +3101,10 @@ body {
     translate: 0 0;
   }
   40% {
-    translate: -4px -2px;
+    translate: -6px -3px;
   }
   70% {
-    translate: 2px 4px;
+    translate: 3px 6px;
   }
 }
 
@@ -3069,42 +3114,83 @@ body {
     translate: 0 0;
   }
   25% {
-    translate: 2px 3px;
+    translate: 3px 5px;
   }
   60% {
-    translate: -3px -2px;
+    translate: -5px -3px;
   }
 }
 
-/* ZONA A, arriba a la izquierda del titular. */
+/* ─── LAS TRES GOTAS DE LA CABECERA, RECOLOCADAS ───────────────────────────
+   Sus coordenadas anteriores estaban medidas contra un encabezado CENTRADO, que
+   dejaba libres las dos franjas laterales. Con el titular alineado a la
+   izquierda esas franjas desaparecieron: "Tratamientos" ocupa de x=24 a 330 y
+   "capilares" de 192 a 370 en un teléfono de 390. Las tres caían debajo del
+   texto.
+
+   Barrida la cabecera en bandas de 12px, quedan tres huecos y cada gota se fue
+   a uno:
+
+     A la derecha de la bajada    x 247..390, y 180..288  -- el mayor
+     A la derecha de "Tratamientos" x 330..390, y 48..96
+     A la derecha del rótulo      x 184..390, y 24..47
+
+   Ninguna necesita el carril de 16px de los costados: viven en la cabecera, y
+   la banda de la barra fija de WhatsApp arranca a partir de y=766 en el
+   documento, así que no se cruzan nunca. */
+
+/* EL HUECO MAYOR: a la derecha de la bajada y por encima de la baraja. */
 .trat-gota-1 {
-  left: 1.5%;
-  top: 92px;
-  width: 46px;
-  height: 46px;
-  animation: gota-a 26s ease-in-out infinite;
+  /* ─── SE FUE A LA ESQUINA SUPERIOR, Y NO POR GUSTO ──────────────────────
+     Vivía en el hueco a la derecha de la bajada, que era el mayor de la
+     cabecera. Ese hueco desapareció con dos cambios de la última ronda: la
+     bajada perdió su tope de ancho -- ahora ocupa un renglón entero de 301px,
+     así que llega hasta x=325 -- y la barra superior recuperó 28px de aire, que
+     empujaron todo hacia abajo contra la baraja. Medido, entre la tinta de la
+     bajada y las cartas de atrás ya no caben 34px más su recorrido.
+
+     Los 44px que hay por encima de la barra son ahora la única franja libre a
+     lo ancho de toda la cabecera. Ahí cabe con holgura, y el parallax solo la
+     aleja: se desplaza hacia arriba. */
+  right: 6%;
+  top: 6px;
+  width: 26px;
+  height: 26px;
+  --flotar: gota-a;
+  --flotar-dur: 15s;
+  --flotar-retardo: 0s;
+  /* SU PARALLAX ES CORTO, POR LA MISMA RAZÓN QUE EL DE LA GOTA 4: vive en una
+     banda estrecha y el presupuesto de desplazamiento es lo que sobra dentro.
+     Por arriba la cierra la tinta de "capilares" y por abajo las cartas de
+     atrás de la baraja, que asoman unos 20px por encima del escenario. Esa
+     banda mide 95px en un teléfono de 390 pero solo 73 en uno de 360, porque
+     el titular es más chico ahí y toda la composición sube. Con los -34 de su
+     grupo, la gota se metía 8px bajo las cartas a 360 y 3 a 375. */
+  --parallax: -14px;
 }
 
-/* ZONA B, a la derecha del titular. */
+/* A LA DERECHA DE "Tratamientos", en la franja que deja la primera línea. */
 .trat-gota-2 {
-  /* 2% y no 4: el titular está centrado, así que al estrechar la pantalla sus
-     cantos se acercan a esta gota. Medido a 360 -- el piso de calidad -- con el
-     4% quedaba a 2px de la tinta contando su recorrido. Pegada al canto tiene
-     16px de margen ahí. */
-  right: 2%;
-  top: 148px;
-  width: 40px;
-  height: 40px;
-  animation: gota-b 34s ease-in-out infinite -7s;
+  right: 4%;
+  top: 52px;
+  width: 34px;
+  height: 34px;
+  --flotar: gota-b;
+  --flotar-dur: 19s;
+  --flotar-retardo: -7s;
+  --parallax: -34px;
 }
 
-/* ZONA A, más abajo y más pequeña. */
+/* A LA DERECHA DEL RÓTULO, en la banda de 23px que hay antes del titular. */
 .trat-gota-3 {
-  left: 4%;
-  top: 218px;
-  width: 28px;
-  height: 28px;
-  animation: gota-c 41s ease-in-out infinite -13s;
+  left: 60%;
+  top: 18px;
+  width: 22px;
+  height: 22px;
+  --flotar: gota-c;
+  --flotar-dur: 23s;
+  --flotar-retardo: -13s;
+  --parallax: -22px;
 }
 
 /* ZONA C: la banda entre la barra de progreso y la firma. Es la zona libre más
@@ -3116,10 +3202,1728 @@ body {
    barra fija de WhatsApp cae justo debajo de esta banda, y con 28 el recorrido
    de la gota llegaba a rozarla. */
 .trat-gota-4 {
-  right: 16%;
-  top: 15px;
-  width: 24px;
-  height: 24px;
-  animation: gota-a 29s ease-in-out infinite -3s;
+  /* SE CORRIÓ AL CANTO Y ENCOGIÓ, Y LAS DOS COSAS SON LA MISMA CUENTA. Su
+     banda no mide los 56px que hay entre la barra de progreso y la firma: en un
+     teléfono ancho -- medido a 412x915 y 430x932 -- la barra fija de WhatsApp
+     cae dentro de esa banda con el scroll a cero y la recorta a 47. Ahí dentro
+     tienen que caber el diámetro, el flotar y el parallax completo.
+
+     Con 22px de diámetro, flotar vertical de ±4 y parallax de -8, su envolvente
+     ocupa de 4 a 42 dentro de 47: cuatro y cinco píxeles de holgura. Y el 2% en
+     vez del 16 la saca del ancho que ocupa la firma centrada, que a 360 llega
+     hasta x=295 mientras la gota empieza en 306.
+
+     ES LA GOTA CON MENOS PARALLAX DE LA PÁGINA por la misma razón: su
+     presupuesto de desplazamiento es lo que sobra en la banda más estrecha. */
+  right: 2%;
+  top: 16px;
+  width: 22px;
+  height: 22px;
+  --flotar: gota-v1;
+  --flotar-dur: 17s;
+  --flotar-retardo: -3s;
+  /* SU PARALLAX ES EL MÁS CORTO DE LA PÁGINA, Y NO POR CAPRICHO. Vive en la
+     banda libre más estrecha que hay -- 54px entre la barra de progreso y la
+     firma -- así que su presupuesto de desplazamiento es lo que sobra ahí
+     dentro. Con los -22px de su grupo se metía 3px por debajo de la barra de
+     progreso a partir del scroll 242 (medido en 390x844). Con -10 y bajándola
+     7px, su recorrido completo -- parallax más flotar -- ocupa de 6 a 52 dentro
+     de una banda de 54. */
+  --parallax: -8px;
+}
+
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EL ENCABEZADO DE /menu/tratamientos: EL MISMO LOCKUP QUE /menu, EN CLARO
+
+   ─── ES UNA COPIA DELIBERADA, NO UNA REGLA COMPARTIDA ──────────────────────
+   /menu resuelve su titular con .encabezado-color, .titular-color y
+   .regreso-titular. Estas tres son sus gemelas y no se importa ninguna, porque
+   los dos números que colocan el control de regreso salen de MEDIR las palabras
+   concretas del lockup, y "Tratamientos / capilares" no mide lo que "Diseños /
+   de color". Compartir la regla habría atado dos páginas por una medida que no
+   tienen en común. Las de /menu no se tocaron.
+
+   ─── QUÉ SE CONSERVA DEL ORIGINAL, QUE ES LA CONSTRUCCIÓN ENTERA ───────────
+   Todo lo que define la pieza va en `em` contra el cuerpo del propio lockup, y
+   los cuatro valores son los mismos que en /menu:
+
+     0.85em      el cuerpo de la segunda línea contra la primera
+     -0.22em     el interlineado negativo que entrelaza las dos líneas
+     -0.85em     el volado de la segunda línea por el canto derecho
+     -0.056em    el interletrado de las dos
+
+   Como todo va en em, la proporción es idéntica en cualquier ancho: la pieza se
+   reduce, no se desarma.
+
+   ─── LO QUE SÍ CAMBIA, Y POR QUÉ NO PODÍA NO CAMBIAR ───────────────────────
+   EL CUERPO. "Diseños" son siete letras y "Tratamientos" doce, así que a igual
+   cuerpo esta palabra es la mitad más ancha. Con el clamp de /menu se saldría
+   de la columna en cualquier teléfono. El de aquí está calculado contra el
+   ancho que ocupa DE VERDAD el lockup, volado incluido; las cifras medidas
+   están abajo, en --trat-titulo-cuerpo.
+
+   EL TONO. `tierra` sobre claro, contra el `shell-lift` sobre oscuro de /menu.
+
+   LA FORMA DEL CONTROL. Sigue siendo la cápsula de esta página, con la flecha Y
+   la palabra sobre vidrio claro, y no la flecha suelta de /menu. Lo que se
+   replica es dónde se monta, no qué es.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.trat-encabezado {
+  /* EL CUERPO DEL TITULAR. La restricción no es el ancho de "Tratamientos" sino
+     el del lockup entero: la segunda línea vuela 0.85 de su propio cuerpo por
+     el canto derecho, o sea 0.7225 cuerpos del titular, y ese volado también
+     tiene que caber. Las cifras concretas están medidas más abajo, junto a los
+     factores del control.
+
+     En lg el ancho ya no lo manda el viewport sino la columna del panel, que
+     mide 19rem fijos, así que ahí el cuerpo se fija en un número y deja de
+     seguir a vw. */
+  /* ─── DE DÓNDE SALE ESTE CLAMP ──────────────────────────────────────────
+     La medida que manda no es el ancho de "Tratamientos" sino el del lockup
+     ENTERO. Medido y constante en los cinco anchos comprobados:
+
+       5.533 cuerpos   ancho de "Tratamientos"
+       3.215 cuerpos   ancho de "capilares" (ya a su 0.85em)
+       6.256 cuerpos   del canto izquierdo del lockup a la tinta más a la
+                       derecha, o sea incluido el volado de la cursiva
+
+     El lockup arranca en el eje del texto, x=24, y quiere 20px de aire contra
+     el canto de la pantalla: 6.256·cuerpo <= 100vw - 44. De ahí sale
+     15.985vw - 0.44rem, que da 50.5px a 360 y 55.3 a 390. El margen derecho
+     de la cursiva queda en 20px exactos en los dos.
+
+     EL TOPE DE 3.6rem existe porque a partir de unos 396px de ancho el titular
+     dejaría de crecer con la pantalla y empezaría a crecer sin motivo: 57.6px
+     ya llena la columna de un teléfono grande. */
+  --trat-titulo-cuerpo: clamp(2.75rem, 15.985vw - 0.44rem, 3.5rem);
+}
+
+@media (min-width: 1024px) {
+  .trat-encabezado {
+    --trat-titulo-cuerpo: 3rem;
+  }
+}
+
+.trat-titular {
+  font-size: var(--trat-titulo-cuerpo);
+}
+
+/* EL PUNTO SEPARADOR pasa del eje central al izquierdo: el bloque entero se
+   alineó a la izquierda para acompañar al titular. */
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EL CIERRE: LA FRASE DE LA VENTANA DE CONVERSIÓN Y LA VENTANA OSCURA
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── LA FRASE QUE ABRE LA VENTANA DE CONVERSIÓN ───────────────────────────
+   Toma la construcción del titular de la página y la baja de rango. Lo que
+   comparten:
+
+     - La serif de display.
+     - Dos líneas, la primera en redonda y la segunda en CURSIVA.
+     - La segunda desplazada hacia la derecha respecto de la primera.
+     - Interletrado cerrado: -0.056em, el mismo del titular. Antes tenía
+       -0.025em, así que las letras se juntaron.
+     - Interlineado ajustado y NADA de margen entre los dos renglones: lo único
+       que los separa es la caja de línea.
+
+   ─── Y LO QUE NO COMPARTEN, QUE ES LO QUE LA MANTIENE SUBORDINADA ──────────
+   Dos palancas, y las dos a la baja:
+
+     CUERPO   1.375rem contra los 3.46rem del titular a 390px. Es el 40%.
+     PESO     400 contra el 500 del titular. El titular va en medium dibujado;
+              esta va en la regular de la familia.
+
+   Con esas dos, y sin superficie propia que la levante, se lee como una frase
+   dentro de la ventana y no como el titular de una sección.
+
+   ─── EL DESPLAZAMIENTO NO PUEDE SER EL MISMO, Y ESTA ES LA RAZÓN ───────────
+   En el titular de la página la segunda línea vuela por el canto DERECHO, y eso
+   funciona porque "capilares" es más corta que "Tratamientos": alineada a la
+   derecha de un envoltorio que mide lo que la primera, cae desplazada sola.
+
+   Aquí es al revés. "qué necesita tu cabello." es MÁS LARGA que "No tienes que
+   saber", así que el mismo mecanismo no la desplazaría: la alinearía al canto y
+   la primera quedaría flotando. El desplazamiento se hace entonces con una
+   sangría por la izquierda, que da el mismo gesto escalonado en el sentido que
+   esta frase permite.
+
+   0.9em Y NO MÁS: a 22px son 19.8px de sangría, y la segunda línea mide 240 en
+   ese cuerpo. En la zona de texto más estrecha -- 264px en un teléfono de 360 --
+   la suma da 260 y entra sin partirse. */
+.trat-frase {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 400;
+  line-height: 1.06;
+  letter-spacing: -0.056em;
+  color: var(--color-dune-deep);
+}
+
+/* LA SANGRÍA VA EN LA PRIMERA LÍNEA, que es la corta. "qué necesita tu
+   cabello." es más larga que "No tienes que saber", así que sangrar la segunda
+   empujaba su remate a la derecha y dejaba el costado izquierdo vacío: el
+   bloque entero se leía cargado a un lado. Con la corta sangrada, la larga
+   marca los dos extremos y la corta queda dentro de ella. */
+.trat-frase > span > span:first-child {
+  padding-left: 1.1em;
+}
+
+/* ─── LA SEGUNDA VENTANA, EN CLARO ─────────────────────────────────────────
+   Estuvo en café oscuro copiando el pie de /menu. Fuera: esta página es la
+   versión clara de la marca y el café no se usa aquí.
+
+   ─── CÓMO SE DISTINGUE DE LA PRIMERA SIN SER MÁS OSCURA ────────────────────
+   Dos vidrios claros idénticos se leen como una ventana partida en dos, así que
+   un solo diferenciador no basta. Van tres, y los tres apuntan al mismo sitio:
+   MENOS MATERIA.
+
+                        ventana 1        ventana 2
+     densidad           blanco 46%       blanco 36%
+     desenfoque         16px             20px
+     contorno           solo filo        1px continuo de casa al 42%
+     elevación          sombra profunda  ninguna
+
+   EL 36% NO ERA EL PLAN: la primera versión iba al 24%, que separaba más las
+   dos ventanas, y a esa transparencia el fondo se cuela tanto que la ubicación
+   caía a 4.25 y la nota a 3.89. Doce puntos más de blanco las devuelven al
+   mínimo sin borrar la diferencia: el contorno y la ausencia de sombra siguen
+   siendo los dos diferenciadores fuertes, y diez puntos de densidad se ven.
+
+   Y EL CONTORNO NO PUEDE SER `clay`: es el color de bordes de la paleta pero no
+   llega a 3:1 ni al 100% -- ya está medido en el comentario de
+   .pastilla-contorno --, y por debajo de 3 el límite de un control no cuenta
+   como perceptible. `casa` al 42% sí llega.
+
+   La primera se lee como un OBJETO QUE FLOTA -- más densa, con sombra, y es la
+   que carga el único relleno saturado de la página --. La segunda como una
+   LÁMINA APOYADA: más transparente, así que se ve más fondo a través; dibujada
+   con un contorno en vez de levantada con una sombra; y a ras de la página.
+
+   La jerarquía queda en el orden correcto sin recurrir al tono: la pieza que
+   pide la acción tiene más materia y la que da referencia tiene menos. */
+.trat-cierre-claro {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.75rem;
+  border: 1px solid color-mix(in oklab, var(--color-casa) 42%, transparent);
+  background-color: color-mix(in oklab, white 36%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  backdrop-filter: blur(20px) saturate(1.3);
+  /* ─── LA SOMBRA VA EN `tierra`, NUNCA NEUTRA ────────────────────────────
+     Es muy abierta y muy tenue -- la mitad de profunda que la de la ventana de
+     arriba -- porque la diferencia de elevación entre las dos sigue siendo uno
+     de los recursos que las separan. Lo que cambia es que ahora existe y es
+     CÁLIDA: una sombra neutra sobre esta paleta se lee gris y sucia, y era
+     exactamente lo que se veía en el canto inferior.
+
+     Y `saturate` sube de 1.08 a 1.3 por lo mismo: la superficie es translúcida,
+     así que lo que se ve a través es el fondo, y a saturación baja el dorado
+     que hay detrás se apagaba hacia el gris. */
+  box-shadow:
+    inset 0 1px 0 0 color-mix(in oklab, white 55%, transparent),
+    0 14px 30px -24px color-mix(in oklab, var(--color-tierra) 55%, transparent);
+}
+
+/* ─── LA BANDA DE ARRIBA, EN DOS COLUMNAS ──────────────────────────────────
+   Antes las dos cápsulas iban en fila, la ubicación no cabía en ese renglón y
+   caía al siguiente pegada a la derecha: el costado izquierdo se quedaba vacío
+   justo ahí. Apilando las cápsulas, la ubicación entra a su derecha y los dos
+   costados quedan ocupados en toda la altura del bloque. */
+.trat-cierre-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.trat-cierre-enlaces {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+/* ─── LAS CÁPSULAS, EN LA VARIANTE CLARA ───────────────────────────────────
+   `.pastilla-contorno` -- la clase de material compartida del sitio -- está
+   calibrada para fondos oscuros: contorno y tinta en crema. Sobre esta
+   superficie desaparecería. Esta es su equivalente en claro, con la misma
+   receta invertida: contorno de `clay`, velo de blanco y tinta en `dune-deep`.
+   Es el mismo material que el control de regreso del encabezado. */
+.trat-pastilla-clara {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 40px;
+  padding-inline: 1rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--color-casa) 82%, transparent);
+  background-color: color-mix(in oklab, white 52%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--color-dune-deep);
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.trat-pastilla-clara:hover {
+  background-color: color-mix(in oklab, white 74%, transparent);
+  border-color: var(--color-casa);
+}
+
+.trat-pastilla-flecha {
+  font-size: 13px;
+  line-height: 1;
+}
+
+/* LA UBICACIÓN, al canto derecho y centrada contra el par de cápsulas.
+
+   EL INTERLETRADO BAJA DE 0.25 A 0.2em, y es una medida: apiladas, la columna
+   izquierda pide unos 130px -- lo que mide "Diseños de color →" -- y con los
+   120 de la ubicación más el hueco la fila sumaba 266 contra los 264 que da la
+   zona de texto en un teléfono de 360. Se pasaba por 2px. Cerrar el
+   interletrado libera unos 10 y no le quita el registro de versalita. */
+.trat-cierre-lugar {
+  flex-shrink: 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--color-dune-deep);
+}
+
+.trat-cierre-regla {
+  display: block;
+  height: 1px;
+  margin-block: 1rem;
+  background-color: color-mix(in oklab, var(--color-clay) 45%, transparent);
+}
+
+/* LA NOTA DE PRECIOS, el elemento más discreto de la página.
+
+   SU TONO ES `casa` OSCURECIDO A MEDIAS CON `tierra`, y no `casa` a secas. Esta
+   superficie es más transparente que la de la ventana de arriba, así que el
+   fondo se cuela y el peor píxel bajo un texto de 11px cae más: medido, `casa`
+   puro daba 4.25 y el mínimo son 4.5. Mezclarlo a medias con `tierra` lo sube
+   sin llevarlo al negro de la tinta principal, así que sigue siendo un tono de
+   apoyo y sigue leyéndose como nota al pie. Lo discreto lo terminan de hacer el
+   cuerpo y la posición. */
+.trat-cierre-nota {
+  font-size: 11px;
+  line-height: 1.5;
+  color: color-mix(in oklab, var(--color-casa) 50%, var(--color-tierra));
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EL PARALLAX: TRES VELOCIDADES ENTRE EL FONDO Y LAS GOTAS
+
+   ─── POR QUÉ CON TIMELINE DE SCROLL Y NO CON JAVASCRIPT ────────────────────
+   Un listener de scroll que escribe `transform` corre en el hilo principal, que
+   es justo donde ya está la baraja resolviendo su cambio de carta cada 5.2s. En
+   un móvil de gama media eso se traduce en que el parallax se atrasa respecto
+   del dedo y el efecto se lee como un tirón, que es exactamente lo que se pidió
+   evitar. `animation-timeline: scroll()` corre en el compositor: el
+   desplazamiento no pasa por el hilo principal en ningún fotograma.
+
+   Va dentro de @supports porque donde no exista, `animation-timeline` se
+   descarta y la animación de parallax se quedaría corriendo contra el reloj con
+   duración `auto`. Sin soporte simplemente no hay parallax: el fondo se queda
+   fijo y las gotas pegadas al contenido, que es el comportamiento anterior.
+   Nada se rompe.
+
+   ─── LAS VELOCIDADES ───────────────────────────────────────────────────────
+   El contenido recorre todo el scroll (527px en un teléfono de 360x780). Contra
+   eso:
+
+     fondo             -52px sobre el recorrido completo   ~10% del contenido
+     gotas grandes     -34px ADEMÁS del recorrido          ~106%
+     gotas medianas    -22px además                        ~104%
+     gotas pequeñas    -13px además                        ~102%
+
+   El fondo es el único que va MÁS LENTO que el contenido; las gotas van todas
+   un poco más rápido. Ese es el orden que pidió el encargo, y el reparto por
+   tamaño es el físicamente coherente: la gota grande se lee como la más
+   cercana, así que es la que más se desplaza.
+
+   LAS CIFRAS SON DELIBERADAMENTE PEQUEÑAS. Una gota del encabezado está en
+   pantalla durante los primeros ~300px de scroll, o sea el 57% del recorrido:
+   en ese tramo acumula unos 19px de deriva contra el contenido. Es suficiente
+   para que se despegue y no tanto como para que se lea como un truco.
+
+   El fondo, en cambio, va contra un contenido que se mueve 527: la diferencia
+   ahí es enorme y es la que hace el grueso de la profundidad. Lo que aporta el
+   -52 es que el fondo deje de estar MUERTO -- una capa fija no se lee como capa,
+   se lee como un dibujo pegado al cristal -- y pase a tener su propia deriva.
+
+   ─── POR QUÉ EL FONDO USA `translate` Y LAS GOTAS `transform` ──────────────
+   No es capricho. Las gotas ya animan `translate` con el flotar, así que el
+   parallax necesita una propiedad distinta que componga con ella en vez de
+   pisarla: `translate` y `transform` son propiedades independientes y el
+   navegador las multiplica en orden. El fondo no flota, así que ahí `translate`
+   queda libre y `transform` se usa para el `scale` que tapa los cantos del
+   desenfoque.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── TRAYECTORIAS SOLO VERTICALES, PARA LAS GOTAS DE LOS CANTOS ───────────
+   Las cuatro gotas grandes flotan en diagonal; estas no, y la razón es
+   geométrica, no estética. Viven en un carril de 16px -- el que deja la barra
+   fija de WhatsApp -- y cualquier componente horizontal de la trayectoria se
+   come esa holgura: medido, con el flotar diagonal la gota m4 entraba 2px por
+   debajo de la barra en cuatro puntos del recorrido y la m11 en cinco.
+
+   Sin componente horizontal, la holgura lateral deja de depender de la fase de
+   la animación y pasa a ser un número fijo que se puede comprobar de una vez.
+
+   El recorrido baja además de 6 a 4px: sobre una gota de 7px, 6 era más de la
+   mitad de su diámetro y se leía como un salto en vez de como una deriva. */
+@keyframes gota-v1 {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  38% {
+    translate: 0 -4px;
+  }
+  72% {
+    translate: 0 3px;
+  }
+}
+
+@keyframes gota-v2 {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  30% {
+    translate: 0 3px;
+  }
+  65% {
+    translate: 0 -4px;
+  }
+}
+
+@keyframes gota-v3 {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  45% {
+    translate: 0 -3px;
+  }
+  80% {
+    translate: 0 4px;
+  }
+}
+
+@keyframes trat-parallax-fondo {
+  to {
+    translate: 0 -52px;
+  }
+}
+
+@keyframes trat-parallax-gota {
+  to {
+    transform: translateY(var(--parallax));
+  }
+}
+
+@supports (animation-timeline: scroll()) {
+  .trat-fondo-foto {
+    animation-name: trat-parallax-fondo;
+    animation-duration: auto;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: scroll(root block);
+  }
+
+  /* La lista de dos animaciones: el flotar contra el reloj y el parallax contra
+     el scroll. `animation-timeline` acepta una lista, así que cada una corre
+     contra la suya. */
+  .trat-gota {
+    animation-name: var(--flotar), trat-parallax-gota;
+    animation-duration: var(--flotar-dur), auto;
+    animation-timing-function: ease-in-out, linear;
+    animation-iteration-count: infinite, 1;
+    animation-delay: var(--flotar-retardo), 0s;
+    animation-fill-mode: none, both;
+    animation-timeline: auto, scroll(root block);
+  }
+}
+
+/* ─── EL FONDO, DESENFOCADO HASTA DEJAR DE SER FOTOGRAFÍA ──────────────────
+   back5tratamientos.jpeg conservaba sus pliegues legibles y a ese nivel de
+   detalle competía con el contenido: el ojo los leía como formas y no como
+   ambiente. Con 26px de desenfoque los pliegues se funden en manchas y lo que
+   queda es lo que interesa -- el reparto de luz y los dorados cálidos --, o sea
+   atmósfera de color en vez de imagen reconocible.
+
+   EL `scale` NO ES ZOOM, ES MARGEN. Un `filter: blur` desvanece los cantos del
+   elemento hacia la transparencia, y en una capa a pantalla completa eso deja
+   un halo claro de 26px por los cuatro lados. El 1.18 la agranda lo justo para
+   que ese halo caiga fuera del viewport: en un teléfono de 844 de alto sobra
+   76px por arriba y por abajo, y el parallax solo consume 52 de esos.
+
+   ─── LO QUE EL DESENFOQUE LE HACE AL CONTRASTE, QUE NO ES LO MISMO PARA TODOS
+   Promediar acerca el fondo a su media, así que SUBE el peor caso de la tinta
+   clara y lo BAJA el de la oscura. Medido en el barrido completo del scroll:
+   toda la tinta clara y la de sobre superficies de vidrio mejoró o se quedó
+   igual, y la única que lo acusó fue la firma -- tinta oscura sobre el fondo
+   desnudo --, que cayó a 4.08. Se corrigió ensanchando su propio velo, no
+   bajando el desenfoque. Las cifras finales están en el informe. */
+.trat-fondo-foto {
+  filter: blur(26px) saturate(1.06);
+  transform: scale(1.18);
+}
+
+/* ─── LAS GOTAS PEQUEÑAS DE LOS EXTREMOS ───────────────────────────────────
+   Doce gotas de 7 a 11px repartidas por los cantos, más dos en la banda
+   superior. Son entre tres y seis veces más chicas que las cuatro originales,
+   que es lo que las mantiene como grano de fondo y no como una segunda familia
+   de piezas.
+
+   ─── SIN `backdrop-filter`, Y NO ES UN ATAJO ───────────────────────────────
+   A 9px de diámetro la refracción del fondo no se distingue: lo que hace legible
+   una gota a ese tamaño es el punto de brillo y la sombra, no la distorsión.
+   Quitarlo ahorra catorce capas con filtro de fondo, que es la parte cara de
+   este efecto y la que se paga en móvil. Con él, dieciocho `backdrop-filter`
+   simultáneos más la baraja; sin él, cuatro.
+
+   ─── EL CARRIL DE 16px, Y POR QUÉ TODAS CABEN DENTRO ───────────────────────
+   La pieza más ancha de la pantalla no es la carta ni la ventana de cierre --
+   esas dejan 24px de margen por el relleno del contenedor -- sino la barra fija
+   de WhatsApp, que va a `inset-x-4`: 16px. Y va FIJA, así que su banda barre
+   todo el documento conforme se desplaza: cualquier gota de los costados pasa
+   por detrás de ella en algún punto del scroll.
+
+   Por eso el carril útil es de 16px y no de 24, y por eso ninguna de estas
+   gotas suma más de 15 entre su separación del canto y su diámetro. Como el
+   parallax solo desplaza en vertical, esa holgura horizontal no cambia en
+   ningún punto del recorrido ni en ningún ancho de pantalla: la barra y las
+   gotas están ancladas las dos al canto, así que el carril mide 16 lo mismo a
+   360 que a 412 que a 480.
+
+   ─── LA IRREGULARIDAD ES A MANO ────────────────────────────────────────────
+   Las verticales van en porcentaje del alto del documento y no siguen paso
+   constante: 7, 11, 19, 23.5, 33, 38, 47.5, 61, 71, 79, 88, 93.5. Las
+   separaciones del canto alternan entre 2, 3 y 4px y los diámetros entre 7 y
+   11, así que ni las alturas ni los tamaños ni la distancia al borde forman
+   serie. Los dos costados tampoco se emparejan: ninguna altura de la izquierda
+   coincide con una de la derecha. */
+.trat-gota-mini {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  contain: none;
+  background-image: radial-gradient(
+    circle at 32% 28%,
+    color-mix(in oklab, white 78%, transparent) 0%,
+    color-mix(in oklab, white 30%, transparent) 38%,
+    color-mix(in oklab, white 8%, transparent) 68%,
+    transparent 100%
+  );
+  box-shadow:
+    inset 0 1px 1px color-mix(in oklab, white 60%, transparent),
+    inset -1px -2px 3px -1px color-mix(in oklab, var(--color-casa) 40%, transparent),
+    1px 2px 4px -2px color-mix(in oklab, var(--color-tierra) 26%, transparent);
+  --parallax: -13px;
+}
+
+/* COSTADO IZQUIERDO. Salta de 13% a 62% y ese hueco es deliberado: entre esas
+   dos alturas está la baraja, y la carta que sale lo hace hacia la IZQUIERDA
+   -- translate3d(-128%) con un giro de -13deg --, así que barre el carril
+   izquierdo entero cada 5.2s. Una gota ahí quedaría detrás de la carta en cada
+   cambio. El carril derecho no tiene ese problema porque nada sale por ese
+   lado, y por eso ahí sí hay gotas a media altura.
+
+   La banda que hay que esquivar va del 20% al 58% del alto del documento: es la
+   unión de lo que ocupa la baraja en los dos teléfonos comprobados (21.7-48% en
+   360x780 y 21.6-56.2% en 412x915) más margen para el giro.
+
+   ─── LA CUENTA DEL CARRIL ──────────────────────────────────────────────────
+   Separación del canto más diámetro nunca pasa de 11px, así que quedan 5 de
+   holgura contra la barra fija de WhatsApp, que arranca a los 16. Ese número no
+   cambia con el ancho de la pantalla -- las dos piezas están ancladas al canto
+   -- ni con el scroll, porque el flotar de estas gotas es solo vertical y el
+   parallax también. */
+.trat-gota-m1 { left: 2px; top: 6%; width: 9px; height: 9px; --flotar: gota-v1; --flotar-dur: 16s; --flotar-retardo: -2s; }
+.trat-gota-m2 { left: 2px; top: 13.5%; width: 7px; height: 7px; --flotar: gota-v3; --flotar-dur: 21s; --flotar-retardo: -9s; }
+.trat-gota-m3 { left: 2px; top: 62%; width: 9px; height: 9px; --flotar: gota-v2; --flotar-dur: 18s; --flotar-retardo: -5s; }
+.trat-gota-m4 { left: 3px; top: 71%; width: 8px; height: 8px; --flotar: gota-v1; --flotar-dur: 23s; --flotar-retardo: -14s; }
+.trat-gota-m5 { left: 2px; top: 84%; width: 9px; height: 9px; --flotar: gota-v3; --flotar-dur: 17s; --flotar-retardo: -6s; }
+.trat-gota-m6 { left: 3px; top: 96%; width: 7px; height: 7px; --flotar: gota-v2; --flotar-dur: 20s; --flotar-retardo: -11s; }
+
+/* COSTADO DERECHO */
+.trat-gota-m7 { right: 3px; top: 7%; width: 8px; height: 8px; --flotar: gota-v2; --flotar-dur: 22s; --flotar-retardo: -3s; }
+.trat-gota-m8 { right: 2px; top: 19%; width: 9px; height: 9px; --flotar: gota-v1; --flotar-dur: 18s; --flotar-retardo: -12s; }
+.trat-gota-m9 { right: 3px; top: 33%; width: 7px; height: 7px; --flotar: gota-v3; --flotar-dur: 19s; --flotar-retardo: -8s; }
+.trat-gota-m10 { right: 2px; top: 47.5%; width: 9px; height: 9px; --flotar: gota-v2; --flotar-dur: 16s; --flotar-retardo: -15s; }
+.trat-gota-m11 { right: 2px; top: 71%; width: 9px; height: 9px; --flotar: gota-v1; --flotar-dur: 21s; --flotar-retardo: -4s; }
+.trat-gota-m12 { right: 2px; top: 88%; width: 8px; height: 8px; --flotar: gota-v3; --flotar-dur: 24s; --flotar-retardo: -10s; }
+
+/* LA BANDA SUPERIOR. Los 34px que hay por encima del control de volver son la
+   única franja libre a lo ancho de toda la pantalla, así que estas dos no
+   necesitan el carril de los costados. El parallax las aleja todavía más del
+   control, nunca las acerca: se desplaza hacia arriba. */
+.trat-gota-m13 { left: 33%; top: 6px; width: 13px; height: 13px; --flotar: gota-v3; --flotar-dur: 20s; --flotar-retardo: -7s; }
+.trat-gota-m14 { right: 27%; top: 12px; width: 10px; height: 10px; --flotar: gota-v1; --flotar-dur: 18s; --flotar-retardo: -16s; }
+
+/* ─── LA GOTA 4 DESAPARECE EN PANTALLAS CORTAS ─────────────────────────────
+   Es un defecto que venía de antes y que salió al barrer el recorrido completo:
+   en un teléfono de 667 de alto -- un iPhone SE -- la banda donde vive esta
+   gota queda ENTERA por detrás de la barra fija de WhatsApp con el scroll a
+   cero. Medido a 375x667: la banda va de 597 a 653 y la barra ocupa de 589 a
+   651. No es cosa del parallax; con la posición original de la gota pasaba
+   igual.
+
+   La causa es que las dos piezas se miden contra cosas distintas. La banda
+   cuelga del contenido, que se dimensiona con `dvh` pero tiene un mínimo: por
+   debajo de 700px de alto deja de encoger y se queda anclada hacia los 597. La
+   barra, en cambio, va fija al viewport, así que sube con él. En una pantalla
+   corta la barra alcanza a la banda.
+
+   Por debajo de 780 no hay sitio y la gota no se dibuja. No se pierde nada
+   comprobable: en esas pantallas estaba tapada de todas formas. */
+@media (max-height: 779px) {
+  .trat-gota-4 {
+    display: none;
+  }
+}
+
+/* ─── MOVIMIENTO REDUCIDO ──────────────────────────────────────────────────
+   Regla dedicada, y hace falta: la global del proyecto apaga el movimiento
+   fijando `animation-duration: 0.01ms`, y eso funciona contra el reloj pero no
+   contra un timeline de scroll. Sobre una animación de scroll una duración
+   explícita no la detiene -- la deja clavada en su fotograma final --, así que
+   con la regla global sola el fondo se habría quedado permanentemente 52px
+   desplazado y las gotas 34. `animation: none` sí devuelve las dos capas a su
+   posición base y apaga de paso el flotar. */
+@media (prefers-reduced-motion: reduce) {
+  .trat-fondo-foto,
+  .trat-gota {
+    animation: none !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EL MODAL "CONÓCEME MÁS"
+
+   Dos partes: portada fotográfica arriba y acordeón temático abajo. El
+   componente es components/ConoceMas.tsx, compartido por la portada del sitio y
+   por /menu, así que estas reglas se ven en las dos.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── LA PORTADA ─────────────────────────────────────────────────────────
+   Bloque fotográfico a sangre con el nombre superpuesto. La proporción es lo
+   que deja ver la figura sentada: la imagen es 941x1176 y escalada al ancho de
+   la ventana da 440 de alto contra 370 de la caja, así que se recortan 70px y
+   con `object-bottom` se van todos por arriba, donde solo hay muro. */
+.cm-portada {
+  position: relative;
+  /* ─── MÁS BAJA: 452/376, o sea 1/0.83 ──────────────────────────────────
+     Son las medidas del recorte que se muestra de ae.webp, no una proporción
+     elegida a ojo. La lámina baja de 440 a 293px de alto en un teléfono de 390:
+     un tercio menos. */
+  aspect-ratio: 452 / 376;
+  width: 100%;
+  overflow: hidden;
+  /* EL MISMO TONO QUE EL ACORDEÓN, y no es decorativo: es el color al que se
+     disuelve la fotografía por abajo. Si fuera otro, el degradado terminaría en
+     una franja de un color y empezaría otra: justo la línea que se quiere
+     evitar. */
+  background-color: color-mix(in oklab, var(--color-shell-lift) 55%, white);
+}
+
+@media (min-width: 640px) {
+  .cm-portada {
+    aspect-ratio: 452 / 376;
+  }
+}
+
+/* ─── LAS DOS FOTOGRAFÍAS ──────────────────────────────────────────────────
+   Apiladas y a sangre por los cuatro cantos. La de abajo va siempre opaca; la
+   de arriba aparece y desaparece encima, así que el cruce es una disolvencia
+   real -- el compuesto vale B·alfa + A·(1-alfa) -- y en ningún instante se ve
+   el fondo entre las dos.
+
+   ─── CADA UNA CON SU ENCUADRE, PORQUE NO SE PARECEN EN NADA ────────────────
+   La lámina de la portada es vertical: 352 de ancho por 370 de alto en un
+   teléfono.
+
+     ─── ae.webp NECESITA UN ZOOM, Y ESA ES LA PARTE INCÓMODA ──────────────
+     Es 941x1176, o sea vertical y más estrecha que la lámina. Con
+     `object-cover` el ancho se llena EXACTO y todo el recorte va en vertical:
+     no hay ni un píxel de sobra horizontal, así que `object-position` en el eje
+     x no puede mover nada. Y Axel no está centrado en la toma -- su eje cae en
+     el 76% del ancho, con el mueble de tintes ocupando el tercio izquierdo --,
+     de modo que sin recorte lateral se queda pegado a la derecha.
+
+     La única forma de centrarlo es ampliar la imagen hasta que sobre ancho y
+     desplazarla. La cuenta sale exacta: la ventana visible mide 1/S del ancho,
+     su centro no puede pasar de 1 - 1/(2S), y para alcanzar el 0.76 donde está
+     él hace falta S >= 2.08. Con `scale(2)` y un desplazamiento de -25% queda
+     en el 52.8% de la lámina, que a ojo es el centro.
+
+     LO QUE CUESTA: a escala 2 la fotografía se pinta a 704px de ancho desde una
+     fuente de 941, o sea 0.75 píxeles nativos por píxel CSS. En un teléfono de
+     DPR 2 eso es un aumento de 1.5x y en uno de DPR 3, de 2.24x. Se nota algo
+     de blandura en el DPR alto. Con un recorte de origen ya centrado no haría
+     falta zoom ninguno: está reportado.
+
+     Y LO QUE SE PIERDE: a esa escala la lámina muestra de la cabeza al regazo
+     en vez de la figura sentada entera. El `50% 70%` del encuadre es lo que
+     deja el aire justo por encima de la cabeza; más abajo y se le corta.
+
+     ─── axel2.png NO NECESITA NADA ────────────────────────────────────────
+     Es 2688x1520, apaisada, así que ahí el recorte es horizontal y sobra de
+     donde elegir: escalada al alto da 486 de ancho contra los 352 de la lámina,
+     o sea que se ve el 72% del ancho y la ventana puede centrarse hasta el
+     0.638. El espejo -- Axel aplicando color y la clienta sentada -- está en el
+     0.65, así que `object-position: 100%` lo deja centrado sin ampliar nada. Se
+     pierde la espalda del primer plano, que es la parte sin información.
+
+   El desenfoque de la ventana no las toca: van a foco pleno, porque son el
+   contenido de la portada y no una textura de fondo. */
+/* ─── LAS DOS CAJAS ────────────────────────────────────────────────────────
+   Cada fotografía vive en su propio envoltorio y la imagen lo llena. Es lo que
+   permite darle a cada una una geometría distinta: `fill` de next/image escribe
+   width, height e inset EN LÍNEA sobre el <img>, así que desde aquí no se
+   pueden mover, pero sí se puede mover la caja que lo contiene. */
+.cm-foto {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  display: block;
+  z-index: 0;
+  /* ─── EL DEGRADADO QUE FUNDE LA FOTO CON EL ACORDEÓN ────────────────────
+     La máscara va en las FOTOGRAFÍAS y no en la lámina: la lámina también
+     contiene el botón de cerrar, y enmascararla lo habría desvanecido con
+     ellas.
+
+     RECORRIDO LARGO Y CURVA SUAVE. Arranca al 52% del alto y muere al 100%, o
+     sea casi la mitad del bloque: un desvanecido corto se lee como un efecto y
+     uno largo se lee como que la imagen se acaba sola. Los siete topes de
+     opacidad no van a intervalos iguales -- 100, 96, 88, 72, 50, 28, 11, 0 --
+     porque una rampa lineal de alfa se percibe como un escalón en los dos
+     extremos: el ojo detecta el punto donde empieza y donde acaba. Repartidos
+     en S, ninguno de los dos cantos tiene un principio visible.
+
+     Debajo no hay nada que se vea: la lámina lleva el color del acordeón, así
+     que la fotografía se disuelve EN él y los dos bloques no comparten ningún
+     canto. */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 1) 0%,
+    rgb(0 0 0 / 1) 52%,
+    rgb(0 0 0 / 0.96) 60%,
+    rgb(0 0 0 / 0.88) 68%,
+    rgb(0 0 0 / 0.72) 76%,
+    rgb(0 0 0 / 0.5) 84%,
+    rgb(0 0 0 / 0.28) 90%,
+    rgb(0 0 0 / 0.11) 95%,
+    rgb(0 0 0 / 0) 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 1) 0%,
+    rgb(0 0 0 / 1) 52%,
+    rgb(0 0 0 / 0.96) 60%,
+    rgb(0 0 0 / 0.88) 68%,
+    rgb(0 0 0 / 0.72) 76%,
+    rgb(0 0 0 / 0.5) 84%,
+    rgb(0 0 0 / 0.28) 90%,
+    rgb(0 0 0 / 0.11) 95%,
+    rgb(0 0 0 / 0) 100%
+  );
+}
+
+/* ─── ae.webp: CENTRAR A AXEL CUESTA RECORTAR, Y ESA ES LA CUENTA ──────────
+   Su eje cae en el 76% del ancho de la toma -- está sentado a la derecha, con
+   el mueble de tintes ocupando el tercio izquierdo --, así que mostrar el
+   encuadre completo lo deja necesariamente descentrado. Para centrarlo hay que
+   quedarse con una ventana cuyo centro esté en ese 0.76, y el ancho máximo de
+   esa ventana es 2·(1-0.76) = 0.48 del original. De ahí sale el 208%: la caja
+   de la imagen mide 2.08 veces la lámina y se corre a la izquierda hasta que la
+   ventana visible cae en el tramo 0.52-1.00.
+
+   Es geometría, no una elección: cualquier método -- zoom, recorte del archivo,
+   caja ancha -- da el mismo 0.48, porque a la derecha de Axel no hay más foto.
+
+   LO QUE CUESTA, y conviene tenerlo escrito: se ven 452 píxeles nativos
+   repartidos en 352 de pantalla, o sea 1.28 nativos por píxel CSS. En un
+   teléfono de DPR 2 eso es un aumento de 1.56x y en uno de DPR 3, de 2.34x. Con
+   una fotografía donde Axel esté centrado en la toma no haría falta nada de
+   esto y se ganaría toda la nitidez. Está reportado.
+
+   EL 62% VERTICAL deja el aire justo por encima de su cabeza y corta a la
+   altura del regazo: la figura queda compuesta en el alto disponible en vez de
+   cortada por la mitad. */
+.cm-foto-a {
+  width: 208%;
+  left: -108.2%;
+}
+
+.cm-foto-a .cm-img {
+  object-position: 50% 62%;
+}
+
+/* axel2.png es apaisada dentro de una lámina vertical, así que se recorta a lo
+   ancho: escalada al alto da 518px contra los 352 de la lámina, o sea que se ve
+   el 68%. El 100% lleva esa ventana al espejo, que es donde está la escena. */
+/* ─── axel2.png SE ALEJA, Y EL RECURSO ES BAJARLE LA CAJA ──────────────────
+   `object-cover` siempre llena, así que con la caja al alto completo de la
+   lámina la imagen se escalaba por su lado corto y solo entraba el 68% del
+   ancho: la escena quedaba muy de frente y muy cerca, y en una fotografía
+   generada eso es justo donde se ven los defectos.
+
+   Con la caja al 82% del alto, la escala baja y entra el 83% del ancho. Los dos
+   figuras se alejan y la toma recupera el contexto -- el espejo entero, el
+   mueble, el lavabo --.
+
+   LO QUE QUEDA POR DEBAJO NO SE VE: la máscara de desvanecido termina en
+   transparente dentro de la propia caja, y por debajo está el color de la
+   lámina, que es el mismo del acordeón. El corte de la caja cae dentro de la
+   zona ya disuelta. */
+.cm-foto-b {
+  width: 100%;
+  left: 0;
+  height: 82%;
+}
+
+.cm-foto-b .cm-img {
+  object-position: 100% 50%;
+}
+
+.cm-foto-b {
+  /* La de arriba arranca invisible. Ese cero es también el estado en reposo:
+     si la animación no corre -- movimiento reducido -- la portada se queda con
+     una sola fotografía sin necesidad de nada más. */
+  opacity: 0;
+  animation: cm-cruce 24s ease-in-out infinite;
+}
+
+/* ─── EL CRUCE ─────────────────────────────────────────────────────────────
+   Ciclo de 24s repartido en cuatro tramos de números redondos:
+
+     0 - 9s     la primera, sola
+     9 - 12s    disolvencia
+     12 - 21s   la segunda, sola
+     21 - 24s   disolvencia de vuelta
+
+   NUEVE SEGUNDOS DE REPOSO Y TRES DE CRUCE, y esa proporción es lo que lo hace
+   pausado en vez de inquieto: cada fotografía se está quieta el triple de
+   tiempo del que tarda en cambiar. Tres segundos de disolvencia sobre una
+   imagen a pantalla casi completa son un cambio que se percibe como luz que
+   varía, no como un corte.
+
+   `ease-in-out` ablanda las dos puntas de cada disolvencia, así que ni la
+   entrada ni la salida tienen arranque seco. Como los tramos de reposo son
+   fotogramas planos, la curva no les hace nada. */
+@keyframes cm-cruce {
+  0%,
+  37.5% {
+    opacity: 0;
+  }
+  50%,
+  87.5% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* MOVIMIENTO REDUCIDO: una sola fotografía, fija. La regla global del proyecto
+   ya deja la animación en 0.01ms, pero esta es explícita porque el encargo lo
+   pide por escrito y porque así el estado en reposo -- opacidad 0 en la de
+   arriba -- queda como la única fuente de verdad. */
+@media (prefers-reduced-motion: reduce) {
+  .cm-foto-b {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/* ─── EL CIERRE, CON DISCO PROPIO ──────────────────────────────────────────
+   Antes era una cruz crema apoyada en el velo de cabecera. Al retirar el velo
+   se quedó sin nada debajo, y las dos fotografías tienen muro claro justo en
+   esa esquina: crema sobre claro no se ve.
+
+   La salida no es devolver el velo -- oscurecería la portada entera por una
+   pieza de 44px -- sino darle a la pieza su propio suelo: un disco de tierra al
+   42% con desenfoque de fondo, que funciona igual con las dos imágenes y con
+   las dos a la vez durante la disolvencia. El filo claro de un píxel lo separa
+   de lo que tenga detrás cuando el muro sea muy claro.
+
+   De paso equilibra la composición: la etiqueta terracota ancla la esquina
+   inferior izquierda y este disco la superior derecha. 44px de área de toque,
+   sin trucos. */
+.cm-cerrar {
+  position: absolute;
+  top: 0.625rem;
+  right: 0.625rem;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  color: var(--color-shell-lift);
+  background-color: color-mix(in oklab, var(--color-tierra) 42%, transparent);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in oklab, var(--color-shell-lift) 26%, transparent);
+  -webkit-backdrop-filter: blur(6px) saturate(1.1);
+  backdrop-filter: blur(6px) saturate(1.1);
+  transition: background-color 150ms ease;
+}
+
+.cm-cerrar:hover {
+  background-color: color-mix(in oklab, var(--color-tierra) 62%, transparent);
+}
+
+/* ─── EL CUERPO ───────────────────────────────────────────────────────────── */
+
+.cm-cuerpo {
+  /* EL BEIGE CÁLIDO DE LA PALETA, declarado aquí y no heredado. La ventana ya
+     llevaba bg-shell, pero el cuerpo se veía casi blanco: sobre el fondo oscuro
+     del backdrop, un beige claro sin nada al lado con qué compararlo lee como
+     blanco. Declararlo explícitamente y darle a la sección abierta un tono un
+     punto más claro es lo que devuelve la lectura de superficie cálida. */
+  /* ─── MÁS CLARO Y MÁS LUMINOSO ──────────────────────────────────────────
+     `shell` puro se leía apagado: es el beige de superficie de la paleta, y a
+     pantalla completa dentro de una ventana funciona, pero en un bloque de
+     texto de este tamaño el ojo lo lee como papel viejo.
+
+     La zona pasa a `shell-lift` mezclado con blanco al 45%: conserva el calor
+     -- sigue siendo la misma familia, no un gris -- y sube el piso de
+     luminancia lo suficiente para que se lea como papel iluminado. */
+  background-color: color-mix(in oklab, var(--color-shell-lift) 55%, white);
+  /* ─── EL MARGEN SUBE DE 20 A 28px ───────────────────────────────────────
+     Con 20 la columna de texto medía 312 de los 352 de la ventana, y esa
+     diferencia es demasiado corta para leerse como margen: parecía que el texto
+     llegaba al canto.
+
+     Y hay un segundo efecto, que es el que más importa: la banda de la sección
+     abierta sangra hasta los cantos del modal, así que la diferencia entre LA
+     COLUMNA DE TEXTO y LA SUPERFICIE ILUMINADA pasa de 40 a 56px. A 40 se leía
+     como un descuadre; a 56 se lee como lo que es, una banda más ancha que su
+     texto. */
+  padding: 1.625rem 1.75rem 1.75rem;
+}
+
+/* EL RÓTULO Y SU REGLA. La regla es un elemento flexible: se lleva todo el
+   ancho sobrante, así que la fila se ordena sola sin una medida escrita a
+   mano. */
+.cm-rotulo {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  /* DE VERSALITA A FRASE. Era "CONÓCEME" en 11px con 0.28em de interletrado --
+     un rótulo de sección -- y ahora es "Hola, me presento" en la serif de
+     display a 18px. El interletrado baja de 0.28em a 0.01em: aquello era
+     versalita espaciada y esto es una frase, donde el espaciado ancho estorba
+     en vez de ayudar.
+
+     Conserva la regla que se lleva el ancho sobrante a su derecha, así que la
+     fila se sigue ordenando sola. */
+  font-family: var(--font-display);
+  font-size: 18px;
+  letter-spacing: 0.01em;
+  color: var(--color-tierra);
+}
+
+.cm-rotulo-regla {
+  flex: 1 1 auto;
+  height: 1px;
+  background-color: color-mix(in oklab, var(--color-casa) 40%, transparent);
+}
+
+.cm-acordeon {
+  margin-top: 1.125rem;
+}
+
+/* LOS DIVISORES. Entre secciones va como borde superior de cada una menos la
+   primera, así no queda una regla suelta encabezando el bloque. Y la última
+   lleva además borde inferior, que es el que cierra el acordeón antes de la
+   nota de cita: en la referencia esa regla está y sin ella el bloque se
+   deshilachaba por abajo. */
+.cm-seccion {
+  position: relative;
+  /* La superficie acompaña a la apertura en vez de saltar de un tono a otro. */
+  transition: background-color 320ms ease;
+}
+
+/* ─── LOS DIVISORES DEJAN DE ESTAR EN TODAS PARTES ─────────────────────────
+   Antes había una regla a todo lo ancho entre cada par de secciones más otra
+   cerrando la última. Cuatro filas idénticas con su línea cada una: la receta
+   de una tabla, que es justo lo que se reportó.
+
+   TRES CAMBIOS Y NINGUNO TOCA EL CONTENIDO:
+
+   1. NINGUNA REGLA TOCA LA SECCIÓN ABIERTA, ni encima ni debajo. La banda casi
+      blanca ya separa; una línea ahí dice lo mismo dos veces, y es lo que hacía
+      que la abierta se leyera como una fila más en vez de como una superficie.
+      Las dos reglas `:has()` de abajo son las que la apagan por los dos lados.
+
+   2. VA DE UN CANTO A OTRO DE LA COLUMNA DE TEXTO. Estuvo acabando 36px antes
+      del canto derecho, y a esa distancia no se leía como una regla corta sino
+      como una línea que se corta a mitad de camino. Completa dentro de la
+      columna -- y sin llegar a los cantos del modal, que ya tienen su propio
+      relleno -- se lee como lo que es.
+
+   3. SU TONO BAJA DE `casa` AL 28% AL 20%. Sobre la superficie nueva, más
+      clara, la misma regla pesa más que antes.
+
+   Y desapareció la que cerraba la última sección: la línea "Solo con cita
+   previa." ya trae la suya, y con las dos el pie quedaba subrayado dos veces. */
+.cm-seccion + .cm-seccion::before {
+  content: "";
+  display: block;
+  height: 1px;
+  background-color: color-mix(in oklab, var(--color-casa) 20%, transparent);
+}
+
+/* SE APAGAN CON OPACIDAD Y NO CON `display`, por dos razones: `display` no se
+   puede transicionar, y quitando la regla del flujo la lista entera saltaba 1px
+   al abrir una sección. Con opacidad el hueco se conserva y el apagado
+   acompaña al resto de la animación. */
+.cm-seccion + .cm-seccion::before {
+  transition: opacity 260ms ease;
+}
+
+/* Sin regla POR ENCIMA de la abierta... */
+.cm-seccion:has(.cm-seccion-titulo[aria-expanded="true"])::before {
+  opacity: 0;
+}
+
+/* ...ni POR DEBAJO, que es la que lleva la sección siguiente. */
+.cm-seccion:has(.cm-seccion-titulo[aria-expanded="true"]) + .cm-seccion::before {
+  opacity: 0;
+}
+
+.cm-seccion h3 {
+  margin: 0;
+}
+
+/* ─── LA SECCIÓN ABIERTA, CASI BLANCA ──────────────────────────────────────
+   El salto anterior era de `shell` a `shell-lift`: nueve puntos de luminancia,
+   que sobre el papel bastan y en pantalla no se ven. Ahora va de crema al 55%
+   sobre blanco a crema al 12%: la abierta queda a un paso del blanco puro y el
+   escalón se ve sin tener que buscarlo.
+
+   El sangrado negativo la lleva hasta los cantos del cuerpo, así que se lee
+   como una banda iluminada y no como una tarjeta metida dentro. */
+.cm-seccion:has(.cm-seccion-titulo[aria-expanded="true"]) {
+  background-color: color-mix(in oklab, var(--color-shell-lift) 12%, white);
+  /* ─── DEJA DE SANGRAR A LOS CANTOS, Y ESE ERA EL PROBLEMA ───────────────
+     Iba de canto a canto del modal y sin radio, así que sus dos bordes
+     horizontales cruzaban la ventana entera de lado a lado: el bloque se leía
+     como una pila de franjas cortadas a escuadra, no como una pieza.
+
+     Ahora sobresale 12px del texto por cada lado -- lo justo para seguir
+     leyéndose como una banda más ancha que su contenido, no como una tarjeta
+     metida dentro -- y lleva las esquinas redondeadas. Los cantos dejan de
+     tocar el canto del modal, así que ya no hay ninguna línea que cruce la
+     ventana. */
+  margin-inline: -0.75rem;
+  padding-inline: 0.75rem;
+  border-radius: 0.875rem;
+}
+
+/* ─── LA MARCA DE LA ABIERTA ───────────────────────────────────────────────
+   Regla de 2px en terracota pegada al canto izquierdo de la banda iluminada, de
+   su alto completo. Señala cuál está abierta sin sumar un divisor más, que es
+   lo contrario de lo que hacía la regla que se quitó.
+
+   Va en `::after` y no en un borde: un `border-left` habría desplazado el
+   contenido 2px respecto de las secciones cerradas, y entonces los cuatro
+   títulos dejarían de compartir eje.
+
+   EXISTE EN LAS CUATRO Y SE ESCALA, en vez de aparecer solo en la abierta. Un
+   pseudo-elemento que nace y muere no se puede animar; uno que siempre está y
+   pasa de escala 0 a 1 desde su centro, sí. Crece de dentro afuera al ritmo del
+   hueco que se abre. */
+.cm-seccion::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  border-radius: 0 2px 2px 0;
+  background-color: var(--color-dune);
+  opacity: 0;
+  transform: scaleY(0.35);
+  transition:
+    opacity 240ms ease,
+    transform 420ms cubic-bezier(0.32, 0.72, 0.3, 1);
+}
+
+.cm-seccion:has(.cm-seccion-titulo[aria-expanded="true"])::after {
+  opacity: 1;
+  transform: scaleY(1);
+}
+
+.cm-seccion-titulo {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  /* ─── LAS CERRADAS SE COMPACTAN ─────────────────────────────────────────
+     De 18 a 15px de relleno vertical: la fila baja de 49 a 43px de alto. Las
+     cuatro se aprietan y se leen como una lista de pendientes, que es lo que
+     deja sitio para que la abierta domine. */
+  padding-block: 0.9375rem;
+  transition: padding-block 420ms cubic-bezier(0.32, 0.72, 0.3, 1);
+  text-align: left;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  /* Tierra pleno, el más oscuro de la paleta. */
+  color: var(--color-tierra);
+  cursor: pointer;
+}
+
+/* LOS SIGNOS, en terracota los dos -- la cruz de las cerradas y la raya de la
+   abierta --. Son el acento de color de cada fila.
+
+   EN `dune-deep` Y NO EN `dune`. Medido, la cruz en dune sobre la superficie
+   shell de las secciones cerradas daba 4.29:1. Pasa el 3 que le corresponde por
+   ser un símbolo decorativo -- el estado real lo anuncia aria-expanded -- pero
+   queda por debajo del 4.5 de texto, y CLAUDE.md reserva `dune` para texto
+   grande o decoración justamente por eso. dune-deep es el mismo terracota en la
+   variante apta para tinta pequeña. */
+.cm-signo {
+  flex: 0 0 auto;
+  font-size: 1.125rem;
+  line-height: 1;
+  color: var(--color-dune-deep);
+}
+
+/* ─── LA ABIERTA RESPIRA MÁS ───────────────────────────────────────────────
+   Antes las cuatro filas medían lo mismo abiertas o cerradas, así que abrir una
+   solo cambiaba el color. Ahora cambia también el aire: 22px por encima del
+   título contra los 15 de una cerrada, y 30 por debajo del último párrafo. Con
+   el mismo contenido, la sección abierta ocupa cerca de 1.6 veces lo que
+   ocupaba.
+
+   Abrir una sección ABRE UN HUECO, no solo enciende un color. Es lo que hace
+   que se lea como una pieza y no como un control. */
+.cm-seccion:has(.cm-seccion-titulo[aria-expanded="true"]) .cm-seccion-titulo {
+  padding-block: 1.375rem 0.75rem;
+}
+
+/* ─── LA NUMERAL ───────────────────────────────────────────────────────────
+   01 a 04 en la serif de display y en el tono de apoyo. Es el movimiento que
+   convierte cuatro filas en un índice: sin ella los títulos son opciones de un
+   control, con ella son entradas de una pieza.
+
+   Tabular para que las cuatro compartan ancho y los títulos arranquen todos en
+   el mismo eje. La línea base la comparte con el título, no la caja. */
+.cm-seccion-etiqueta {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 0.875rem;
+}
+
+.cm-numeral {
+  flex: 0 0 auto;
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0;
+  color: var(--color-casa);
+  font-variant-numeric: tabular-nums;
+}
+
+/* LA REGLA CORTA de la sección abierta, entre el título y el párrafo. */
+.cm-seccion-regla {
+  display: block;
+  width: 34px;
+  height: 2px;
+  border-radius: 1px;
+  background-color: var(--color-dune);
+}
+
+/* El relleno inferior vive en el panel y no en el párrafo: con varios párrafos
+   por sección, tenerlo en el párrafo lo habría repetido en cada uno. */
+/* ─── LA APERTURA, ANIMADA ─────────────────────────────────────────────────
+   Antes el panel se ocultaba con `hidden` -- display:none -- y ninguna
+   propiedad se puede interpolar desde ahí: la sección aparecía de golpe y el
+   texto entraba de una pieza. Eso es lo que se leía como brusco.
+
+   ─── LA RETÍCULA DE UNA FILA ES EL TRUCO ──────────────────────────────────
+   `height: auto` no se puede animar, y medir el alto con JavaScript para
+   animarlo obliga a un re-render por fotograma. Una retícula de una sola fila
+   que va de `0fr` a `1fr` SÍ se interpola, y resuelve el alto sola sea cual sea
+   el contenido: la fila crece hasta lo que pide su hijo y el navegador
+   interpola entre las dos fracciones. El envoltorio interior lleva el
+   `overflow: hidden` que recorta el contenido mientras tanto.
+
+   ─── TRES TIEMPOS DISTINTOS, Y ESA ES LA DIFERENCIA ───────────────────────
+   Si el alto, la opacidad y el desplazamiento fueran a la vez, la sección se
+   leería como una caja que crece con su texto pegado dentro. Escalonados, se
+   lee como que el hueco se abre PRIMERO y el contenido se asienta DESPUÉS:
+
+     alto        420ms con la curva de salida del proyecto
+     opacidad    260ms, con 120 de retardo al abrir -- el texto no empieza a
+                 aparecer hasta que el hueco ya está a medio abrir
+     posición     360ms, entrando desde 6px por encima
+
+   AL CERRAR NO HAY RETARDO. Si lo hubiera, el texto seguiría visible mientras
+   el hueco ya se cierra y se vería recortado por el canto. Cerrando, el
+   contenido se va primero y el hueco después. */
+.cm-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 420ms cubic-bezier(0.32, 0.72, 0.3, 1),
+    opacity 200ms ease;
+}
+
+.cm-panel-interior {
+  /* ─── DOS COSAS PARA QUE LA SECCIÓN CERRADA LLEGUE DE VERDAD A CERO ──────
+     `min-height: 0` porque el mínimo automático de un elemento de retícula es
+     su tamaño de contenido mínimo, y sin levantarlo la pista `0fr` no colapsa.
+
+     Y EL RELLENO INFERIOR SE FUE DE AQUÍ, que era la otra mitad del problema:
+     el relleno se suma al alto usado aunque la fila mida cero, así que el panel
+     cerrado seguía ocupando sus 30px -- medido -- y las cuatro secciones
+     arrastraban un hueco fantasma. Ahora ese aire lo pone el último hijo con un
+     margen, que sí queda dentro del contenido recortado. */
+  min-height: 0;
+  overflow: hidden;
+  translate: 0 -6px;
+  transition: translate 360ms cubic-bezier(0.32, 0.72, 0.3, 1);
+}
+
+.cm-panel-interior > :last-child {
+  margin-bottom: 1.875rem;
+}
+
+.cm-seccion:has(.cm-seccion-titulo[aria-expanded="true"]) .cm-panel {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition:
+    grid-template-rows 420ms cubic-bezier(0.32, 0.72, 0.3, 1),
+    opacity 260ms ease 120ms;
+}
+
+.cm-seccion:has(.cm-seccion-titulo[aria-expanded="true"]) .cm-panel-interior {
+  translate: 0 0;
+}
+
+.cm-parrafo {
+  margin-top: 1rem;
+  font-size: 0.9375rem;
+  /* ─── 1.75 DE INTERLINEADO, Y ES UN CAMBIO DE REGISTRO ───────────────────
+     A 1.6 el bloque se leía como un párrafo de interfaz: los renglones se
+     apoyaban unos en otros y el ojo no encontraba dónde descansar. A 1.75 sobre
+     15px son 26.25px de renglón, que es el ritmo con el que compone una
+     revista y no un formulario. El texto es corto, así que el alto que gasta no
+     empuja nada fuera de la ventana. */
+  line-height: 1.75;
+  /* Tierra pleno: antes iba al mismo tono pero el conjunto se leía gris contra
+     la superficie. */
+  color: var(--color-tierra);
+}
+
+/* ENTRE PÁRRAFOS, MÁS AIRE QUE ENTRE RENGLONES. 1.25rem contra los 26.25px del
+   interlineado: suficiente para que se lean como dos ideas y no como un salto
+   de línea, sin abrir un hueco que rompa la sección en dos bloques. */
+.cm-parrafo + .cm-parrafo {
+  margin-top: 1.25rem;
+}
+
+/* EL DESTACADO. La frase que define la especialidad, en la serif de display en
+   cursiva y en terracota: el mismo par de voces con que el sitio marca una voz
+   aparte. Va en <em>, así que un lector de pantalla también oye el énfasis.
+
+   Un punto más de cuerpo que el texto que la rodea, porque la display serif
+   tiene la altura de x más baja que la de cuerpo y a igual cuerpo se vería más
+   pequeña. */
+.cm-destacado {
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-style: italic;
+  letter-spacing: -0.01em;
+  color: var(--color-dune-deep);
+}
+
+/* LA NOTA DE CITA. Misma mecánica que el rótulo de arriba: la regla se lleva el
+   sobrante, así que el bloque cierra la ventana con el mismo gesto con que la
+   abre. */
+.cm-cita {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  /* 28px y no 20: con la última sección ya sin regla que la cierre, este hueco
+     es lo único que separa la lista de su pie. */
+  margin-top: 1.75rem;
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-style: italic;
+  color: var(--color-tierra);
+}
+
+.cm-cita-regla {
+  flex: 1 1 auto;
+  height: 1px;
+  background-color: color-mix(in oklab, var(--color-casa) 40%, transparent);
+}
+
+/* El nombre se dimensiona con cqw contra el ancho de la ventana, así que la
+   ventana tiene que ser contenedor de consulta. */
+.cm-dialogo {
+  container-type: inline-size;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   /galeria — EL TABLERO DE INSPIRACIÓN, EN CLARO
+
+   Segunda pantalla clara del sitio junto con /menu/tratamientos. Las clases van
+   con prefijo propio (gal-) y no reusan las de tratamientos (trat-) aunque el
+   material sea el mismo: las densidades de vidrio de allá están calibradas
+   contra una fotografía desenfocada y las de aquí contra un degradado plano, y
+   compartir la regla habría atado dos páginas por una superficie que cada una
+   mide contra su propio fondo.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* EL FONDO. Un degradado plano de la paleta, sin fotografía: el contenido son
+   56 fotos cubriendo casi toda la pantalla y cualquier textura debajo
+   competiría con ellas. Va de crema arriba a shell abajo, así que el
+   encabezado -- que es donde vive la tinta pequeña -- se apoya en el tramo más
+   claro. */
+.gal-fondo {
+  background-image: linear-gradient(
+    to bottom,
+    var(--color-shell-lift) 0%,
+    color-mix(in oklab, var(--color-shell-lift) 60%, var(--color-shell)) 38%,
+    var(--color-shell) 100%
+  );
+}
+
+/* ─── EL ENCABEZADO ────────────────────────────────────────────────────────
+   El cuerpo del titular conserva el clamp que ya tenía la página, que es el
+   mismo de /menu, así que las tres pantallas abren con el titular a la misma
+   escala. */
+.gal-titular {
+  font-size: clamp(3.4rem, 20.4vw - 0.61rem, 4.55rem);
+}
+
+@media (min-width: 1024px) {
+  .gal-titular {
+    font-size: 3.875rem;
+  }
+}
+
+.gal-kicker {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.28em;
+  color: var(--color-casa);
+}
+
+/* LA BAJADA. `text-wrap: balance` en cada oración: la segunda mide 47
+   caracteres y sin equilibrar dejaba un renglón largo sobre un "ver." suelto.
+   Balanceada, las dos mitades quedan parejas. El tope de 30ch es lo que la
+   obliga a partir en dos en vez de estirarse por la columna en escritorio. */
+.gal-bajada {
+  max-width: 30ch;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  text-wrap: balance;
+  color: var(--color-casa);
+}
+
+.gal-bajada .font-medium {
+  color: var(--color-tierra);
+}
+
+.gal-remate {
+  width: 48px;
+  height: 2px;
+  border-radius: 1px;
+  background-color: var(--color-dune);
+}
+
+/* EL CONTROL DE REGRESO. Mismo material que el de /menu/tratamientos -- vidrio
+   claro con contorno fino y versalita en terracota --, con nombre propio. */
+.gal-volver {
+  position: relative;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 30px;
+  padding-inline: 0.75rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--color-casa) 45%, transparent);
+  background-color: color-mix(in oklab, white 50%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  white-space: nowrap;
+  color: var(--color-dune-deep);
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.gal-volver::after {
+  content: "";
+  position: absolute;
+  inset: -8px 0;
+}
+
+.gal-volver:hover {
+  background-color: color-mix(in oklab, white 74%, transparent);
+  border-color: var(--color-casa);
+}
+
+.gal-volver-flecha {
+  display: inline-block;
+  font-size: 0.8125rem;
+  line-height: 1;
+  animation: back-nudge 1.8s ease-in-out infinite;
+}
+
+.gal-nav-regla {
+  height: 1px;
+  flex: 1 1 auto;
+  background-image: linear-gradient(
+    to right,
+    color-mix(in oklab, var(--color-casa) 42%, transparent),
+    transparent
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EL MOSAICO
+
+   ─── POR QUÉ RETÍCULA Y NO MULTICOLUMNA ───────────────────────────────────
+   `columns` es lo que usa Pinterest y aquí no sirve: el contenido fluye POR
+   COLUMNAS, así que en una página larga la primera columna se lleva las fotos 1
+   a 14 y la segunda empieza en la 15. Eso rompe el orden cronológico y, sobre
+   todo, la carga progresiva: lo que cae sobre el pliegue serían las fotos 1,
+   15, 29 y 43, no las primeras. Con retícula el flujo es por filas.
+
+   ─── LA UNIDAD DE FILA ────────────────────────────────────────────────────
+   Todo cuelga de que una foto normal ocupe 4 filas y mida exactamente 4:5. Un
+   recorrido de 4 filas incluye 3 huecos, así que la fila no vale un cuarto del
+   alto: vale (1.25·columna - 3·hueco)/4. Con eso salen los tres formatos:
+
+     normal (4 filas)          4r + 3g = 1.25·col          4:5 exacto
+     alta   (5 filas)          5r + 4g = 1.25·col + r + g  ~1:1.56
+     grande (2 col, 8 filas)   8r + 7g = 2.5·col + g       ~4:5 al doble
+
+   El error del formato grande es un hueco de 10px sobre 500 de alto -- dos
+   décimas de por ciento -- y lo absorbe el object-cover sin que se note.
+
+   `dense` rellena los agujeros que dejan las grandes con las siguientes
+   pequeñas. Reordena visualmente algún elemento, y en un tablero de
+   inspiración eso no molesta: no hay orden que respetar.
+
+   Las unidades son de CONTENEDOR (cqw) y no de viewport, así que la cuenta
+   sigue siendo válida dentro del marco con relleno lateral. */
+.gal-marco {
+  padding-inline: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .gal-marco {
+    padding-inline: 1.25rem;
+  }
+}
+
+.gal-tablero {
+  container-type: inline-size;
+  --gal-n: 2;
+  --gal-gap: 8px;
+  --gal-col: calc(
+    (100cqw - (var(--gal-n) - 1) * var(--gal-gap)) / var(--gal-n)
+  );
+  display: grid;
+  grid-template-columns: repeat(var(--gal-n), minmax(0, 1fr));
+  grid-auto-rows: calc((var(--gal-col) * 1.25 - 3 * var(--gal-gap)) / 4);
+  grid-auto-flow: dense;
+  gap: var(--gal-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 640px) {
+  .gal-tablero {
+    --gal-n: 3;
+    --gal-gap: 10px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .gal-tablero {
+    --gal-n: 4;
+    --gal-gap: 12px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .gal-tablero {
+    --gal-n: 5;
+    --gal-gap: 14px;
+  }
+}
+
+.gal-celda {
+  min-width: 0;
+}
+
+.gal-celda-normal {
+  grid-row: span 4;
+}
+
+.gal-celda-alta {
+  grid-row: span 5;
+}
+
+.gal-celda-grande {
+  grid-column: span 2;
+  grid-row: span 8;
+}
+
+/* LA CELDA. El botón ocupa la celda entera, así que el objetivo táctil es la
+   fotografía completa y no una zona dentro de ella. El radio es generoso y el
+   filo claro de un píxel la despega del fondo, que es del mismo rango de
+   luminancia. */
+.gal-foto {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 0.875rem;
+  background-color: color-mix(in oklab, var(--color-shell) 70%, white);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, white 55%, transparent),
+    0 10px 24px -18px color-mix(in oklab, var(--color-tierra) 55%, transparent);
+  cursor: pointer;
+  transition:
+    transform 260ms cubic-bezier(0.32, 0.72, 0.3, 1),
+    box-shadow 260ms ease;
+}
+
+/* AL PASAR POR ENCIMA la fotografía se levanta un punto. Es el gesto que
+   convierte una retícula en algo explorable: dice que cada pieza se puede
+   abrir. Muy corto -- 1.5% -- porque con 56 piezas cualquier cosa mayor
+   convierte el recorrido del ratón en un oleaje. */
+.gal-foto:hover {
+  transform: scale(1.015);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, white 70%, transparent),
+    0 16px 30px -18px color-mix(in oklab, var(--color-tierra) 65%, transparent);
+}
+
+/* EL FUNDIDO DE ENTRADA. La marca la pone el evento de carga en el propio nodo
+   -- ver el comentario del componente -- y aquí solo se lee. Sin esto, con
+   `loading=lazy` las fotografías aparecen de golpe conforme entran en pantalla,
+   que es exactamente el efecto de persiana que se quería evitar. */
+.gal-foto img {
+  opacity: 0;
+  transition: opacity 420ms ease;
+}
+
+.gal-foto img[data-cargada] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gal-foto,
+  .gal-foto img {
+    transition: none;
+  }
+  .gal-foto:hover {
+    transform: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EL CIERRE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* EL SUBTÍTULO. Misma construcción que el titular y subordinado por cuerpo y
+   peso. La sangría va en la PRIMERA línea porque aquí la segunda es la más
+   larga: sangrar la larga empujaría su remate a la derecha y dejaría el costado
+   izquierdo vacío. Con la corta sangrada, la larga marca los dos extremos y el
+   bloque queda equilibrado. */
+.gal-subtitulo {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 400;
+  line-height: 1.06;
+  letter-spacing: -0.056em;
+  color: var(--color-tierra);
+}
+
+.gal-subtitulo > span > span:first-child {
+  padding-left: 1.1em;
+}
+
+/* LA VENTANA DE CONVERSIÓN. Vidrio claro con sombra: es el objeto que flota. */
+.gal-ventana {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.75rem;
+  background-color: color-mix(in oklab, white 52%, transparent);
+  -webkit-backdrop-filter: blur(16px) saturate(1.1);
+  backdrop-filter: blur(16px) saturate(1.1);
+  box-shadow:
+    inset 0 1px 0 0 color-mix(in oklab, white 78%, transparent),
+    0 24px 48px -30px color-mix(in oklab, var(--color-tierra) 50%, transparent),
+    0 4px 12px -8px color-mix(in oklab, var(--color-tierra) 22%, transparent);
+}
+
+.gal-frase {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 400;
+  line-height: 1.06;
+  letter-spacing: -0.056em;
+  color: var(--color-dune-deep);
+}
+
+.gal-frase span + span {
+  padding-left: 0.9em;
+}
+
+.gal-entrada {
+  margin-top: 0.875rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-tierra);
+}
+
+/* EL BOTÓN, a sangre por el pie de la ventana y en terracota macizo: el único
+   relleno saturado de la página. El campo va cerrado con un 22% de tierra por
+   la misma razón que en tratamientos -- sobre dune-deep puro el rótulo se queda
+   en 6.07:1 y no llega al 7 de AAA. */
+.gal-wa-boton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 62px;
+  padding: 0.5rem 1.25rem;
+  background-color: color-mix(
+    in oklab,
+    var(--color-dune-deep) 78%,
+    var(--color-tierra)
+  );
+  box-shadow: inset 0 1px 0 0
+    color-mix(in oklab, var(--color-shell-lift) 26%, transparent);
+  transition: background-color 150ms ease;
+}
+
+.gal-wa-boton:hover {
+  background-color: color-mix(in oklab, var(--color-dune-deep) 62%, var(--color-tierra));
+}
+
+.gal-wa-texto {
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  white-space: nowrap;
+  color: var(--color-shell-lift);
+}
+
+.gal-wa-flecha {
+  font-size: 1.0625rem;
+  line-height: 1;
+  color: var(--color-shell-lift);
+}
+
+/* LA VENTANA DE REFERENCIA. Se distingue de la de arriba por tener MENOS
+   materia, no por ser más oscura: menos densidad, contorno dibujado en vez de
+   filo, y sin sombra proyectada. */
+.gal-ventana-ligera {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.75rem;
+  border: 1px solid color-mix(in oklab, var(--color-casa) 42%, transparent);
+  background-color: color-mix(in oklab, white 34%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(1.15);
+  backdrop-filter: blur(20px) saturate(1.15);
+  box-shadow: inset 0 1px 0 0 color-mix(in oklab, white 55%, transparent);
+}
+
+/* Las cápsulas se apilan a la izquierda y la ubicación entra a su derecha: los
+   dos costados quedan ocupados en toda la altura del bloque. */
+.gal-cierre-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.gal-cierre-enlaces {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.gal-pastilla {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 40px;
+  padding-inline: 1rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--color-casa) 82%, transparent);
+  background-color: color-mix(in oklab, white 52%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--color-dune-deep);
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.gal-pastilla:hover {
+  background-color: color-mix(in oklab, white 74%, transparent);
+  border-color: var(--color-casa);
+}
+
+.gal-pastilla-flecha {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.gal-lugar {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--color-dune-deep);
 }
 

@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import { CATEGORIES } from "@/data/services";
 import { PantallaTratamientos } from "@/components/tratamientos/PantallaTratamientos";
 import { CierreTratamientos } from "@/components/tratamientos/CierreTratamientos";
-import { Logo } from "@/components/Logo";
-import { waLink } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Tratamientos",
@@ -24,65 +22,79 @@ export default function TratamientosPage() {
           encabezado entra por `children`: es texto estático y así se sigue
           pintando en el servidor en vez de viajar como JavaScript. */}
       <PantallaTratamientos servicios={tratamientos.services}>
-        {/* ─── EL ENCABEZADO, CENTRADO ────────────────────────────────────
-            DEDICADO ÚNICAMENTE A TRATAMIENTOS: kicker, punto, titular, párrafo
-            y remate. La salida a los diseños de color bajó al cierre de la
-            página, porque en el encabezado era lo único que hablaba de otra
-            cosa y competía con la entrada a esta.
+        {/* ─── EL ENCABEZADO ──────────────────────────────────────────────
+            ALINEADO A LA IZQUIERDA Y CON EL MISMO LOCKUP QUE /menu. Las dos
+            páginas comparten ahora la construcción del titular: primera palabra
+            en la redonda de la serif de display a cuerpo completo, segunda
+            debajo en su cursiva a 0.85em, alineada a la derecha del envoltorio
+            y volando por ese canto, con interlineado negativo para que las dos
+            se lean como una pieza. El control de regreso se monta en la segunda
+            línea, en el hueco que deja el desplazamiento.
 
-            Todo el bloque se alinea al eje de la columna. El `text-center` del
-            envoltorio se encarga de las piezas de texto y de las inline; las
-            dos que tienen caja propia -- el punto separador y el remate -- se
-            centran con márgenes automáticos.
+            ESTÁ DUPLICADO, NO IMPORTADO. El lockup de /menu no vive en un
+            componente: es markup dentro de app/menu/page.tsx más tres reglas de
+            globals.css (.encabezado-color, .titular-color, .regreso-titular).
+            Aquí hay una copia con nombres propios -- .trat-encabezado,
+            .trat-titular, .trat-regreso-titular -- porque los dos números que
+            colocan el control dependen de QUÉ PALABRAS son, y "Tratamientos /
+            capilares" no mide lo mismo que "Diseños / de color". Compartir la
+            regla habría acoplado dos páginas por una medida que no comparten.
+            app/menu/page.tsx y sus reglas no se tocaron.
 
-            Sigue siendo compacto por la misma razón de antes: ocupa la parte
-            alta sin invadir el sitio del carrusel, porque la pantalla entera
-            tiene que caber sin desplazamiento. */}
-        <div className="text-center">
-          <p className="mt-7 text-[10px] uppercase tracking-[0.28em] text-casa">
+            LOS TONOS SON LOS DE ESTA PÁGINA: tinta `tierra` sobre claro, contra
+            el `shell-lift` sobre oscuro de /menu. La construcción es la misma;
+            el color, no. */}
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.28em] text-casa">
             Cuidado del cabello
           </p>
 
-          {/* EL PUNTO SEPARADOR. Un separador editorial entre el rótulo y el
-              titular: en vez de una regla, que cortaría el bloque en dos, un
-              punto que solo marca la pausa. */}
-          <span aria-hidden="true" className="trat-punto-sep" />
+          {/* .trat-encabezado declara --trat-titulo-cuerpo, que es el cuerpo
+              del titular. Vive en el contenedor y no en el <h1> porque el
+              control de regreso lo necesita para colocarse: un `em` dentro del
+              control se resolvería contra su propio cuerpo, no contra el del
+              titular. */}
+          <div className="trat-encabezado relative mt-[7px]">
+            <h1 className="trat-titular relative font-display text-tierra">
+              {/* El envoltorio es inline-block, así que su ancho es el de la
+                  línea más ancha -- "Tratamientos" -- y eso es lo que le da a
+                  "capilares" un borde derecho contra el que alinearse. Sin él,
+                  el envoltorio mediría el ancho de la columna y la cursiva se
+                  iría al canto. */}
+              <span className="inline-block">
+                <span className="block font-medium leading-none tracking-[-0.056em]">
+                  Tratamientos
+                </span>{" "}
+                <span className="-mt-[0.22em] -mr-[0.85em] block text-right font-medium text-[0.85em] italic leading-none tracking-[-0.056em]">
+                  capilares
+                </span>
+              </span>
+            </h1>
 
-          {/* EL TITULAR, EN DOS LÍNEAS Y DOS VOCES. "Tratamientos" en la
-              redonda de la serif de display y "capilares" debajo en su
-              cursiva, ahora centrada bajo la primera en vez de sangrada a la
-              derecha. Conserva cuerpo y estilo; lo único que cambia es el eje.
+          </div>
 
-              leading-[0.92] junta las dos líneas más de lo que las dejaría el
-              interlineado normal: es lo que hace que se lean como un lockup de
-              dos piezas y no como dos renglones sueltos. */}
-          <h1 className="mt-2 font-display text-[2.5rem] leading-[0.92] tracking-tight text-tierra min-[400px]:text-[2.75rem] sm:text-[3.5rem] lg:text-[2.5rem]">
-            <span className="block">Tratamientos</span>
-            <span className="block italic">capilares</span>
-          </h1>
+          {/* LA BAJADA, sobre el mismo eje izquierdo. Ya no necesita
+              `text-balance`: eso existía para que los dos renglones centrados
+              no dejaran un escalón. Alineada a la izquierda, el desnivel de la
+              derecha es la bandera natural del texto.
 
-          {/* EL PÁRRAFO, EQUILIBRADO. Con el texto centrado, el corte fijo que
-              tenía antes -- dos bloques con la partición escrita a mano --
-              dejaba un renglón de 30 caracteres sobre otro de 23, y centrados
-              esa diferencia se ve como un escalón.
+              SIN TOPE DE ANCHO, Y AHÍ ESTABA LA CAUSA DEL CORTE. Tenía un
+              max-w-[15rem] -- 240px -- que le puse yo al pasar el encabezado a
+              alineación izquierda. Medida, la frase ocupa 301.3px y la columna
+              de un teléfono de 360 da 312: cabía en un renglón, y lo que la
+              partía era mi propio tope, no su longitud. Quitado, entra entera
+              desde 360 en adelante. El cuerpo no se tocó.
 
-              `text-wrap: balance` deja que el navegador reparta las palabras
-              entre los dos renglones buscando la mínima diferencia de longitud,
-              que es exactamente lo que se pidió. Necesita un ancho que lo
-              obligue a partir en dos: de ahí el tope de 17rem.
-
-              Donde no esté soportado, el párrafo simplemente envuelve por
-              ancho, como cualquier texto: no se rompe nada. */}
-          <p className="mx-auto mt-4 max-w-[17rem] text-[0.8125rem] leading-[1.45] text-balance text-casa">
+              El margen que queda es de 10.7px a 360, que es poco: por eso hay
+              propuestas de texto más corto en el informe, pendientes de
+              aprobación. */}
+          <p className="mt-[5px] text-center text-[0.8125rem] leading-[1.45] text-casa">
             Cuidado preciso para recuperar la salud de tu cabello.
           </p>
 
-          {/* EL REMATE. Una regla corta de terracota, no un divisor: no separa
-              dos bloques, cierra el bloque de texto. De ahí que mida 48px y no
-              el ancho de la columna. Centrado con márgenes automáticos, porque
-              tiene ancho propio y el text-center no lo alcanza. */}
+          {/* EL REMATE. Una regla corta de terracota que cierra el bloque de
+              texto, ahora arrancando del eje izquierdo. */}
           <div aria-hidden="true" className="trat-remate mx-auto mt-4" />
-
         </div>
 
       </PantallaTratamientos>
@@ -99,54 +111,15 @@ export default function TratamientosPage() {
           de la página. Con 84 quedan 22, que es lo que hace falta para que la
           ventana no se meta debajo de la barra y se siga leyendo como una pieza
           que flota encima. */}
-      <div className="pb-[5.25rem] lg:pb-8">
+      {/* SIN RELLENO PARA LA BARRA FIJA. Aquí había 84px cuya única razón era
+          que el cierre no se metiera debajo de la barra flotante de WhatsApp.
+          La barra se retiró -- la conversión vive ahora dentro de la primera
+          ventana del cierre, con su contexto -- así que ese hueco se fue con
+          ella y queda el aire normal del pie de página. */}
+      <div className="pb-8">
         <CierreTratamientos />
       </div>
 
-      {/* ─── LA BARRA DE WHATSAPP ──────────────────────────────────────────
-          Rediseñada según la referencia -- logotipo en círculo, divisor
-          vertical, texto centrado en versalita espaciada y flecha a la derecha
-          -- pero EN CLARO, que es lo que se pidió por escrito. La referencia la
-          dibuja en oscuro; aquí el peso se consigue sin recurrir a eso.
-
-          CÓMO PESA SIN SER OSCURA, que es la parte difícil:
-            - Es lo único de la pantalla con relleno saturado: el círculo del
-              logotipo va en dune-deep macizo y hace de ancla visual.
-            - Contorno definido de terracota, no un filo claro como el resto de
-              las superficies de la página.
-            - La sombra más profunda de la pantalla, que la despega del fondo.
-            - Flota separada de los cantos, así que se lee como una pieza
-              apoyada encima y no como un pie pegado al borde.
-
-          Va fija al viewport y solo en móvil, igual que antes. */}
-      <div className="fixed inset-x-4 bottom-4 z-10 pb-[env(safe-area-inset-bottom)] lg:hidden">
-        <a
-          href={waLink(
-            "Hola Axel, vi tus tratamientos y quiero agendar una cita.",
-          )}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="trat-wa-barra"
-        >
-          {/* EL LOGOTIPO DENTRO DEL CÍRCULO. Es el logotipo real de la marca
-              (components/Logo.tsx, el mismo de la landing), no un monograma: la
-              marca no tiene uno. A este tamaño la firma de dos líneas se lee
-              como textura más que como palabra -- está reportado, con las
-              alternativas -- pero es el único mark que existe hoy. h-4 es lo
-              máximo que entra sin que el círculo le corte la segunda línea. */}
-          <span aria-hidden="true" className="trat-wa-logo">
-            <Logo className="h-4 w-auto" />
-          </span>
-
-          <span aria-hidden="true" className="trat-wa-divisor" />
-
-          <span className="trat-wa-texto">Escríbeme por WhatsApp</span>
-
-          <span aria-hidden="true" className="trat-wa-flecha">
-            →
-          </span>
-        </a>
-      </div>
     </>
   );
 }

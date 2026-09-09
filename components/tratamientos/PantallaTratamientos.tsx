@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import {
   useCallback,
   useEffect,
@@ -8,7 +9,6 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import Link from "next/link";
 import type { Service } from "@/data/services";
 import { mxn } from "@/data/services";
 import { waLink } from "@/lib/site";
@@ -72,7 +72,11 @@ const FICHAS: Record<
   hidratante: {
     src: "/hidratante.png",
     alt: "Melena castaña con reflejos sostenida sobre el lavabo durante el tratamiento",
-    kicker: "Hidratación",
+    // "Nutrición profunda" y no "Hidratación": el kicker repetía la raíz del
+    // nombre que tiene justo debajo -- Hidratación / Hidratante -- así que no
+    // aportaba nada. El resto de las fichas ya funciona así: el kicker nombra
+    // el campo y el nombre nombra el producto.
+    kicker: "Nutrición profunda",
     resumen: "Devuelve suavidad, brillo y manejo.",
   },
   reestructuracion: {
@@ -264,23 +268,40 @@ export function PantallaTratamientos({
     <>
       <aside className="lg:sticky lg:top-16 lg:self-start">
         {/* ─── LA BARRA SUPERIOR ──────────────────────────────────────────
-            EL REGRESO DEJÓ DE SER UNA FLECHA SUELTA. Una flecha sola arriba a
-            la izquierda no dice a dónde lleva: se lee tanto como "anterior" o
-            como adorno que como "volver". Ahora es una cápsula con la flecha Y
-            la palabra, que es lo que la vuelve inequívoca de un vistazo.
+            EL CONTROL DE REGRESO VUELVE AQUÍ. Estuvo montado en la segunda
+            línea del titular, como en /menu, y de ahí sale: en esta página el
+            titular es "Tratamientos capilares" -- doce letras más nueve contra
+            las siete más ocho de /menu --, así que el hueco que dejaba el
+            desplazamiento de la cursiva era el doble de ancho y la cápsula
+            quedaba nadando dentro. En su barra propia vuelve a leerse como lo
+            que es: navegación, antes de que empiece la pieza.
 
             Sigue siendo discreta: versalita de 10px sobre vidrio claro con
-            contorno fino, sin relleno saturado. No compite con el titular, que
-            la cuadruplica en cuerpo.
+            contorno fino, sin relleno saturado. La regla se lleva el ancho
+            sobrante, así que la barra se ordena sola en cualquier pantalla sin
+            una medida escrita a mano. */}
+        {/* ─── EL AIRE DE LA BARRA ────────────────────────────────────────
+            Arriba: los 32px del contenedor del layout más 12 de aquí, 44 en
+            total del canto de la pantalla al canto de la cápsula. Abajo: 24
+            hasta el rótulo. La cápsula mide 30, así que la barra ocupa una
+            banda de 98px con la pieza sentada en ella y no pegada a ningún
+            lado.
 
-            La regla se lleva el ancho sobrante, así que la barra se ordena sola
-            en cualquier pantalla sin una medida escrita a mano. */}
-        <nav aria-label="Navegación" className="flex items-center gap-3 pt-1">
-          <Link href="/menu" className="trat-volver">
+            LOS DOS NÚMEROS NO SON IGUALES A PROPÓSITO. 44 arriba y 24 abajo:
+            el hueco de arriba separa la barra del canto de la pantalla y el de
+            abajo la separa del bloque de encabezado, que empieza justo
+            después. Si fueran iguales, la barra se leería flotando en medio de
+            dos vacíos en vez de encabezando lo que viene debajo. */}
+        <nav
+          aria-label="Navegación"
+          className="flex items-center gap-3 pt-3 pb-6"
+        >
+          {/* LLEVA A LA PORTADA, no a /menu. */}
+          <Link href="/" className="trat-volver">
             <span aria-hidden="true" className="trat-volver-flecha">
               ←
             </span>
-            Volver al menú
+            <span className="trat-volver-texto">Volver al menú</span>
           </Link>
 
           <span aria-hidden="true" className="trat-nav-regla" />
@@ -371,16 +392,12 @@ export function PantallaTratamientos({
                     </span>
                   </div>
 
-                  <a
-                    href={waLink(`Hola Axel, me interesa ${servicio.name}.`)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    tabIndex={esFrente ? 0 : -1}
-                    aria-label={`Escríbeme por WhatsApp sobre ${servicio.name}`}
-                    className="trat-ficha-wa"
-                  >
-                    <span aria-hidden="true">↗</span>
-                  </a>
+                  {/* AQUÍ VIVÍA UN ENLACE DE WHATSAPP POR FICHA -- una flecha en
+                      la esquina superior de la carta, con su propio mensaje
+                      prellenado por tratamiento --. Se retiró: la conversión de
+                      la página vive entera en el botón del cierre, y esas cinco
+                      flechas eran cinco entradas más a la misma acción,
+                      repartidas por una superficie que además es arrastrable. */}
 
                   <div className="trat-banda">
                     <p className="trat-banda-kicker">{ficha?.kicker}</p>

@@ -1,0 +1,5 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;overflow:hidden}#f{border:0;display:block}</style></head><body>
+<iframe id="f" src="/galeria"></iframe>
+<script>var P=location.hash.slice(1).split(','),f=document.getElementById('f');f.width=+P[0];f.height=+P[1];
+f.onload=function(){setTimeout(function(){var d=f.contentDocument,w=f.contentWindow;
+ w.scrollTo(0,d.documentElement.scrollHeight);},3000)};</script></body></html>
