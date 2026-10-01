@@ -11,7 +11,6 @@ import {
 } from "react";
 import type { Service } from "@/data/services";
 import { mxn } from "@/data/services";
-import { waLink } from "@/lib/site";
 
 // LA PANTALLA DE /menu/tratamientos.
 //
